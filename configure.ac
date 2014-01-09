@@ -1,11 +1,11 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.68])
-AC_INIT([gaprec], [0.1], [pgopalan@cs.princeton.edu])
+AC_PREREQ([2.63])
+AC_INIT([hgaprec], [0.1], [pgopalan@cs.princeton.edu])
 : ${CFLAGS="-O3"}
 : ${CXXFLAGS="-O3"}
-AM_INIT_AUTOMAKE([gaprec], [0.1])
+AM_INIT_AUTOMAKE([hgaprec], [0.1])
 AC_CONFIG_SRCDIR([src/env.hh])
 # AC_CONFIG_HEADERS([config.h])
 

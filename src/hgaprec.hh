@@ -1,14 +1,14 @@
-#ifndef COLLABTM_HH
-#define COLLABTM_HH
+#ifndef HGAPREC_HH
+#define HGAPREC_HH
 
 #include "env.hh"
 #include "ratings.hh"
 #include "gpbase.hh"
 
-class CollabTM {
+class HGAPRec {
 public:
-  CollabTM(Env &env, Ratings &ratings);
-  ~CollabTM() { fclose(_af); }
+  HGAPRec(Env &env, Ratings &ratings);
+  ~HGAPRec() { fclose(_af); }
   
   void batch_infer();
   void ppc();
@@ -76,14 +76,14 @@ private:
 };
 
 inline uint32_t
-CollabTM::duration() const
+HGAPRec::duration() const
 {
   time_t t = time(0);
   return t - _start_time;
 }
 
 inline bool
-CollabTM::rating_ok(const Rating &r) const
+HGAPRec::rating_ok(const Rating &r) const
 {
   assert (r.first  < _nusers && r.second < _ndocs);
   const CountMap::const_iterator u = _test_map.find(r);

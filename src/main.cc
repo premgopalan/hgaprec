@@ -1,5 +1,5 @@
 #include "env.hh"
-#include "collabtm.hh"
+#include "hgaprec.hh"
 #include "ratings.hh"
 
 #include <stdlib.h>
@@ -223,11 +223,11 @@ main(int argc, char **argv)
   }
   
   if (!ppc) {
-    CollabTM collabtm(env, ratings);
-    collabtm.batch_infer();
+    HGAPRec hgaprec(env, ratings);
+    hgaprec.batch_infer();
   } else {
-    CollabTM collabtm(env, ratings);
-    collabtm.ppc();
+    HGAPRec hgaprec(env, ratings);
+    hgaprec.ppc();
   }
   exit(0);
 }

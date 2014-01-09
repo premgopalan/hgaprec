@@ -1,6 +1,6 @@
-#include "collabtm.hh"
+#include "hgaprec.hh"
 
-CollabTM::CollabTM(Env &env, Ratings &ratings)
+HGAPRec::HGAPRec(Env &env, Ratings &ratings)
   : _env(env), _ratings(ratings),
     _nusers(env.nusers), 
     _ndocs(env.ndocs),
@@ -40,7 +40,7 @@ CollabTM::CollabTM(Env &env, Ratings &ratings)
 }
 
 void
-CollabTM::initialize()
+HGAPRec::initialize()
 {
   if (_env.use_docs) {
     if (_env.lda) { // fix lda topics and doc memberships
@@ -109,7 +109,7 @@ CollabTM::initialize()
 }
 
 void
-CollabTM::initialize_perturb_betas()
+HGAPRec::initialize_perturb_betas()
 {
   if (_env.use_docs) {
     _beta.initialize();
@@ -137,7 +137,7 @@ CollabTM::initialize_perturb_betas()
 }
 
 void
-CollabTM::seq_init_helper()
+HGAPRec::seq_init_helper()
 {
   if (!_env.fixed_doc_param) {
     _beta.set_to_prior_curr();
@@ -175,7 +175,7 @@ CollabTM::seq_init_helper()
 }
 
 void
-CollabTM::load_validation_and_test_sets()
+HGAPRec::load_validation_and_test_sets()
 {
   char buf[4096];
   sprintf(buf, "%s/validation.tsv", _env.datfname.c_str());
@@ -245,7 +245,7 @@ CollabTM::load_validation_and_test_sets()
 }
 
 void
-CollabTM::write_coldstart_docs(FILE *f, MovieMap &mp)
+HGAPRec::write_coldstart_docs(FILE *f, MovieMap &mp)
 {
   for (MovieMap::const_iterator i = mp.begin(); i != mp.end(); ++i) {
     uint32_t p = i->first;
@@ -258,7 +258,7 @@ CollabTM::write_coldstart_docs(FILE *f, MovieMap &mp)
 
 
 void
-CollabTM::get_phi(GPBase<Matrix> &a, uint32_t ai, 
+HGAPRec::get_phi(GPBase<Matrix> &a, uint32_t ai, 
 		  GPBase<Matrix> &b, uint32_t bi, 
 		  Array &phi)
 {
@@ -275,7 +275,7 @@ CollabTM::get_phi(GPBase<Matrix> &a, uint32_t ai,
 
 
 void
-CollabTM::get_xi(uint32_t nu, uint32_t nd, 
+HGAPRec::get_xi(uint32_t nu, uint32_t nd, 
 		 Array &xi,
 		 Array &xi_a,
 		 Array &xi_b)
@@ -302,7 +302,7 @@ CollabTM::get_xi(uint32_t nu, uint32_t nd,
 }
 
 void
-CollabTM::seq_init()
+HGAPRec::seq_init()
 {
   seq_init_helper();
 
@@ -351,7 +351,7 @@ CollabTM::seq_init()
 }
 
 void
-CollabTM::batch_infer()
+HGAPRec::batch_infer()
 {
   if (!_env.seq_init && !_env.seq_init_samples) {
     if (_env.perturb_only_beta_shape)
@@ -482,7 +482,7 @@ CollabTM::batch_infer()
 
 
 void
-CollabTM::update_all_rates()
+HGAPRec::update_all_rates()
 {
   if (_env.use_docs && !_env.fixed_doc_param) {
     // update theta rate
@@ -546,7 +546,7 @@ CollabTM::update_all_rates()
 }
 
 void
-CollabTM::update_all_rates_in_seq()
+HGAPRec::update_all_rates_in_seq()
 {
   if (_env.use_docs && !_env.fixed_doc_param) {
     // update theta rate
@@ -627,7 +627,7 @@ CollabTM::update_all_rates_in_seq()
 }
 
 void
-CollabTM::swap_all()
+HGAPRec::swap_all()
 {
   if (_env.use_docs && !_env.fixed_doc_param) {
     _theta.swap();
@@ -642,7 +642,7 @@ CollabTM::swap_all()
 }
 
 void
-CollabTM::compute_all_expectations()
+HGAPRec::compute_all_expectations()
 {
   if (_env.use_docs && !_env.fixed_doc_param) { 
     _theta.compute_expectations();
@@ -658,7 +658,7 @@ CollabTM::compute_all_expectations()
 }
 
 void
-CollabTM::approx_log_likelihood()
+HGAPRec::approx_log_likelihood()
 {
   return; // XXX
   if (_nusers > 10000 || _k > 10)
@@ -764,7 +764,7 @@ CollabTM::approx_log_likelihood()
 }
 
 void
-CollabTM::save_model()
+HGAPRec::save_model()
 {
   IDMap idmap; // null map
   if (_env.use_ratings) {
@@ -783,7 +783,7 @@ CollabTM::save_model()
 }
 
 void
-CollabTM::ppc()
+HGAPRec::ppc()
 {
   printf("loading theta\n");
   _theta.load();
@@ -849,7 +849,7 @@ CollabTM::ppc()
 }
 
 void
-CollabTM::compute_likelihood(bool validation)
+HGAPRec::compute_likelihood(bool validation)
 {
   assert (_env.use_ratings);
 
@@ -916,7 +916,7 @@ CollabTM::compute_likelihood(bool validation)
 
 
 double
-CollabTM::per_rating_likelihood(uint32_t user, uint32_t doc, yval_t y) const
+HGAPRec::per_rating_likelihood(uint32_t user, uint32_t doc, yval_t y) const
 {
   assert (_env.use_ratings);
 
@@ -951,7 +951,7 @@ CollabTM::per_rating_likelihood(uint32_t user, uint32_t doc, yval_t y) const
 }
 
 uint32_t
-CollabTM::factorial(uint32_t n)  const
+HGAPRec::factorial(uint32_t n)  const
 { 
   //return n <= 1 ? 1 : (n * factorial(n-1));
   uint32_t v = 1;
@@ -961,7 +961,7 @@ CollabTM::factorial(uint32_t n)  const
 } 
 
 double
-CollabTM::log_factorial(uint32_t n)  const
+HGAPRec::log_factorial(uint32_t n)  const
 { 
   //return n <= 1 ? 1 : (n * factorial(n-1));
   double v = log(1);
@@ -971,7 +971,7 @@ CollabTM::log_factorial(uint32_t n)  const
 } 
 
 double
-CollabTM::coldstart_ratings_likelihood(uint32_t user, uint32_t doc) const
+HGAPRec::coldstart_ratings_likelihood(uint32_t user, uint32_t doc) const
 {
   // XXX
 }

@@ -20,16 +20,14 @@ using namespace std;
 class Ratings {
 public:
   Ratings(Env &env):
-    _users2rating(env.nusers),
-    _users(env.nusers),
-    _movies(env.ndocs),
-    _docs2words(env.ndocs),
+    _users2rating(env.n),
+    _users(env.n),
+    _movies(env.m),
     _env(env),
     _curr_user_seq(0), 
     _curr_movie_seq(0),
     _nratings(0),
-    _likes(0),
-    _movies_read(false) { }
+    _likes(0) { }
   ~Ratings() { }
 
   int read(string s);
@@ -50,7 +48,6 @@ public:
  
   const vector<uint32_t> *get_users(uint32_t a);
   const vector<uint32_t> *get_movies(uint32_t a);
-  const WordVec *get_words(uint32_t docid);
 
   const IDMap &user2seq() const { return _user2seq; }
   const IDMap &seq2user() const { return _seq2user; }
@@ -61,9 +58,6 @@ public:
   void load_movies_metadata(string dir);
   int read_test_users(FILE *f, UserMap *);
 
-  uint32_t to_movie_id(uint32_t mov_seq) const;
-  uint32_t to_user_id(uint32_t user_seq) const;
-
   string movie_type(uint32_t movie_seq) const;
   string movie_name(uint32_t movie_seq) const;
   
@@ -73,22 +67,18 @@ private:
   int read_movielens(string dir);
   int read_mendeley(string dir);
   int read_echonest(string dir);
+  int read_nyt(string dir);
   int read_movielens_metadata(string dir);
   int read_netflix_metadata(string dir);
   int read_mendeley_metadata(string dir);
-  int read_generic_docs(string dir);
-  
   string movies_by_user_s() const;
   bool add_movie(uint32_t id);
   bool add_user(uint32_t id);
 
-
-  SparseRatingMatrix _users2rating;
+  SparseMatrixR _users2rating;
   SparseMatrix _users;
   SparseMatrix _movies;
   vector<Rating> _ratings;
-
-  SparseWordMatrix _docs2words;
 
   Env &_env;
   IDMap _user2seq;
@@ -104,7 +94,6 @@ private:
   uint32_t _likes;
   StrMapInv _movie_names;
   StrMapInv _movie_types;
-  bool _movies_read;
 };
 
 inline uint32_t
@@ -122,8 +111,8 @@ Ratings::m() const
 inline bool
 Ratings::add_user(uint32_t id)
 {
-  if (_curr_user_seq >= _env.nusers) {
-    debug("max users %d reached", _env.nusers);
+  if (_curr_user_seq >= _env.n) {
+    debug("max users %d reached", _env.n);
     return false;
   }
   _user2seq[id] = _curr_user_seq;
@@ -141,8 +130,8 @@ Ratings::add_user(uint32_t id)
 inline bool
 Ratings::add_movie(uint32_t id)
 {
-  if (_curr_movie_seq >= _env.ndocs) {
-    debug("max movies %d reached", _env.ndocs);
+  if (_curr_movie_seq >= _env.m) {
+    debug("max movies %d reached", _env.m);
     return false;
   }
   _movie2seq[id] = _curr_movie_seq;
@@ -158,7 +147,7 @@ Ratings::add_movie(uint32_t id)
 inline uint32_t
 Ratings::r(uint32_t a, uint32_t b) const
 {
-  assert (a < _env.nusers && b < _env.ndocs);
+  assert (a < _env.n && b < _env.m);
   const RatingMap *rm = _users2rating[a];
   assert(rm);
   const RatingMap &rmc = *rm;
@@ -182,14 +171,6 @@ Ratings::get_movies(uint32_t a)
   return v;
 }
 
-inline const WordVec *
-Ratings::get_words(uint32_t docid)
-{
-  assert (docid < _env.ndocs);
-  const WordVec *v = _docs2words[docid];
-  return v;
-}
-
 inline const uint8_t
 Ratings::rating_class(uint32_t v)
 {
@@ -199,7 +180,7 @@ Ratings::rating_class(uint32_t v)
 inline string
 Ratings::movie_name(uint32_t movie_seq) const
 {
-  assert (movie_seq < _env.ndocs);
+  assert (movie_seq < _env.m);
   StrMapInv::const_iterator i = _movie_names.find(movie_seq);
   if (i != _movie_names.end())
     return i->second;
@@ -209,28 +190,11 @@ Ratings::movie_name(uint32_t movie_seq) const
 inline string
 Ratings::movie_type(uint32_t movie_seq) const
 {
-  assert (movie_seq < _env.ndocs);
+  assert (movie_seq < _env.m);
   StrMapInv::const_iterator i = _movie_types.find(movie_seq);
   if (i != _movie_types.end())
     return i->second;
   return "";
-}
-
-inline uint32_t
-Ratings::to_user_id(uint32_t user_seq) const
-{
-  IDMap::const_iterator it = _seq2user.find(user_seq);
-  assert (it != _seq2user.end());
-  return it->second;
-}
-
-
-inline uint32_t
-Ratings::to_movie_id(uint32_t mov_seq) const
-{
-  IDMap::const_iterator it = _seq2movie.find(mov_seq);
-  assert (it != _seq2movie.end());
-  return it->second;
 }
 
 #endif

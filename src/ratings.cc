@@ -10,7 +10,7 @@ Ratings::read(string s)
 
   if (_env.mode == Env::CREATE_TRAIN_TEST_SETS) {
     if (_env.dataset == Env::NETFLIX) {
-      for (uint32_t i = 0; i < _env.ndocs; ++i) {
+      for (uint32_t i = 0; i < _env.m; ++i) {
 	if (read_netflix_movie(s,i+1) < 0) {
 	  lerr("error adding movie %d\n", i);
 	  return -1;
@@ -22,17 +22,10 @@ Ratings::read(string s)
       read_mendeley(s);
     else if (_env.dataset == Env::ECHONEST)
       read_echonest(s);
-  } else  {
-    // this ordering allows doc id == doc seq
-    // a necessary condition while loading LDA fits
-    // into collabtm's beta and theta
-    if (_env.use_docs) {
-      read_generic_docs(s);
-      _movies_read = true;
-    }
-    if (_env.use_ratings)
-      read_generic_train(s);
-  }
+    else if (_env.dataset == Env::NYT)
+      read_nyt(s);
+  } else 
+    read_generic_train(s);
     
   char st[1024];
   sprintf(st, "read %d users, %d movies, %d ratings", 
@@ -57,12 +50,6 @@ Ratings::read_generic_train(string dir)
   read_generic(f, NULL);
   fclose(f);
   Env::plog("training ratings", _nratings);
-
-  _env.nusers = _curr_user_seq;
-  _env.ndocs = _curr_movie_seq;
-
-  Env::plog("nusers = ", _env.nusers);
-  Env::plog("ndocs = ", _env.ndocs);
 }
 
 int
@@ -77,21 +64,19 @@ Ratings::read_generic(FILE *f, CountMap *cmap)
       fclose(f);
       exit(-1);
     }
-    IDMap::iterator mt = _movie2seq.find(mid);
-    if (_movies_read && mt == _movie2seq.end())  // skip this entry
-      continue;
 
     IDMap::iterator it = _user2seq.find(uid);
     if (it == _user2seq.end() && !add_user(uid)) {
-      //lerr("error: exceeded user limit %d, %d, %d\n",
-      //uid, mid, rating);
-      //fflush(stdout);
+      printf("error: exceeded user limit %d, %d, %d\n",
+	     uid, mid, rating);
+      fflush(stdout);
       continue;
     }
     
+    IDMap::iterator mt = _movie2seq.find(mid);
     if (mt == _movie2seq.end() && !add_movie(mid)) {
       printf("error: exceeded movie limit %d, %d, %d\n",
-	     uid, mid, rating);
+	      uid, mid, rating);
       fflush(stdout);
       continue;
     }
@@ -223,6 +208,98 @@ Ratings::read_echonest(string dir)
 }
 
 int
+Ratings::read_nyt(string dir)
+{
+  printf("reading nyt dataset...\n");
+  fflush(stdout);
+  uint32_t mcurr = 1, scurr = 1;
+  char buf[1024];
+  sprintf(buf, "%s/nyt-clicks.tsv", dir.c_str());
+
+  FILE *f = fopen(buf, "r");
+  if (!f) {
+    fprintf(stderr, "error: cannot open file %s:%s", buf, strerror(errno));
+    fclose(f);
+    exit(-1);
+  }
+  uint32_t mid = 0, uid = 0, rating = 0;
+  char mids[512], uids[512];
+  char b[128];
+  while (!feof(f)) {
+    if (fscanf(f, "%s\t%s\t%u\n", uids, mids, &rating) < 0) {
+      printf("error: unexpected lines in file\n");
+      fclose(f);
+      exit(-1);
+    }
+
+    StrMap::iterator uiditr = _str2id.find(uids);
+    if (uiditr == _str2id.end()) {
+      _str2id[uids] = scurr;
+      scurr++;
+    }
+    uid = _str2id[uids];
+    
+    StrMap::iterator miditr = _str2id.find(mids);
+    if (miditr == _str2id.end()) {
+      _str2id[mids] = mcurr;
+      mcurr++;
+    }
+    mid = _str2id[mids];
+
+    IDMap::iterator it = _user2seq.find(uid);
+    if (it == _user2seq.end() && !add_user(uid)) {
+      printf("error: exceeded user limit %d, %d, %d\n",
+	     uid, mid, rating);
+      fflush(stdout);
+      continue;
+    }
+    
+    IDMap::iterator mt = _movie2seq.find(mid);
+    if (mt == _movie2seq.end() && !add_movie(mid)) {
+      printf("error: exceeded movie limit %d, %d, %d\n",
+	     uid, mid, rating);
+      fflush(stdout);
+      continue;
+    }
+    
+    uint32_t m = _movie2seq[mid];
+    uint32_t n = _user2seq[uid];
+
+    _user2str[n] = uids;
+    _movie2str[m] = mids;
+
+    if (rating > 0) {
+      _nratings++;
+      RatingMap *rm = _users2rating[n];
+      (*rm)[m] = rating;
+      _users[n]->push_back(m);
+      _movies[m]->push_back(n);
+      _ratings.push_back(Rating(n,m));
+    }
+    if (_nratings % 1000 == 0) {
+      printf("\r+ read %d users, %d movies, %d ratings", 
+	     _curr_user_seq, _curr_movie_seq, _nratings);
+      fflush(stdout);
+    }
+  }
+  fclose(f);
+
+  sprintf(buf, "%s/str2id.tsv", dir.c_str());
+
+  uint32_t q = 0;
+  f = fopen(buf, "w");
+  for (StrMap::const_iterator i = _str2id.begin(); i != _str2id.end(); ++i) {
+    if (strlen(i->first.c_str()) >= strlen("10219231518"))  {
+      fprintf(f, "%s\t%d\n", i->first.c_str(), i->second);
+      q++;
+    }
+  }
+  fclose(f);
+  Env::plog("wrote %d str2id entries", q);
+  return 0;
+}
+
+int
 Ratings::read_mendeley(string dir)
 {
   char buf[1024];
@@ -275,8 +352,8 @@ Ratings::read_mendeley(string dir)
       continue;
     }
     
-    for (uint32_t m = 0; m < mids.size(); ++m) {
-      uint32_t mid = mids[m];
+    for (uint32_t idx = 0; idx < mids.size(); ++idx) {
+      uint32_t mid = mids[idx];
       IDMap::iterator mt = _movie2seq.find(mid);
       if (mt == _movie2seq.end() && !add_movie(mid)) {
 	printf("error: exceeded movie limit %d, %d, %d\n",
@@ -302,82 +379,6 @@ Ratings::read_mendeley(string dir)
       fflush(stdout);
     }
   }
-  fclose(f);
-  return 0;
-}
-
-int
-Ratings::read_generic_docs(string dir)
-{
-  char buf[1024];
-  sprintf(buf, "%s/mult.dat", dir.c_str());
-  
-  info("reading from %s\n", buf);
-
-  FILE *f = fopen(buf, "r");
-  if (!f) {
-    fprintf(stderr, "error: cannot open file %s:%s", buf, strerror(errno));
-    fclose(f);
-    exit(-1);
-  }
-  
-  uint32_t maxwid = 0;
-  uint32_t docid = 0, docseq = 0;
-  char b[128];
-  while (!feof(f)) {
-    vector<uint32_t> mids;
-    uint32_t len = 0;
-    if (fscanf(f, "%u\t", &len) < 0) {
-      lerr("error: unexpected lines in file\n");
-      fclose(f);
-      lerr("docseq = %d, docid = %d, maxwid = %d\n", docseq, docid, maxwid);
-      _env.ndocs = _curr_movie_seq;
-      Env::plog("ndocs loaded (limited by nusers)", _env.ndocs);
-      return 0;
-    }
-
-    IDMap::iterator mt = _movie2seq.find(docid);
-    if (mt == _movie2seq.end() && !add_movie(docid)) {
-      Env::plog("ndocs loaded (limited by ndocs)", _curr_movie_seq);
-      lerr("warning: exceeded movie limit %d\n", docid);
-      lerr("docseq = %d, docid = %d, maxwid = %d\n", docseq, docid, maxwid);
-      fclose(f);
-      return 0;
-    }
-    mt = _movie2seq.find(docid);
-    docseq = mt->second;
-    debug("found docid %d docseq %d\n", docid, docseq);
-    
-    uint32_t wid = 1, wc = 0;
-    for (uint32_t i = 0; i < len; ++i) {
-      if (i == len - 1) {
-	if (fscanf(f, "%u:%u\n", &wid, &wc) < 0) {
-	  printf("error: unexpected lines in file\n");
-	  fclose(f);
-	  exit(-1);
-	}
-      } else {
-	if (fscanf(f, "%u:%u\t", &wid, &wc) < 0) {
-	  printf("error: unexpected lines in file\n");
-	  fclose(f);
-	  exit(-1);
-	}
-      }
-      if (!_docs2words[docseq]) {
-	WordVec **wm = _docs2words.data();
-	wm[docseq] = new WordVec;
-      } 
-      WordVec *wm = _docs2words[docseq];
-      wm->push_back(WordCount(wid, wc));
-
-      if (wid > maxwid) {
-	maxwid = wid;
-      }
-    }
-    docid++;
-  }
-  printf("docseq = %d, docid = %d, maxwid = %d\n", docseq, docid-1, maxwid);
-  fflush(stdout);
   fclose(f);
   return 0;
 }

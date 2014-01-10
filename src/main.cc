@@ -13,8 +13,6 @@ FILE *Env::_plogf = NULL;
 void usage();
 void test();
 
-void postprocess(Env &);
-
 Env *env_global = NULL;
 volatile sig_atomic_t sig_handler_active = 0;
 
@@ -35,8 +33,11 @@ int
 main(int argc, char **argv)
 {
   signal(SIGTERM, term_handler);
-  if (argc <= 1)
+  if (argc <= 1) {
+    printf("gaprec -dir <netflix-dataset-dir> -n <users>" \
+	   "-m <movies> -k <dims> -label <out-dir-tag>\n");
     exit(0);
+  }
 
   string fname;
   uint32_t n = 0, m = 0;
@@ -60,6 +61,7 @@ main(int argc, char **argv)
 
   bool hol_load = false;
   string hol_location = "";
+  bool vb = true;
   
   bool pred_accuracy = false;
   bool gt_accuracy = false;
@@ -67,40 +69,23 @@ main(int argc, char **argv)
   double a = 0.3, b = 0.3, c = 0.3, d = 0.3;
   Env::Dataset dataset = Env::MENDELEY;
   bool binary_data = false;
+  bool bias = false;
   bool explore = false;
-
   bool gen_ranking_for_users = false;
-  bool fixeda = false;
-  bool vbinit = false;
-  uint32_t vbinit_iterations = 10;
-  bool vb = false;
-  bool use_docs = true;
-  bool use_ratings = true;
-  bool perturb_only_beta_shape = false;
-
-  uint32_t nusers, ndocs, nvocab;
-  bool lda = false;
-  bool lda_init = false;
-  bool ppc = false;
-  bool seq_init = false;
-  bool seq_init_samples = false;
-  bool fixed_doc_param = false;
-  bool phased = false;
 
   uint32_t i = 0;
   while (i <= argc - 1) {
     if (strcmp(argv[i], "-dir") == 0) {
       fname = string(argv[++i]);
       fprintf(stdout, "+ dir = %s\n", fname.c_str());
-    } else if (strcmp(argv[i], "-nusers") == 0) {
-      nusers = atoi(argv[++i]);
-      fprintf(stdout, "+ nusers = %d\n", nusers);
-    } else if (strcmp(argv[i], "-ndocs") == 0) {
-      ndocs = atoi(argv[++i]);
-      fprintf(stdout, "+ ndocs = %d\n", ndocs);
-    } else if (strcmp(argv[i], "-nvocab") == 0) {
-      nvocab = atoi(argv[++i]);
-      fprintf(stdout, "+ nvocab = %d\n", nvocab);
+    } else if (strcmp(argv[i], "-n") == 0) {
+      n = atoi(argv[++i]);
+      fprintf(stdout, "+ n = %d\n", n);
+    } else if (strcmp(argv[i], "-p") == 0) {
+      p = true;
+    } else if (strcmp(argv[i], "-m") == 0) {
+      m = atoi(argv[++i]);
+      fprintf(stdout, "+ m = %d\n", m);
     } else if (strcmp(argv[i], "-k") == 0) {
       k = atoi(argv[++i]);
       fprintf(stdout, "+ k = %d\n", k);
@@ -156,41 +141,24 @@ main(int argc, char **argv)
       dataset = Env::MOVIELENS;
     } else if (strcmp(argv[i], "-echonest") == 0) {
       dataset = Env::ECHONEST;
+    } else if (strcmp(argv[i], "-nyt") == 0) {
+      dataset = Env::NYT;
+    } else if (strcmp(argv[i], "-a") == 0) {
+      a = atof(argv[++i]);
+    } else if (strcmp(argv[i], "-b") == 0) {
+      b = atof(argv[++i]);
+    } else if (strcmp(argv[i], "-c") == 0) {
+      c = atof(argv[++i]);
+    } else if (strcmp(argv[i], "-d") == 0) {
+      d = atof(argv[++i]);
     } else if (strcmp(argv[i], "-binary-data") == 0) {
       binary_data = true;
-    } else if (strcmp(argv[i], "-explore") == 0) {
-      explore = true;
+    } else if (strcmp(argv[i], "-bias") == 0) {
+      bias = true;
     } else if (strcmp(argv[i], "-gen-ranking") == 0) {
       gen_ranking_for_users = true;
-    } else if (strcmp(argv[i], "-fixeda") == 0) {
-      fixeda = true;
-    } else if (strcmp(argv[i], "-vbinit") == 0) {
-      vbinit = true;
-      vbinit_iterations = atoi(argv[++i]);
-    } else if (strcmp(argv[i], "-vb") == 0) {
-      vb = true;
-    } else if (strcmp(argv[i], "-doc-only") == 0) {
-      use_docs = true;
-      use_ratings = false;
-    } else if (strcmp(argv[i], "-ratings-only") == 0) {
-      use_docs = false;
-      use_ratings = true;
-    } else if (strcmp(argv[i], "-init0") == 0) {
-      perturb_only_beta_shape = true;
-    } else if (strcmp(argv[i], "-lda") == 0) {
-      lda = true;
-    } else if (strcmp(argv[i], "-lda-init") == 0) {
-      lda_init = true;
-    } else if (strcmp(argv[i], "-ppc") == 0) {
-      ppc = true;
-    } else if (strcmp(argv[i], "-seq-init") == 0) {
-      seq_init = true;
-    } else if (strcmp(argv[i], "-seq-init-samples") == 0) {
-      seq_init_samples = true;
-    } else if (strcmp(argv[i], "-fixed-doc-param") == 0) {
-      fixed_doc_param = true;
-    } else if (strcmp(argv[i], "-phased") == 0) {
-      phased = true;
+    } else if (strcmp(argv[i], "-novb") == 0) {
+      vb = false;
     } else if (i > 0) {
       fprintf(stdout,  "error: unknown option %s\n", argv[i]);
       assert(0);
@@ -198,37 +166,35 @@ main(int argc, char **argv)
     ++i;
   };
 
-  Env env(ndocs, nvocab, nusers, k, 
-	  fname, nmi, ground_truth_fname, rfreq, 
+  Env env(n, m, k, fname, nmi, ground_truth_fname, rfreq, 
 	  strid, label, logl, rand_seed, max_iterations, 
 	  model_load, model_location, 
-	  gen_heldout, dataset,
-	  batch, binary_data, vb, explore, 
-	  fixeda, vbinit, vbinit_iterations,
-	  use_docs, use_ratings, perturb_only_beta_shape,
-	  lda, lda_init, ppc, seq_init, seq_init_samples,
-	  fixed_doc_param, phased);
-  
+	  gen_heldout, a, b, c, d, dataset, 
+	  batch, binary_data, bias, explore, vb);
   env_global = &env;
-  if (p) {
-    postprocess(env);
-    exit(0);
-  }
-  
+
   Ratings ratings(env);
   if (ratings.read(fname.c_str()) < 0) {
     fprintf(stderr, "error reading dataset from dir %s; quitting\n", 
 	    fname.c_str());
     return -1;
   }
-  
-  if (!ppc) {
-    HGAPRec hgaprec(env, ratings);
-    hgaprec.batch_infer();
-  } else {
-    HGAPRec hgaprec(env, ratings);
-    hgaprec.ppc();
-  }
-  exit(0);
-}
 
+  if (gen_ranking_for_users) {
+    HGAPRec hgaprec(env, ratings);
+    hgaprec.gen_ranking_for_users();
+    exit(0);
+  }
+
+  if (batch) {
+    HGAPRec hgaprec(env, ratings);
+    if (bias)
+      hgaprec.vb_bias();
+    else
+      hgaprec.vb();
+  } else {
+    printf("Quitting. Online inference not implemented.\n");
+    fflush(stdout);
+    exit(0);
+  }
+}

@@ -104,6 +104,7 @@ public:
   void compute_expectations();
   void sum_rows(Array &v);
   void scaled_sum_rows(Array &v, const Array &scale);
+  void sum_cols(Array &v);
   void initialize();
   void initialize_exp();
   void save_state(const IDMap &m) const;
@@ -219,6 +220,15 @@ GPMatrix::sum_rows(Array &v)
 }
 
 inline void
+GPMatrix::sum_cols(Array &v)
+{
+  const double **ev = _Ev.const_data();
+  for (uint32_t i = 0; i < _n; ++i)
+    for (uint32_t k = 0; k < _k; ++k)
+      v[i] += ev[i][k];
+}
+
+inline void
 GPMatrix::scaled_sum_rows(Array &v, const Array &scale)
 {
   assert(scale.size() == n() && v.size() == k());
@@ -293,7 +303,7 @@ GPMatrix::save_state(const IDMap &m) const
 {
   string expv_fname = string("/") + name() + ".tsv";
   string shape_fname = string("/") + name() + "_shape.tsv";
-  string rate_fname = string("/") + name() + "_scale.tsv";
+  string rate_fname = string("/") + name() + "_rate.tsv";
   _scurr.save(Env::file_str(shape_fname), m);
   _rcurr.save(Env::file_str(rate_fname), m);
   _Ev.save(Env::file_str(expv_fname), m);
@@ -303,7 +313,7 @@ inline void
 GPMatrix::load()
 {
   string shape_fname = name() + "_shape.tsv";
-  string rate_fname = name() + "_scale.tsv";
+  string rate_fname = name() + "_rate.tsv";
   _scurr.load(shape_fname);
   _rcurr.load(rate_fname);
   compute_expectations();
@@ -378,6 +388,7 @@ public:
   void update_shape_next(uint32_t n, const Array &sphi);
   void update_shape_next(uint32_t n, const uArray &sphi);
   void update_shape_curr(uint32_t n, const uArray &sphi);
+  void update_shape_next(uint32_t n, uint32_t k, double v);
 
   void update_rate_next(const Array &u);
   void update_rate_curr(const Array &u);
@@ -388,6 +399,7 @@ public:
   void initialize();
   void initialize_exp();
   double compute_elbo_term_helper() const;
+  void sum_cols(Array &v);
 
   void save_state(const IDMap &m) const;
   void load();
@@ -432,6 +444,13 @@ inline void
 GPMatrixGR::update_shape_next(uint32_t n, const uArray &sphi)
 {
   _snext.add_slice(n, sphi);
+}
+
+inline void
+GPMatrixGR::update_shape_next(uint32_t n, uint32_t k, double v)
+{
+  double **snextd = _snext.data();
+  snextd[n][k] += v;
 }
 
 inline void
@@ -491,6 +510,14 @@ GPMatrixGR::sum_rows(Array &v)
       v[k] += ev[i][k];
 }
 
+inline void
+GPMatrixGR::sum_cols(Array &v)
+{
+  const double **ev = _Ev.const_data();
+  for (uint32_t i = 0; i < _n; ++i)
+    for (uint32_t k = 0; k < _k; ++k)
+      v[i] += ev[i][k];
+}
 
 inline void
 GPMatrixGR::scaled_sum_rows(Array &v, const Array &scale)
@@ -505,7 +532,7 @@ GPMatrixGR::scaled_sum_rows(Array &v, const Array &scale)
 inline void
 GPMatrixGR::initialize()
 {
-  /*
+  /* 
   double **ad = _scurr.data();
   double *bd = _rcurr.data();
   for (uint32_t i = 0; i < _n; ++i)
@@ -526,7 +553,7 @@ GPMatrixGR::initialize()
     }
   set_to_prior();
   */
-
+  
   double **ad = _scurr.data();
   double *bd = _rcurr.data();
   for (uint32_t i = 0; i < _n; ++i)
@@ -585,7 +612,7 @@ GPMatrixGR::save_state(const IDMap &m) const
 {
   string expv_fname = string("/") + name() + ".tsv";
   string shape_fname = string("/") + name() + "_shape.tsv";
-  string rate_fname = string("/") + name() + "_scale.tsv";
+  string rate_fname = string("/") + name() + "_rate.tsv";
   _scurr.save(Env::file_str(shape_fname), m);
   _rcurr.save(Env::file_str(rate_fname), m);
   _Ev.save(Env::file_str(expv_fname), m);
@@ -595,7 +622,7 @@ inline void
 GPMatrixGR::load()
 {
   string shape_fname = name() + "_shape.tsv";
-  string rate_fname = name() + "_scale.tsv";
+  string rate_fname = name() + "_rate.tsv";
   _scurr.load(shape_fname);
   _rcurr.load(rate_fname);
   compute_expectations();
@@ -792,7 +819,7 @@ GPArray::save_state(const IDMap &m) const
 {
   string expv_fname = string("/") + name() + ".tsv";
   string shape_fname = string("/") + name() + "_shape.tsv";
-  string rate_fname = string("/") + name() + "_scale.tsv";
+  string rate_fname = string("/") + name() + "_rate.tsv";
   _scurr.save(Env::file_str(shape_fname), m);
   _rcurr.save(Env::file_str(rate_fname), m);
   _Ev.save(Env::file_str(expv_fname), m);
@@ -802,7 +829,7 @@ inline void
 GPArray::load()
 {
   string shape_fname = name() + "_shape.tsv";
-  string rate_fname = name() + "_scale.tsv";
+  string rate_fname = name() + "_rate.tsv";
   _scurr.load(shape_fname);
   _rcurr.load(rate_fname);
   compute_expectations();

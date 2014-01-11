@@ -33,12 +33,15 @@ private:
   
   void do_on_stop();
   void compute_precision(bool save_ranking_file);
+
   double prediction_score(uint32_t user, uint32_t movie) const;
+  double prediction_score_hier(uint32_t user, uint32_t movie) const;
 
   void load_beta_and_theta();
   void save_model();
 
   double rating_likelihood(uint32_t p, uint32_t q, yval_t y) const;
+  double rating_likelihood_hier(uint32_t p, uint32_t q, yval_t y) const;
   uint32_t duration() const;
 
   Env &_env;
@@ -48,17 +51,20 @@ private:
   uint32_t _m;
   uint32_t _k;
   uint32_t _iter;
-
+  
   GPMatrixGR _theta;
   GPMatrixGR _beta;
 
-  GPMatrixGR _thetabias;
-  GPMatrixGR _betabias;
+  GPMatrix _thetabias;
+  GPMatrix _betabias;
+
+  GPMatrix _htheta;
+  GPMatrix _hbeta;
 
   GPArray _thetarate;
   GPArray _betarate;
-
-  CountMap _validation_map;  
+  
+  CountMap _validation_map;
   CountMap _test_map;
 
   UserMap _sampled_users;

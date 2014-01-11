@@ -59,7 +59,7 @@ public:
       bool gen_hout,
       double av, double bv, double cv, double dv,
       Env::Dataset d, bool batch, bool binary_data, 
-      bool bias, bool explore, bool vb);
+      bool bias, bool hier, bool explore, bool vb);
 
   ~Env() { fclose(_plogf); }
 
@@ -105,6 +105,7 @@ public:
   Mode mode;
   bool binary_data;
   bool bias;
+  bool hier;
   bool explore;
   bool vb;
 
@@ -196,7 +197,7 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
 	 string loc, bool gen_hout,
 	 double av, double bv, double cv, double dv,
 	 Env::Dataset datasetv, bool batchv, 
-	 bool binary_datav, bool biasv, 
+	 bool binary_datav, bool biasv,  bool hierv,
 	 bool explore, bool vbv)
   : dataset(datasetv),
     n(N),
@@ -230,7 +231,8 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
     batch(batchv),
     mode(TRAINING),
     binary_data(binary_datav),
-    bias(biasv),
+    bias(biasv), 
+    hier(hierv),
     vb(vbv)
 {
   ostringstream sa;
@@ -268,6 +270,9 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
   if (bias)
     sa << "-bias";
 
+  if (hier)
+    sa << "-hier";
+
   if (explore)
     sa << "-explore";
 
@@ -300,6 +305,8 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
   plog("d", d);
   plog("reportfreq", reportfreq);
   plog("vb", vb);
+  plog("bias", bias);
+  plog("hier", hier);
   
   //string ndatfname = file_str("/network.dat");
   //unlink(ndatfname.c_str());

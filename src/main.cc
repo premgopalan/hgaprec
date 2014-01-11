@@ -70,6 +70,7 @@ main(int argc, char **argv)
   Env::Dataset dataset = Env::MENDELEY;
   bool binary_data = false;
   bool bias = false;
+  bool hier = false;
   bool explore = false;
   bool gen_ranking_for_users = false;
 
@@ -155,6 +156,8 @@ main(int argc, char **argv)
       binary_data = true;
     } else if (strcmp(argv[i], "-bias") == 0) {
       bias = true;
+    } else if (strcmp(argv[i], "-hier") == 0) {
+      hier = true;
     } else if (strcmp(argv[i], "-gen-ranking") == 0) {
       gen_ranking_for_users = true;
     } else if (strcmp(argv[i], "-novb") == 0) {
@@ -170,7 +173,7 @@ main(int argc, char **argv)
 	  strid, label, logl, rand_seed, max_iterations, 
 	  model_load, model_location, 
 	  gen_heldout, a, b, c, d, dataset, 
-	  batch, binary_data, bias, explore, vb);
+	  batch, binary_data, bias, hier, explore, vb);
   env_global = &env;
 
   Ratings ratings(env);
@@ -190,6 +193,8 @@ main(int argc, char **argv)
     HGAPRec hgaprec(env, ratings);
     if (bias)
       hgaprec.vb_bias();
+    else if (hier)
+      hgaprec.vb_hier();
     else
       hgaprec.vb();
   } else {

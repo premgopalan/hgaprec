@@ -14,77 +14,84 @@ libraries may need to be specified:
  ./configure LDFLAGS="-L/opt/local/lib" CPPFLAGS="-I/opt/local/include"
  make; make install
 
-The binary 'collabtm' will be installed in /usr/local/bin unless a
+The binary 'gaprec' will be installed in /usr/local/bin unless a
 different prefix is provided to configure. (See INSTALL.)
 
-COLLABTM: Nonnegative Collaborative Topic Modeling tool
---------------------------------------------------------
+GAPREC: Gamma Poisson factorization based recommendation tool
+--------------------------------------------------------------
 
-**collabtm** [OPTIONS]
+**gaprec** [OPTIONS]
 
-    -dir <string>            path to dataset directory with files described under INPUT below
+   -bnp		  run inference for the infinite model
+
+   -dir <string>    path to dataset directory with 3 files:
+   		    train.tsv, test.tsv, validation.tsv
+		    (for examples, see example/movielens-1m)
  
-    -mdocs <int>	     number of documents
+   -m <int>	  number of items
+   -n <int>	  number of users
+   -k <int>	  number of factors
+   
+   -rfreq <int>	  assess convergence and compute other stats 
+   		  <int> number of iterations
+		  default: 10
 
-    -nuser <int>	     number of users
+   -a
+   -b		  set hyperparameters
+   -c		  default: a = b = c = d = 0.3
+   -d
 
-    -nvocab <int>	     size of vocabulary
-    	    
-    -k <int>                 latent dimensionality
+   -bias	  use user and item bias terms
+   -binary-data	  treat observed data as binary
+   		  (if rating > 0 then rating is treated as 1)
 
-    -fixeda                  fix the document length correction factor ('a') to 1
-
-    -binary-data             treat observed ratings data as binary; if rating > 0 then rating is treated as 1
-
-    -doc-only                use document data only
-
-    -ratings-only            use ratings data only
-
-    -lda-init                use LDA based initialization (see below)
-
-    -seq-init -doc-only	     use sequential initialization for document only fits
-
-INPUT 
------
-
-We need the same files used by the basic factorization model.
-
-train.tsv, test.tsv, validation.tsv, test_users.tsv
-
-The new files additionally needed are mult.dat and vocab.dat.  (They are really text files.) This is the "document" portion of the data. Each line of mult.dat is a document and has the following format:
-
-     <number of words> <word-id0:count0> <word-id1:count1>....
-
-Each line of vocab.dat is a word. Note that both the word index and the document index starts at 0. So a word-id in vocab.dat can be 0 and the document id "rated" in train.tsv can be 0.
-
-EXAMPLE
--------
-
-Run two versions -- with the correction scalar 'a' inferred and one with 'a' fixed at a 1.  One of these fits might be better than the other. 
-
-/disk/scratch1/prem/collabtm/src/collabtm -dir /disk/scratch1/prem/collabtm/analysis/mendeley -nusers 80278 -ndocs 261248 -nvocab 10000 -k 100
-
-/disk/scratch1/prem/collabtm/src/collabtm -dir /disk/scratch1/prem/collabtm/analysis/mendeley -nusers 80278 -ndocs 261248 -nvocab 10000 -k 100 -fixeda 
+   -gen-ranking	  generate ranking file to use in precision 
+   		  computation; see example		  
 
 
-LDA BASED INITIALIZATION
-------------------------
+Example
+--------
 
-1. Run Chong's gibbs sampler to obtain LDA fits on the word frequencies.
+(1) ../src/gaprec -dir ../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10
 
-2. Create a directory "lda-fits" within the "dataset directory" above and put
-two files in it: the topics beta-lda-k<K>.tsv and the memberships
-theta-lda-k<K>.tsv.  If K=100, these files will be named beta-lda-k100.tsv and
-theta-lda-k100.tsv, respectively.
+This will write output in n6040-m3900-k100-batch:
 
-3. Run collabtm inference with the -lda-init option as follows (the -fixeda option fixes 'a' at 1):
+* param.txt: shows hyperparameter and other settings
+* precision.txt: computed mean precision at 10 and 100 on the test.tsv
+* validation.txt: the log likelihood on the validation.tsv ratings
+* theta.txt, beta.txt: the approx. expected posterior Poisson parameters
+* a,b,c,d.txt: the approx. expected posterior Gamma parameters
+* Ei, Eu.txt: the approx. expected bias parameters, if any (default none)
+* infer.log: monitor inference progress
 
-/disk/scratch1/prem/collabtm/src/collabtm -dir /disk/scratch1/prem/collabtm/analysis/mendeley -nusers 80278 -ndocs 261248 -nvocab 10000 -k 100 -lda-init
+To generate the ranking file (ranking.tsv) for precision computation,
+run the following:
 
-/disk/scratch1/prem/collabtm/src/collabtm -dir /disk/scratch1/prem/collabtm/analysis/mendeley -nusers 80278 -ndocs 261248 -nvocab 10000 -k 100 -lda-init -fixeda
+(2) cd n6040-m3900-k100-batch;
+../../src/gaprec -dir ../../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10 -gen-ranking
+
+This will rank all y == 0 in training and the test.tsv pairs in
+decreasing order of their scores, along with true ratings from
+test.tsv.
+
+The output is now in n6040-m3900-k100-batch/ranking.tsv.
+
+Instead of (1) you could also run one of these:
+
+../src/gaprec -dir ../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10 -bias
+../src/gaprec -dir ../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10 -binary-data
+../src/gaprec -dir ../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10 -binary-data -bias
 
 
-CHONG's GIBBS SAMPLER
----------------------
+Bias terms
+----------
 
-See the package under "lda" directory.
+To model user activity and item popularity, bias parameters are
+additionally inferred for each user and item. The new \theta and \beta
+are as follows:
+    		  
+\theta_u' = [\theta_u, 1, g_u]
+\beta_i' =  [\beta_i, h_i, 1]   
+
+
+x

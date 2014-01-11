@@ -95,10 +95,12 @@ public:
   void update_shape_next(uint32_t n, const Array &sphi);
   void update_shape_next(uint32_t n, const uArray &sphi);
   void update_shape_curr(uint32_t n, const uArray &sphi);
+  void update_shape_next(uint32_t n, uint32_t k, double v);
 
   void update_rate_next(const Array &u, const Array &scale);
   void update_rate_next(const Array &u);
   void update_rate_curr(const Array &u);
+  void update_rate_next(uint32_t k, double v);
 
   void swap();
   void compute_expectations();
@@ -107,8 +109,10 @@ public:
   void sum_cols(Array &v);
   void initialize();
   void initialize_exp();
+  void initialize_exp(double v);
   void save_state(const IDMap &m) const;
   void load_from_lda(string dir, double alpha, uint32_t K);
+  void set_prior_rate(const Array &v);
 
   double compute_elbo_term_helper() const;
 
@@ -143,6 +147,14 @@ GPMatrix::set_to_prior_curr()
 }
 
 inline void
+GPMatrix::set_prior_rate(const Array &v)
+{
+  assert (v.size() == _n);
+  for (uint32_t n = 0; n < _n; ++n)
+    _rnext.set_elements(n, v[n]);
+}
+
+inline void
 GPMatrix::update_shape_next(uint32_t n, const Array &sphi)
 {
   _snext.add_slice(n, sphi);
@@ -153,6 +165,13 @@ inline void
 GPMatrix::update_shape_next(uint32_t n, const uArray &sphi)
 {
   _snext.add_slice(n, sphi);
+}
+
+inline void
+GPMatrix::update_shape_next(uint32_t n, uint32_t k, double v)
+{
+  double **snextd = _snext.data();
+  snextd[n][k] += v;
 }
 
 inline void
@@ -177,6 +196,15 @@ GPMatrix::update_rate_next(const Array &u)
 {
   for (uint32_t i = 0; i < _n; ++i)
     _rnext.add_slice(i, u);
+}
+
+
+inline void
+GPMatrix::update_rate_next(uint32_t k, double v)
+{
+  double **rd = _rnext.data();
+  for (uint32_t i = 0; i < _n; ++i)
+    rd[i][k] += v;
 }
 
 inline void
@@ -267,6 +295,24 @@ GPMatrix::initialize_exp()
   for (uint32_t i = 0; i < _n; ++i)
     for (uint32_t k = 0; k < _k; ++k) {
       b[k] = _rprior + 0.1 * gsl_rng_uniform(*_r);
+      assert(b[k]);
+      vd1[i][k] = ad[i][k] / b[k];
+      vd2[i][k] = gsl_sf_psi(ad[i][k]) - log(b[k]);
+    }
+  set_to_prior();
+} 
+
+inline void
+GPMatrix::initialize_exp(double v)
+{
+  double **ad = _scurr.data();
+  double **vd1 = _Ev.data();
+  double **vd2 = _Elogv.data();
+
+  Array b(_k);  
+  for (uint32_t i = 0; i < _n; ++i)
+    for (uint32_t k = 0; k < _k; ++k) {
+      b[k] = v + 0.1 * gsl_rng_uniform(*_r);
       assert(b[k]);
       vd1[i][k] = ad[i][k] / b[k];
       vd2[i][k] = gsl_sf_psi(ad[i][k]) - log(b[k]);
@@ -388,6 +434,7 @@ public:
   void update_shape_next(uint32_t n, const Array &sphi);
   void update_shape_next(uint32_t n, const uArray &sphi);
   void update_shape_curr(uint32_t n, const uArray &sphi);
+
   void update_shape_next(uint32_t n, uint32_t k, double v);
 
   void update_rate_next(const Array &u);
@@ -398,6 +445,7 @@ public:
   void scaled_sum_rows(Array &v, const Array &scale);
   void initialize();
   void initialize_exp();
+  void initialize_exp(double v);
   double compute_elbo_term_helper() const;
   void sum_cols(Array &v);
 
@@ -445,6 +493,7 @@ GPMatrixGR::update_shape_next(uint32_t n, const uArray &sphi)
 {
   _snext.add_slice(n, sphi);
 }
+
 
 inline void
 GPMatrixGR::update_shape_next(uint32_t n, uint32_t k, double v)
@@ -566,7 +615,25 @@ GPMatrixGR::initialize()
 }
 
 inline void
-GPMatrixGR::initialize_exp() 
+GPMatrixGR::initialize_exp(double v) 
+{
+  double **ad = _scurr.data();
+  double **vd1 = _Ev.data();
+  double **vd2 = _Elogv.data();
+
+  Array b(_k);  
+  for (uint32_t i = 0; i < _n; ++i)
+    for (uint32_t k = 0; k < _k; ++k) {
+      b[k] = v + 0.1 * gsl_rng_uniform(*_r);
+      vd1[i][k] = ad[i][k] / b[k];
+      vd2[i][k] = gsl_sf_psi(ad[i][k]) - log(b[k]);
+    }
+  set_to_prior();
+} 
+
+
+inline void
+GPMatrixGR::initialize_exp()
 {
   double **ad = _scurr.data();
   double **vd1 = _Ev.data();

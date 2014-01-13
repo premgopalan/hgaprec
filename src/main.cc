@@ -185,13 +185,13 @@ main(int argc, char **argv)
 
   if (gen_ranking_for_users) {
     HGAPRec hgaprec(env, ratings);
-    hgaprec.gen_ranking_for_users();
+    hgaprec.gen_ranking_for_users(true);
     exit(0);
   }
 
   if (batch) {
     HGAPRec hgaprec(env, ratings);
-    if (bias)
+    if (bias && !hier)
       hgaprec.vb_bias();
     else if (hier)
       hgaprec.vb_hier();

@@ -13,7 +13,7 @@ public:
   void vb();
   void vb_bias();
   void vb_hier();
-  void gen_ranking_for_users();
+  void gen_ranking_for_users(bool load_model_state);
   
 private:
   void initialize();
@@ -39,6 +39,7 @@ private:
 
   void load_beta_and_theta();
   void save_model();
+  void logl();
 
   double rating_likelihood(uint32_t p, uint32_t q, yval_t y) const;
   double rating_likelihood_hier(uint32_t p, uint32_t q, yval_t y) const;

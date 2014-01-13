@@ -278,6 +278,9 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
 
   if (vb)
     sa << "-vb";
+
+  if (seed)
+    sa << "-seed" << seed;
   
   prefix = sa.str();
   level = Logger::TEST;

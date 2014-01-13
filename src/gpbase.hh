@@ -57,6 +57,9 @@ public:
     _n(n), _k(k),
     _sprior(a), // shape 
     _rprior(b), // rate
+    _hier(false),
+    _hier_rprior(n),
+    _hier_log_rprior(n),
     _scurr(n,k),
     _snext(n,k),
     _rnext(n,k),
@@ -101,6 +104,7 @@ public:
   void update_rate_next(const Array &u);
   void update_rate_curr(const Array &u);
   void update_rate_next(uint32_t k, double v);
+  void update_rate_next(uint32_t n, const Array &u);
 
   void swap();
   void compute_expectations();
@@ -112,7 +116,9 @@ public:
   void initialize_exp(double v);
   void save_state(const IDMap &m) const;
   void load_from_lda(string dir, double alpha, uint32_t K);
-  void set_prior_rate(const Array &v);
+  void set_prior_rate(const Array &ev, const Array &elogv);
+
+
 
   double compute_elbo_term_helper() const;
 
@@ -122,6 +128,10 @@ private:
   gsl_rng **_r;
   double _sprior;
   double _rprior;
+
+  bool _hier;
+  Array _hier_rprior;
+  Array _hier_log_rprior;
 
   Matrix _scurr;      // current variational shape posterior 
   Matrix _snext;      // to help compute gradient update
@@ -147,11 +157,15 @@ GPMatrix::set_to_prior_curr()
 }
 
 inline void
-GPMatrix::set_prior_rate(const Array &v)
+GPMatrix::set_prior_rate(const Array &ev, const Array &elogv)
 {
-  assert (v.size() == _n);
-  for (uint32_t n = 0; n < _n; ++n)
-    _rnext.set_elements(n, v[n]);
+  assert (ev.size() == _n && elogv.size() == _n);
+  for (uint32_t n = 0; n < _n; ++n) {
+    _rnext.set_elements(n, ev[n]);
+    _hier_rprior[n] = ev[n];
+    _hier_log_rprior[n] = elogv[n];
+  }
+  _hier = true;
 }
 
 inline void
@@ -192,12 +206,17 @@ GPMatrix::update_rate_next(const Array &u, const Array &scale)
 }
 
 inline void
+GPMatrix::update_rate_next(uint32_t n, const Array &u)
+{
+  _rnext.add_slice(n, u);
+}
+
+inline void
 GPMatrix::update_rate_next(const Array &u)
 {
   for (uint32_t i = 0; i < _n; ++i)
     _rnext.add_slice(i, u);
 }
-
 
 inline void
 GPMatrix::update_rate_next(uint32_t k, double v)
@@ -331,8 +350,13 @@ GPMatrix::compute_elbo_term_helper() const
   double s = .0;
   for (uint32_t n = 0; n < _n; ++n)  {
     for (uint32_t k = 0; k < _k; ++k) {
-      s += _sprior * log(_rprior) + (_sprior - 1) * elogtheta[n][k];
-      s -= _rprior * etheta[n][k] + gsl_sf_lngamma(_sprior);
+      if (_hier) {
+	s += _sprior * _hier_log_rprior[n] + (_sprior - 1) * elogtheta[n][k];
+	s -= _hier_rprior[n] * etheta[n][k] + gsl_sf_lngamma(_sprior);
+      } else {
+	s += _sprior * log(_rprior) + (_sprior - 1) * elogtheta[n][k];
+	s -= _rprior * etheta[n][k] + gsl_sf_lngamma(_sprior);
+      }
     }
     double a = .0, b = .0;
     for (uint32_t k = 0; k < _k; ++k) {
@@ -902,4 +926,5 @@ GPArray::load()
   compute_expectations();
 }
 
+typedef D1Array<GPMatrix *> ItemMap;
 #endif

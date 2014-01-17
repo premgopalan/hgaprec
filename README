@@ -40,8 +40,13 @@ GAPREC: Gamma Poisson factorization based recommendation tool
    -b		  set hyperparameters
    -c		  default: a = b = c = d = 0.3
    -d
-
+   
+   
+   -hier	  learn the hierarchical model with Gamma priors
+                  on user and item scale parameters 
+                  
    -bias	  use user and item bias terms
+   
    -binary-data	  treat observed data as binary
    		  (if rating > 0 then rating is treated as 1)
 

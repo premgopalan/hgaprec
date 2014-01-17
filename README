@@ -43,12 +43,16 @@ GAPREC: Gamma Poisson factorization based recommendation tool
    
    
    -hier	  learn the hierarchical model with Gamma priors
-                  on user and item scale parameters 
-                  
+                  on user and item scale parameters
+
    -bias	  use user and item bias terms
    
    -binary-data	  treat observed data as binary
    		  (if rating > 0 then rating is treated as 1)
+   		  
+   -msr		  write out ranking file assuming the test file
+                  is based on leave-one-out, i.e., leaving one
+                  item out for each user
 
    -gen-ranking	  generate ranking file to use in precision 
    		  computation; see example		  

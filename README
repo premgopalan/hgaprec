@@ -22,8 +22,6 @@ GAPREC: Gamma Poisson factorization based recommendation tool
 
 **gaprec** [OPTIONS]
 
-   -bnp		  run inference for the infinite model
-
    -dir <string>    path to dataset directory with 3 files:
    		    train.tsv, test.tsv, validation.tsv
 		    (for examples, see example/movielens-1m)

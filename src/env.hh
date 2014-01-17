@@ -59,7 +59,8 @@ public:
       bool gen_hout,
       double av, double bv, double cv, double dv,
       Env::Dataset d, bool batch, bool binary_data, 
-      bool bias, bool hier, bool explore, bool vb);
+      bool bias, bool hier, bool explore, bool vb, 
+      bool nmf);
 
   ~Env() { fclose(_plogf); }
 
@@ -108,6 +109,7 @@ public:
   bool hier;
   bool explore;
   bool vb;
+  bool nmf;
 
   template<class T> static void plog(string s, const T &v);
   static string file_str(string fname);
@@ -198,7 +200,7 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
 	 double av, double bv, double cv, double dv,
 	 Env::Dataset datasetv, bool batchv, 
 	 bool binary_datav, bool biasv,  bool hierv,
-	 bool explore, bool vbv)
+	 bool explore, bool vbv, bool nmfv)
   : dataset(datasetv),
     n(N),
     m(M),
@@ -233,7 +235,8 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
     binary_data(binary_datav),
     bias(biasv), 
     hier(hierv),
-    vb(vbv)
+    vb(vbv),
+    nmf(nmfv)
 {
   ostringstream sa;
   sa << "n" << n << "-";
@@ -279,8 +282,12 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
   if (vb)
     sa << "-vb";
 
+  if (nmf)
+    sa << "-nmf";
+
   if (seed)
     sa << "-seed" << seed;
+  
   
   prefix = sa.str();
   level = Logger::TEST;
@@ -310,6 +317,7 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
   plog("vb", vb);
   plog("bias", bias);
   plog("hier", hier);
+  plog("nmf", nmf);
   
   //string ndatfname = file_str("/network.dat");
   //unlink(ndatfname.c_str());

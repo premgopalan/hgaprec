@@ -24,7 +24,7 @@ Ratings::read(string s)
       read_echonest(s);
     else if (_env.dataset == Env::NYT)
       read_nyt(s);
-  } else 
+  } else
     read_generic_train(s);
     
   char st[1024];
@@ -84,7 +84,7 @@ Ratings::read_generic(FILE *f, CountMap *cmap)
     uint32_t m = _movie2seq[mid];
     uint32_t n = _user2seq[uid];
     
-    if (rating > 0) {
+    if (rating_class(rating) > 0) {
       if (!cmap) {
 	_nratings++;
 	RatingMap *rm = _users2rating[n];
@@ -95,6 +95,7 @@ Ratings::read_generic(FILE *f, CountMap *cmap)
 	_users[n]->push_back(m);
 	_movies[m]->push_back(n);
       } else {
+	debug("adding test or validation entry for user %d, item %d", n, m);
 	Rating r(n,m);
 	assert(cmap);
 	if (_env.binary_data)
@@ -541,11 +542,11 @@ Ratings::read_movielens_metadata(string dir)
       } else if (k == 1) {
 	strcpy(name, d);
 	_movie_names[id] = name;
-	lerr("%d -> %s", id, name);
+	debug("%d -> %s", id, name);
       } else if (k == 2) {
 	strcpy(type, d);
 	_movie_types[id] = type;
-	lerr("%d -> %s", id, type);
+	debug("%d -> %s", id, type);
       }
       p = q;
       k++;

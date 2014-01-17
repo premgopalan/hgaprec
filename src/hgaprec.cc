@@ -13,9 +13,12 @@ HGAPRec::HGAPRec(Env &env, Ratings &ratings)
     _hbeta("hbeta", 0.3, 0.3, _m, _k, &_r),
     _thetarate("thetarate", 0.3, 0.3, _n, &_r),
     _betarate("betarate", 0.3, 0.3, _m, &_r),
+    _nmf_theta(_n, _k),
+    _nmf_beta(_m, _k),
     _prev_h(.0), _nh(.0),
     _save_ranking_file(false),
-    _use_rate_as_score(true)
+    _use_rate_as_score(true),
+    _topN_by_user(100)
 {
   gsl_rng_env_setup();
   const gsl_rng_type *T = gsl_rng_default;
@@ -71,11 +74,27 @@ HGAPRec::load_validation_and_test_sets()
   _ratings.read_generic(validf, &_validation_map);
   fclose(validf);
 
+  for (CountMap::const_iterator i = _validation_map.begin();
+       i != _validation_map.end(); ++i) {
+    const Rating &r = i->first;
+    _validation_users_of_movie[r.second]++;
+  }
+
   sprintf(buf, "%s/test.tsv", _env.datfname.c_str());
   FILE *testf = fopen(buf, "r");
   assert(testf);
   _ratings.read_generic(testf, &_test_map);
   fclose(testf);
+  
+  // XXX: keeps one heldout test item for each user
+  // assumes leave-one-out
+  for (CountMap::const_iterator i = _test_map.begin();
+       i != _test_map.end(); ++i) {
+    const Rating &r = i->first;
+    _leave_one_out[r.first] = r.second;
+    debug("adding %d -> %d to leave one out", r.first, r.second);
+  }
+
   printf("+ loaded validation and test sets from %s\n", _env.datfname.c_str());
   fflush(stdout);
   Env::plog("test ratings", _test_map.size());
@@ -85,34 +104,56 @@ HGAPRec::load_validation_and_test_sets()
 void
 HGAPRec::initialize()
 {
-  _beta.initialize();
-  _theta.initialize();
+  if (!_env.hier) {
+    _beta.initialize();
+    _theta.initialize();
 
-  _beta.initialize_exp();
-  _theta.initialize_exp();
+    _beta.initialize_exp();
+    _theta.initialize_exp();
 
-  if (_env.bias) {
-    _thetabias.initialize();
-    _thetabias.initialize_exp();
+    //_theta.initialize2(_m);
+    //_theta.compute_expectations();
+
+    //_beta.initialize2(_n);
+    //_beta.compute_expectations();
+
+  } else {
+
+    //_thetarate.set_to_prior_curr();
+    //_thetarate.set_to_prior();
+
+    _thetarate.initialize2(_k);
+    _thetarate.compute_expectations();
+
+    _betarate.initialize2(_k);
+    _betarate.compute_expectations();
     
-    _betabias.initialize();
-    _betabias.initialize_exp();
-  }
-
-  if (_env.hier) {
-    _thetarate.set_to_prior_curr();
-    _thetarate.set_to_prior();
+    //_betarate.set_to_prior_curr();
+    //_betarate.set_to_prior();
     
-    _betarate.set_to_prior_curr();
-    _betarate.set_to_prior();
+    //_hbeta.initialize2(_n);
+    //_hbeta.compute_expectations();
     
     _hbeta.initialize();
     _hbeta.initialize_exp();
+
     //_hbeta.initialize_exp(_betarate.expected_v()[0]);
+
+    //_htheta.initialize2(_m);
+    //_htheta.compute_expectations();
     
     _htheta.initialize();
     _htheta.initialize_exp();
+
     //_htheta.initialize_exp(_thetarate.expected_v()[0]);
+  }
+  
+  if (_env.bias) {
+    _thetabias.initialize2(_m);
+    _thetabias.compute_expectations();
+    
+    _betabias.initialize2(_n);
+    _betabias.compute_expectations();
   }
 }
 
@@ -153,6 +194,55 @@ HGAPRec::get_phi(GPBase<Matrix> &a, uint32_t ai,
 }
 
 void
+HGAPRec::write_training_matrix()
+{
+  FILE *f = fopen(Env::file_str("/trainm.tsv").c_str(), "w");
+  for (uint32_t n = 0; n < _n; ++n) {
+    const vector<uint32_t> *movies = _ratings.get_movies(n);
+    if (movies->size() == 0)
+      continue;
+    
+    uint32_t c = 0;
+    for (uint32_t m = 0; m < _m; ++m)
+      if (_ratings.r(n,m) == 0)
+	c++;
+
+    if (c == _m - 1) // null row
+      continue;
+
+    for (uint32_t m = 0; m < _m; ++m)
+      fprintf(f, "%d\t", _ratings.r(n,m));
+    fprintf(f, "\n");
+  }
+  fclose(f);
+}
+
+void
+HGAPRec::load_nmf_beta_and_theta()
+{
+  char buf[4096];
+  _nmf_theta.load("theta.tsv", 0);
+  _nmf_beta.load("beta.tsv", 0);
+
+  IDMap m;
+  _nmf_theta.save(Env::file_str("/nmf_theta.tsv").c_str(), m);
+  _nmf_beta.save(Env::file_str("/nmf_beta.tsv").c_str(), m);
+
+  sprintf(buf, "%s/test_users.tsv", _env.datfname.c_str());
+  FILE *f = fopen(buf, "r");
+  if (!f) { 
+    lerr("cannot open %s", buf);
+    return;
+  }
+  _sampled_users.clear();
+  _ratings.read_test_users(f, &_sampled_users);
+  fclose(f);
+  compute_precision(true);
+  printf("DONE writing ranking.tsv in output directory\n");
+  fflush(stdout);
+}
+
+void
 HGAPRec::vb()
 {
   lerr("running vb()");
@@ -176,14 +266,14 @@ HGAPRec::vb()
 	_beta.update_shape_next(m, phi);
       }
     }
-
+    
     Array betasum(_k);
     _beta.sum_rows(betasum);
     _theta.update_rate_next(betasum);
 
     _theta.swap();
     _theta.compute_expectations();
-
+    
     Array thetasum(_k);
     _theta.sum_rows(thetasum);
     _beta.update_rate_next(thetasum);
@@ -199,6 +289,7 @@ HGAPRec::vb()
       compute_likelihood(false);
       save_model();
       compute_precision(false);
+      //gen_ranking_for_users(false);
       if (_env.logl)
 	logl();
     }
@@ -244,27 +335,54 @@ HGAPRec::vb_bias()
       }
     }
     
-    Array betasum(_k);
-    _beta.sum_rows(betasum);
-    _theta.update_rate_next(betasum);
+    if (_env.vb) {
+      Array betasum(_k);
+      _beta.sum_rows(betasum);
+      _theta.update_rate_next(betasum);
+      
+      _theta.swap();
+      _theta.compute_expectations();
+      
+      Array thetasum(_k);
+      _theta.sum_rows(thetasum);
+      _beta.update_rate_next(thetasum);
+      
+      _beta.swap();
+      _beta.compute_expectations();
+      
+      _thetabias.update_rate_next(0, _m);
+      _thetabias.swap();
+      _thetabias.compute_expectations();
+      
+      _betabias.update_rate_next(0, _n);
+      _betabias.swap();
+      _betabias.compute_expectations();
 
-    _theta.swap();
-    _theta.compute_expectations();
+      debug("thetabias: %s", _thetabias.expected_v().s().c_str());
+      debug("betabias: %s", _betabias.expected_v().s().c_str());
 
-    Array thetasum(_k);
-    _theta.sum_rows(thetasum);
-    _beta.update_rate_next(thetasum);
-    
-    _beta.swap();
-    _beta.compute_expectations();
+    } else {
 
-    _thetabias.update_rate_next(0, _m);
-    _thetabias.swap();
-    _thetabias.compute_expectations();
+      Array betasum(_k);
+      _beta.sum_rows(betasum);
+      _theta.update_rate_next(betasum);
+      Array thetasum(_k);
+      _theta.sum_rows(thetasum);
+      _beta.update_rate_next(thetasum);
 
-    _betabias.update_rate_next(0, _n);
-    _betabias.swap();
-    _betabias.compute_expectations();
+      _thetabias.update_rate_next(0, _m);
+      _betabias.update_rate_next(0, _n);
+      
+      _theta.swap();
+      _beta.swap();
+      _thetabias.swap();
+      _betabias.swap();
+
+      _theta.compute_expectations();
+      _beta.compute_expectations();
+      _thetabias.compute_expectations();
+      _betabias.compute_expectations();
+    }
 
     printf("\r iteration %d", _iter);
     fflush(stdout);    
@@ -273,6 +391,7 @@ HGAPRec::vb_bias()
       compute_likelihood(false);
       save_model();
       compute_precision(false);
+      //gen_ranking_for_users(false);
     }
 
     if (_env.save_state_now) {
@@ -373,6 +492,7 @@ HGAPRec::vb_hier()
       compute_likelihood(false);
       save_model();
       compute_precision(false);
+      //gen_ranking_for_users(false);
     }
 
     if (_env.save_state_now) {
@@ -424,8 +544,8 @@ HGAPRec::compute_likelihood(bool validation)
   
   bool stop = false;
   int why = -1;
-  if (_iter > 10) {
-    if (a > _prev_h && _prev_h != 0 && fabs((a - _prev_h) / _prev_h) < 0.00001) {
+  if (_iter > 30) {
+    if (a > _prev_h && _prev_h != 0 && fabs((a - _prev_h) / _prev_h) < 0.000001) {
       stop = true;
       why = 0;
     } else if (a < _prev_h)
@@ -529,10 +649,6 @@ HGAPRec::compute_precision(bool save_ranking_file)
       uint32_t n = gsl_rng_uniform_int(_r, _n);
       _sampled_users[n] = true;
     } while (_sampled_users.size() < 1000 && _sampled_users.size() < _n / 2);
-  } else {
-    _sampled_users.clear();
-    for (uint32_t n = 0; n < _n; ++n)
-      _sampled_users[n] = true;
   }
   
   KVArray mlist(_m);
@@ -540,13 +656,22 @@ HGAPRec::compute_precision(bool save_ranking_file)
        itr != _sampled_users.end(); ++itr) {
     uint32_t n = itr->first;
     
+    //_topN_by_user = _m;
+    //for (uint32_t n = 0; n < _n; n++) {
+    
     for (uint32_t m = 0; m < _m; ++m) {
-      if (_ratings.r(n,m) > 0) { // skip training
+      //if (_ratings.r(n,m) > 0) { // skip training
+      Rating r(n,m);
+      if (_ratings.r(n,m) > 0 || is_validation(r)) { // skip training and validation
 	mlist[m].first = m;
 	mlist[m].second = .0;
 	continue;
       }
-      double u = _env.hier ? prediction_score_hier(n, m) : prediction_score(n, m);
+      double u = .0;
+      if (_env.nmf)
+	u = prediction_score_nmf(n, m);
+      else
+	u = _env.hier ? prediction_score_hier(n, m) : prediction_score(n, m);
       mlist[m].first = m;
       mlist[m].second = u;
     }
@@ -574,23 +699,30 @@ HGAPRec::compute_precision(bool save_ranking_file)
       CountMap::const_iterator itr = _test_map.find(r);
       if (itr != _test_map.end()) {
 	int v = itr->second;
-	v = _ratings.rating_class(v);
-	assert(v > 0);
+	if (v >= 1)
+	  v = 1;
+	else
+	  v = 0;
 	if (save_ranking_file) {
-	  if (_ratings.r(n, m) == .0) // skip training
+	  if (_ratings.r(n, m) == .0)  {
+	    double hol = _env.hier ? rating_likelihood_hier(n,m,v) : rating_likelihood(n,m,v);
 	    fprintf(f, "%d\t%d\t%.5f\t%d\n", n2, m2, pred, v);
+	  }
 	}
 	
-	if (j < 10) {
-	  hits10++;
-	  hits100++;
-	} else if (j < 100) {
-	  hits100++;
-	}
+	if (v > 0)
+	  if (j < 10) {
+	    hits10++;
+	    hits100++;
+	  } else if (j < 100) {
+	    hits100++;
+	  }
       } else {
 	if (save_ranking_file) {
-	  if (_ratings.r(n, m) == .0) // skip training
+	  if (_ratings.r(n, m) == .0) {
+	    double hol = _env.hier ? rating_likelihood_hier(n,m,0) : rating_likelihood(n,m,0);
 	    fprintf(f, "%d\t%d\t%.5f\t%d\n", n2, m2, pred, 0);
+	  }
 	}
       }
     }
@@ -632,6 +764,17 @@ HGAPRec::prediction_score(uint32_t user, uint32_t movie) const
 }
 
 double
+HGAPRec::prediction_score_nmf(uint32_t user, uint32_t movie) const
+{
+  const double **etheta = _nmf_theta.const_data();
+  const double **ebeta = _nmf_beta.const_data();
+  double s = .0;
+  for (uint32_t k = 0; k < _k; ++k)
+    s += etheta[user][k] * ebeta[movie][k];
+  return s;
+}
+
+double
 HGAPRec::prediction_score_hier(uint32_t user, uint32_t movie) const
 {
   const double **etheta = _htheta.expected_v().const_data();
@@ -655,6 +798,99 @@ HGAPRec::prediction_score_hier(uint32_t user, uint32_t movie) const
   return 1 - prob_zero;
 }
 
+void
+HGAPRec::gen_msr_csv()
+{
+  load_beta_and_theta();
+
+  FILE *f = fopen(Env::file_str("/pred.csv").c_str(), "w");
+  if (!f) {
+    lerr("cannot open pred.csv");
+    return;
+  }
+  
+  fprintf(f, "User\tHeldOutItem\tHeldOutItemIndex\tUserNegatives\tUserCount\tItemCount\n");
+  for (uint32_t n = 0; n < _n; ++n) {
+    // User
+    IDMap::const_iterator it = _ratings.seq2user().find(n);
+    assert (it != _ratings.seq2user().end());
+    fprintf(f, "%d\t", it->second);
+    debug("user: %d", it->second);
+
+    // id of heldout item
+    IDMap::const_iterator ct = _leave_one_out.find(n);
+    debug("heldout item for user %d (%d)",   it->second, n);
+    assert (ct != _leave_one_out.end());
+
+    uint32_t test_item_seq = ct->second;
+    IDMap::const_iterator pt = _ratings.seq2movie().find(test_item_seq);
+    assert (pt != _ratings.seq2movie().end());
+    fprintf(f, "%d\t", pt->second);
+    debug("test item: %d", pt->second);
+
+    // rank of heldout test item
+    uint32_t training = 0, negatives = 0;
+    KVArray mlist(_m);
+    for (uint32_t m = 0; m < _m-1; ++m) {
+      Rating r(n, m);
+      if (_ratings.r(n,m) > 0 || is_validation(r)) { // skip training non-zero rating
+	mlist[m].first = m;
+	mlist[m].second = .0;
+	training++;
+	continue;
+      }
+      double u = .0;
+      if (_env.nmf)
+	u = prediction_score_nmf(n, m);
+      else
+	u = _env.hier ? prediction_score_hier(n, m) : prediction_score(n, m);
+      mlist[m].first = m;
+      mlist[m].second = u;
+      negatives++;
+    }
+    mlist.sort_by_value();
+
+    uint32_t c = 0, rank = 0;
+    for (uint32_t j = 0; j < mlist.size(); ++j) {
+      KV &kv = mlist[j];
+      uint32_t m = kv.first;
+      double pred = kv.second;
+      if (m == test_item_seq) {
+	rank = c;
+	break;
+      }
+      c++;
+    }
+    fprintf(f, "%d\t", rank);
+    debug("rank: %d", rank);
+    
+    // UserNegatives
+    fprintf(f, "%d\t", negatives);
+    debug("user negatives: %d", negatives);
+
+    // UserCount
+    fprintf(f, "%d\t", training);
+    debug("user count: %d", training);
+    
+    const vector<uint32_t> *q = _ratings.get_users(test_item_seq);
+    uint32_t ntraining_users = 0;
+    if (q)
+      ntraining_users = q->size();
+    
+    uint32_t nvalid_users = 0;
+    FreqMap::const_iterator itr = _validation_users_of_movie.find(test_item_seq);
+    if (itr != _validation_users_of_movie.end())
+      nvalid_users = itr->second;
+    
+    // ItemCount
+    fprintf(f, "%d\n", nvalid_users + ntraining_users);
+    debug("item count: %d", nvalid_users + ntraining_users);
+
+    printf("\r user %d", n);
+    fflush(stdout);
+  }
+  
+}
 
 void
 HGAPRec::gen_ranking_for_users(bool load)
@@ -678,12 +914,19 @@ HGAPRec::gen_ranking_for_users(bool load)
   fflush(stdout);
 }
 
-
 void
 HGAPRec::load_beta_and_theta()
 {
-  _beta.load();
-  _theta.load();
+  if (!_env.hier) {
+    _beta.load();
+    _theta.load();
+  } else {
+    _thetarate.load();
+    _betarate.load();
+
+    _hbeta.load();
+    _htheta.load();
+  }
   if (_env.bias) {
     _betabias.load();
     _thetabias.load();

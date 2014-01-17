@@ -73,6 +73,9 @@ main(int argc, char **argv)
   bool hier = false;
   bool explore = false;
   bool gen_ranking_for_users = false;
+  bool nmf = false;
+  bool msr = false;
+  bool write_training = false;
 
   uint32_t i = 0;
   while (i <= argc - 1) {
@@ -162,6 +165,12 @@ main(int argc, char **argv)
       gen_ranking_for_users = true;
     } else if (strcmp(argv[i], "-novb") == 0) {
       vb = false;
+    } else if (strcmp(argv[i], "-msr") == 0) {
+      msr = true;
+    } else if (strcmp(argv[i], "-nmf") == 0) {
+      nmf = true;
+    } else if (strcmp(argv[i], "-write-training") == 0) {
+      write_training = true;
     } else if (i > 0) {
       fprintf(stdout,  "error: unknown option %s\n", argv[i]);
       assert(0);
@@ -173,7 +182,8 @@ main(int argc, char **argv)
 	  strid, label, logl, rand_seed, max_iterations, 
 	  model_load, model_location, 
 	  gen_heldout, a, b, c, d, dataset, 
-	  batch, binary_data, bias, hier, explore, vb);
+	  batch, binary_data, bias, hier, 
+	  explore, vb, nmf);
   env_global = &env;
 
   Ratings ratings(env);
@@ -181,6 +191,25 @@ main(int argc, char **argv)
     fprintf(stderr, "error reading dataset from dir %s; quitting\n", 
 	    fname.c_str());
     return -1;
+  }
+  
+  if (msr) {
+    HGAPRec hgaprec(env, ratings);
+    hgaprec.gen_msr_csv();
+    exit(0);
+  }
+
+  if (write_training) {
+    HGAPRec hgaprec(env, ratings);
+    hgaprec.write_training_matrix();
+    exit(0);
+  }
+
+  if (nmf) {
+    HGAPRec hgaprec(env, ratings);
+    //hgaprec.write_training_matrix();
+    hgaprec.load_nmf_beta_and_theta();
+    exit(0);
   }
 
   if (gen_ranking_for_users) {

@@ -112,6 +112,7 @@ public:
   void scaled_sum_rows(Array &v, const Array &scale);
   void sum_cols(Array &v);
   void initialize();
+  void initialize2(double v);
   void initialize_exp();
   void initialize_exp(double v);
   void save_state(const IDMap &m) const;
@@ -304,6 +305,20 @@ GPMatrix::initialize()
 }
 
 inline void
+GPMatrix::initialize2(double v)
+{
+  double **ad = _scurr.data();
+  double **bd = _rcurr.data();
+  for (uint32_t i = 0; i < _n; ++i) {
+    for (uint32_t k = 0; k < _k; ++k) {
+      ad[i][k] = _sprior + 0.01 * gsl_rng_uniform(*_r);
+      bd[i][k] = _rprior + v;
+    }
+  }
+  set_to_prior();
+}
+    
+inline void
 GPMatrix::initialize_exp()
 {
   double **ad = _scurr.data();
@@ -468,6 +483,7 @@ public:
   void sum_rows(Array &v);
   void scaled_sum_rows(Array &v, const Array &scale);
   void initialize();
+  void initialize2(double v);
   void initialize_exp();
   void initialize_exp(double v);
   double compute_elbo_term_helper() const;
@@ -639,6 +655,22 @@ GPMatrixGR::initialize()
 }
 
 inline void
+GPMatrixGR::initialize2(double v)
+{
+  double **ad = _scurr.data();
+  double *bd = _rcurr.data();
+  for (uint32_t i = 0; i < _n; ++i) {
+    for (uint32_t k = 0; k < _k; ++k) {
+      ad[i][k] = _sprior + 0.01 * gsl_rng_uniform(*_r);
+    }
+  }
+  for (uint32_t k = 0; k < _k; ++k)
+    bd[k] = _rprior + v;
+  set_to_prior();
+}
+
+
+inline void
 GPMatrixGR::initialize_exp(double v) 
 {
   double **ad = _scurr.data();
@@ -790,6 +822,7 @@ public:
   void swap();
   void compute_expectations();
   void initialize();
+  void  initialize2(double v);
   void initialize_exp();
 
   double compute_elbo_term_helper() const;
@@ -881,6 +914,18 @@ GPArray::initialize()
   for (uint32_t i = 0; i < _n; ++i) {
     ad[i] = _sprior + 0.01 * gsl_rng_uniform(*_r);
     bd[i] = _rprior + 0.1 * gsl_rng_uniform(*_r);
+  }
+  set_to_prior();
+}
+
+inline void
+GPArray::initialize2(double v)
+{
+  double *ad = _scurr.data();
+  double *bd = _rcurr.data();
+  for (uint32_t i = 0; i < _n; ++i) {
+    ad[i] = _sprior + 0.01 * gsl_rng_uniform(*_r);
+    bd[i] = _rprior + v;
   }
   set_to_prior();
 }

@@ -14,6 +14,9 @@ public:
   void vb_bias();
   void vb_hier();
   void gen_ranking_for_users(bool load_model_state);
+  void gen_msr_csv();
+  void write_training_matrix();
+  void load_nmf_beta_and_theta();
   
 private:
   void initialize();
@@ -36,6 +39,7 @@ private:
 
   double prediction_score(uint32_t user, uint32_t movie) const;
   double prediction_score_hier(uint32_t user, uint32_t movie) const;
+  double prediction_score_nmf(uint32_t user, uint32_t movie) const;
 
   void load_beta_and_theta();
   void save_model();
@@ -44,6 +48,7 @@ private:
   double rating_likelihood(uint32_t p, uint32_t q, yval_t y) const;
   double rating_likelihood_hier(uint32_t p, uint32_t q, yval_t y) const;
   uint32_t duration() const;
+  bool is_validation(const Rating &r) const;
 
   Env &_env;
   Ratings &_ratings;
@@ -67,9 +72,14 @@ private:
   
   CountMap _validation_map;
   CountMap _test_map;
+  FreqMap _validation_users_of_movie;
+  IDMap _leave_one_out;
 
   UserMap _sampled_users;
   UserMap _sampled_movies;
+
+  Matrix _nmf_theta;
+  Matrix _nmf_beta;
 
   uint32_t _start_time;
   gsl_rng *_r;
@@ -92,6 +102,16 @@ HGAPRec::duration() const
 {
   time_t t = time(0);
   return t - _start_time;
+}
+
+inline bool
+HGAPRec::is_validation(const Rating &r) const
+{
+  assert (r.first  < _n && r.second < _m);
+  CountMap::const_iterator itr = _validation_map.find(r);
+  if (itr != _validation_map.end())
+    return true;
+  return false;
 }
 
 #endif

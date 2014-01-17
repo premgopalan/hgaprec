@@ -174,6 +174,8 @@ Ratings::get_movies(uint32_t a)
 inline const uint8_t
 Ratings::rating_class(uint32_t v)
 {
+  if (!_env.binary_data)
+    return v;
   return v >= 1  ? 1 : 0;
 }
 

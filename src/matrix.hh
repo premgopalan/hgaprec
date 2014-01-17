@@ -760,7 +760,7 @@ D1Array<double>::load(string name) const
   uint32_t NCOLS = 3;
 
   uint32_t n = 0;
-  uint32_t sz = 32 * NCOLS;
+  uint32_t sz = 1024 * NCOLS;
   char *line = (char *)malloc(sz);
   while (!feof(f)) {
     if (fgets(line, sz, f) == NULL)
@@ -1129,7 +1129,7 @@ D2Array<double>::load(string name, uint32_t skipcols,
 
   double **md = _data;
   uint32_t m = 0;
-  int sz = transpose ? 32 *_m : 32*_n;
+  int sz = transpose ? 1024 *_m : 1024*_n;
   char *line = (char *)malloc(sz);
   while (!feof(f)) {
     if (fgets(line, sz, f) == NULL)

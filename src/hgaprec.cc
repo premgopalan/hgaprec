@@ -652,6 +652,7 @@ HGAPRec::compute_precision(bool save_ranking_file)
   }
   
   KVArray mlist(_m);
+  KVIArray ndcglist(_m);
   for (UserMap::const_iterator itr = _sampled_users.begin();
        itr != _sampled_users.end(); ++itr) {
     uint32_t n = itr->first;
@@ -665,6 +666,8 @@ HGAPRec::compute_precision(bool save_ranking_file)
       if (_ratings.r(n,m) > 0 || is_validation(r)) { // skip training and validation
 	mlist[m].first = m;
 	mlist[m].second = .0;
+    ndcglist[m].first = m;
+    ndcglist[m].second = 0;
 	continue;
       }
       double u = .0;
@@ -674,8 +677,17 @@ HGAPRec::compute_precision(bool save_ranking_file)
 	u = _env.hier ? prediction_score_hier(n, m) : prediction_score(n, m);
       mlist[m].first = m;
       mlist[m].second = u;
+      Rating r(n,m); 
+      ndcglist[m].first = m;
+      CountMap::const_iterator itr = _test_map.find(r);
+      if (itr != _test_map.end()) {
+          ndcglist[m].second = itr->second;
+      } else { 
+          ndcglist[m].second = 0;
+      }
     }
     uint32_t hits10 = 0, hits100 = 0;
+    double   dcg10 = .0, dcg100 = .0; 
     mlist.sort_by_value();
     for (uint32_t j = 0; j < mlist.size() && j < _topN_by_user; ++j) {
       KV &kv = mlist[j];
@@ -698,8 +710,9 @@ HGAPRec::compute_precision(bool save_ranking_file)
 
       CountMap::const_iterator itr = _test_map.find(r);
       if (itr != _test_map.end()) {
-	int v = itr->second;
-	if (v >= 1)
+    int v_ = itr->second;
+    int v;
+	if (v_ >= 1)
 	  v = 1;
 	else
 	  v = 0;
@@ -714,8 +727,11 @@ HGAPRec::compute_precision(bool save_ranking_file)
 	  if (j < 10) {
 	    hits10++;
 	    hits100++;
+        dcg10 += (pow(2.,v_) - 1)/log(j+2);
+        dcg100 += (pow(2.,v_) - 1)/log(j+2);
 	  } else if (j < 100) {
 	    hits100++;
+        dcg100 += (pow(2.,v_) - 1)/log(j+2);
 	  }
       } else {
 	if (save_ranking_file) {
@@ -729,6 +745,29 @@ HGAPRec::compute_precision(bool save_ranking_file)
     mhits10 += (double)hits10 / 10;
     mhits100 += (double)hits100 / 100;
     total_users++;
+    // DCG normalizer
+    double dcg10_gt = 0, dcg100_gt = 0;
+    bool user_has_test_ratings = true; 
+    ndcglist.sort_by_value();
+    for (uint32_t j = 0; j < ndcglist.size() && j < _topN_by_user; ++j) {
+        int v = ndcglist[j].second; 
+        if(v==0) { // all subsequent docs are irrelevant
+          if(j==0)
+              user_has_test_ratings = false; 
+          break;
+        }
+
+        if (j < 10) { 
+            dcg10_gt += (pow(2.,v) - 1)/log(j+2);
+            dcg100_gt += (pow(2.,v) - 1)/log(j+2);
+        } else if (j < 100) {
+            dcg100_gt += (pow(2.,v) - 1)/log(j+2);
+        }
+    }
+    if(user_has_test_ratings) { 
+        cumndcg10 += dcg10/dcg10_gt;
+        cumndcg100 += dcg100/dcg100_gt;
+    } 
   }
   if (save_ranking_file)
     fclose(f);
@@ -737,6 +776,10 @@ HGAPRec::compute_precision(bool save_ranking_file)
 	  (double)mhits10 / total_users, 
 	  (double)mhits100 / total_users);
   fflush(_pf);
+  fprintf(_df, "%.5f\t%.5f\n", 
+  	  cumndcg10 / total_users, 
+  	  cumndcg100 / total_users);
+  fflush(_df);
 }
 
 double

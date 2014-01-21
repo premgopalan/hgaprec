@@ -52,6 +52,11 @@ HGAPRec::HGAPRec(Env &env, Ratings &ratings)
     printf("cannot open logl file:%s\n",  strerror(errno));
     exit(-1);
   }  
+  _df = fopen(Env::file_str("/ndcg.txt").c_str(), "w");
+  if (!_df)  {
+    printf("cannot open logl file:%s\n",  strerror(errno));
+    exit(-1);
+  }  
   load_validation_and_test_sets();
 }
 
@@ -638,6 +643,7 @@ void
 HGAPRec::compute_precision(bool save_ranking_file)
 {
   double mhits10 = 0, mhits100 = 0;
+  double cumndcg10 = 0, cumndcg100 = 0;
   uint32_t total_users = 0;
   FILE *f = 0;
   if (save_ranking_file)
@@ -677,7 +683,6 @@ HGAPRec::compute_precision(bool save_ranking_file)
 	u = _env.hier ? prediction_score_hier(n, m) : prediction_score(n, m);
       mlist[m].first = m;
       mlist[m].second = u;
-      Rating r(n,m); 
       ndcglist[m].first = m;
       CountMap::const_iterator itr = _test_map.find(r);
       if (itr != _test_map.end()) {

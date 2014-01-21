@@ -19,7 +19,7 @@
 #define SQR(x) (x * x)
 
 typedef std::pair<uint32_t, double> KV;
-typedef std::pair<uint32_t, uint8_t> KV; // second uint32_t should be yval_t
+typedef std::pair<uint32_t, uint8_t> KVI; // second uint32_t should be yval_t
 class Rating: public std::pair<uint32_t, uint32_t> {
 public:
   typedef std::pair<uint32_t, uint32_t>  inherited;
@@ -259,7 +259,7 @@ D1Array<KV>::sort_by_value()
 template<> inline void 
 D1Array<KVI>::sort_by_value()
 {
-  qsort(_data, _n, sizeof(KVI), cmppairinval);
+  qsort(_data, _n, sizeof(KVI), cmppairintval);
 }
 
 template<> inline void 
@@ -295,8 +295,8 @@ cmppairval(const void *p1, const void *p2)
 static int
 cmppairintval(const void *p1, const void *p2)
 {
-  const KVI &u = *(const KV *)p1;
-  const KVI &v = *(const KV *)p2;
+  const KVI &u = *(const KVI *)p1;
+  const KVI &v = *(const KVI *)p2;
   return u.second < v.second;
 }
 

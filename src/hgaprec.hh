@@ -89,6 +89,7 @@ private:
   FILE *_tf;
   FILE *_af;
   FILE *_pf;
+  FILE *_df;
 
   double _prev_h;
   uint32_t _nh;

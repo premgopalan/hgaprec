@@ -74,6 +74,7 @@ main(int argc, char **argv)
   bool explore = false;
   bool gen_ranking_for_users = false;
   bool nmf = false;
+  bool nmfload = false;
   bool lda = false;
   bool msr = false;
   bool write_training = false;
@@ -171,6 +172,8 @@ main(int argc, char **argv)
       msr = true;
     } else if (strcmp(argv[i], "-nmf") == 0) {
       nmf = true;
+    } else if (strcmp(argv[i], "-nmfload") == 0) {
+      nmfload = true;
     } else if (strcmp(argv[i], "-lda") == 0) {
       lda = true;
     } else if (strcmp(argv[i], "-write-training") == 0) {
@@ -189,7 +192,7 @@ main(int argc, char **argv)
 	  model_load, model_location, 
 	  gen_heldout, a, b, c, d, dataset, 
 	  batch, binary_data, bias, hier, 
-	  explore, vb, nmf, lda, write_training,
+	  explore, vb, nmf, nmfload, lda, write_training,
 	  rating_threshold);
   env_global = &env;
 
@@ -199,26 +202,13 @@ main(int argc, char **argv)
 	    fname.c_str());
     return -1;
   }
-
-  /* 
+  /*
   if (test) {
     gsl_rng_env_setup();
     const gsl_rng_type *T = gsl_rng_default;
     gsl_rng *r = gsl_rng_alloc(T);
-
-    GPArray x("x", 0.1, 1, 3, &r);
-    x.initialize();
-
-    Array y(3);
-    y[0] = 1.0;
-    y[1] = 2.0;
-    y[2] = 3.0;
-
-    x.update_rate_next(y);
-    x.swap();
-    x.compute_expectations();
-    IDMap m;
-    x.save_state(m);
+    GPMatrix _htheta("htheta", 0.3, 0.3, env.n, env.k, &r);
+    _htheta.swap();
     exit(0);
   }
   */
@@ -235,6 +225,12 @@ main(int argc, char **argv)
       hgaprec.write_lda_training_matrix();
     else if (nmf)
       hgaprec.write_nmf_training_matrix();
+    exit(0);
+  }
+
+  if (nmfload) {
+    HGAPRec hgaprec(env, ratings);
+    hgaprec.load_nmf_beta_and_theta();
     exit(0);
   }
 

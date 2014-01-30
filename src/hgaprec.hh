@@ -87,10 +87,10 @@ private:
   UserMap _sampled_users;
   UserMap _sampled_movies;
 
-  Matrix _nmf_theta;
-  Matrix _nmf_beta;
-  Matrix _lda_gamma;
-  Matrix _lda_beta;
+  Matrix *_nmf_theta;
+  Matrix *_nmf_beta;
+  Matrix *_lda_gamma;
+  Matrix *_lda_beta;
 
   uint32_t _start_time;
   gsl_rng *_r;
@@ -100,6 +100,7 @@ private:
   FILE *_tf;
   FILE *_af;
   FILE *_pf;
+  FILE *_df;
 
   double _prev_h;
   uint32_t _nh;

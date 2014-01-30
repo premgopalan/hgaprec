@@ -15,10 +15,8 @@ HGAPRec::HGAPRec(Env &env, Ratings &ratings)
     _hbeta("hbeta", 0.3, 0.3, _m, _k, &_r),
     _thetarate("thetarate", 0.3, 0.3, _n, &_r),
     _betarate("betarate", 0.3, 0.3, _m, &_r),
-    _nmf_theta(_n, _k),
-    _nmf_beta(_m, _k),
-    _lda_gamma(_n, _k),
-    _lda_beta(_k, _m),
+    _lda_gamma(NULL), _lda_beta(NULL), 
+    _nmf_theta(NULL), _nmf_beta(NULL),
     _prev_h(.0), _nh(.0),
     _save_ranking_file(false),
     _use_rate_as_score(true),
@@ -53,6 +51,11 @@ HGAPRec::HGAPRec(Env &env, Ratings &ratings)
   }
   _pf = fopen(Env::file_str("/precision.txt").c_str(), "w");
   if (!_pf)  {
+    printf("cannot open logl file:%s\n",  strerror(errno));
+    exit(-1);
+  }  
+  _df = fopen(Env::file_str("/ndcg.txt").c_str(), "w");
+  if (!_df)  {
     printf("cannot open logl file:%s\n",  strerror(errno));
     exit(-1);
   }  
@@ -310,16 +313,19 @@ void
 HGAPRec::load_lda_beta_and_theta()
 {
   char buf[4096];
-  _lda_gamma.load("gamma.tsv", 0);
-  _lda_beta.load("beta.tsv", 0);
+  _lda_gamma = new Matrix(_n, _k);
+  _lda_beta = new Matrix(_k, _m);
+
+  _lda_gamma->load("gamma.tsv", 0);
+  _lda_beta->load("beta.tsv", 0);
   
-  _lda_gamma.normalize1();
-  _lda_beta.exp1();
+  _lda_gamma->normalize1();
+  _lda_beta->exp1();
 
   IDMap m;
-  _lda_gamma.save(Env::file_str("/lda_gamma.tsv").c_str(), m);
-  _lda_beta.save(Env::file_str("/lda_beta.tsv").c_str(), m);
-  _lda_beta.save_transpose(Env::file_str("/lda_beta_transpose.tsv").c_str(), m);
+  _lda_gamma->save(Env::file_str("/lda_gamma.tsv").c_str(), m);
+  _lda_beta->save(Env::file_str("/lda_beta.tsv").c_str(), m);
+  _lda_beta->save_transpose(Env::file_str("/lda_beta_transpose.tsv").c_str(), m);
 
   sprintf(buf, "%s/test_users.tsv", _env.datfname.c_str());
   FILE *f = fopen(buf, "r");
@@ -333,18 +339,24 @@ HGAPRec::load_lda_beta_and_theta()
   compute_precision(true);
   printf("DONE writing ranking.tsv in output directory\n");
   fflush(stdout);
+  
+  delete _lda_gamma;
+  delete _lda_beta;
 }
 
 void
 HGAPRec::load_nmf_beta_and_theta()
 {
+  _nmf_theta = new Matrix(_n, _k);
+  _nmf_beta = new Matrix(_m, _k);
+
   char buf[4096];
-  _nmf_theta.nmf_load(Env::file_str("/theta.tsv").c_str(), false);
-  _nmf_beta.nmf_load(Env::file_str("/beta.tsv").c_str(), true);
+  _nmf_theta->nmf_load(Env::file_str("/theta.tsv").c_str(), false);
+  _nmf_beta->nmf_load(Env::file_str("/beta.tsv").c_str(), true);
 
   IDMap m;
-  _nmf_theta.save(Env::file_str("/nmf_theta.tsv").c_str(), m);
-  _nmf_beta.save(Env::file_str("/nmf_beta.tsv").c_str(), m);
+  _nmf_theta->save(Env::file_str("/nmf_theta.tsv").c_str(), m);
+  _nmf_beta->save(Env::file_str("/nmf_beta.tsv").c_str(), m);
 
   sprintf(buf, "%s/test_users.tsv", _env.datfname.c_str());
   FILE *f = fopen(buf, "r");
@@ -358,6 +370,9 @@ HGAPRec::load_nmf_beta_and_theta()
   compute_precision(true);
   printf("DONE writing ranking.tsv in output directory\n");
   fflush(stdout);
+
+  delete _nmf_theta;
+  delete _nmf_beta;
 }
 
 /*
@@ -468,7 +483,6 @@ HGAPRec::vb()
     if (_env.save_state_now) {
       lerr("Saving state at iteration %d duration %d secs", _iter, duration());
       do_on_stop();
-      exit(0);
     }
 
     _iter++;
@@ -501,8 +515,8 @@ HGAPRec::vb_bias()
 	_theta.update_shape_next(n, phi);
 	_beta.update_shape_next(m, phi);
 	
-	_thetabias.update_shape_next(n, 0, phi[_k]);
-	_betabias.update_shape_next(m, 0, phi[_k+1]);
+	_thetabias.update_shape_next3(n, 0, phi[_k]);
+	_betabias.update_shape_next3(m, 0, phi[_k+1]);
       }
     }
     
@@ -570,7 +584,6 @@ HGAPRec::vb_bias()
     if (_env.save_state_now) {
       lerr("Saving state at iteration %d duration %d secs", _iter, duration());
       do_on_stop();
-      exit(0);
     }
 
     _iter++;
@@ -582,6 +595,8 @@ HGAPRec::vb_hier()
 {
   initialize();
 
+  //lerr("htheta = %s", _htheta.rate_next().s().c_str());
+
   uint32_t x;
   if (_env.bias)
     x = _k+2;
@@ -589,6 +604,7 @@ HGAPRec::vb_hier()
     x = _k;
 
   Array phi(x);
+
   while (1) {
     if (_iter > _env.max_iterations) {
       exit(0);
@@ -596,7 +612,7 @@ HGAPRec::vb_hier()
     for (uint32_t n = 0; n < _n; ++n) {
       
       const vector<uint32_t> *movies = _ratings.get_movies(n);
-      for (uint32_t j = 0; j < movies->size(); ++j) {
+      for (uint32_t j = 0; movies && j < movies->size(); ++j) {
 	uint32_t m = (*movies)[j];
 	yval_t y = _ratings.r(n,m);
 
@@ -610,13 +626,13 @@ HGAPRec::vb_hier()
 	
 	if (y > 1)
 	  phi.scale(y);
-	
-	_htheta.update_shape_next(n, phi);
-	_hbeta.update_shape_next(m, phi);
+
+	_htheta.update_shape_next1(n, phi);
+	_hbeta.update_shape_next1(m, phi);
 
 	if (_env.bias) {
-	  _thetabias.update_shape_next(n, 0, phi[_k]);
-	  _betabias.update_shape_next(m, 0, phi[_k+1]);
+	  _thetabias.update_shape_next3(n, 0, phi[_k]);
+	  _betabias.update_shape_next3(m, 0, phi[_k+1]);
 	}
       }
     }
@@ -684,7 +700,6 @@ HGAPRec::vb_hier()
     if (_env.save_state_now) {
       lerr("Saving state at iteration %d duration %d secs", _iter, duration());
       do_on_stop();
-      exit(0);
     }
     _iter++;
   }
@@ -725,7 +740,7 @@ HGAPRec::compute_likelihood(bool validation)
   fflush(ff);
   a = s / k;  
   
-  if (!validation)
+  if (validation)
     return;
   
   bool stop = false;
@@ -824,6 +839,7 @@ void
 HGAPRec::compute_precision(bool save_ranking_file)
 {
   double mhits10 = 0, mhits100 = 0;
+  double cumndcg10 = 0, cumndcg100 = 0;
   uint32_t total_users = 0;
   FILE *f = 0;
   if (save_ranking_file)
@@ -835,19 +851,24 @@ HGAPRec::compute_precision(bool save_ranking_file)
       uint32_t n = gsl_rng_uniform_int(_r, _n);
       _sampled_users[n] = true;
     } while (_sampled_users.size() < 1000 && _sampled_users.size() < _n / 2);
-  } else if (_n <= 40000) {
+  } 
+
+#ifdef PARTIAL_DATASET
+  if (_n <= 40000) {
     _sampled_users.clear();
     for (uint32_t n = 0; n < _n; ++n)
       _sampled_users[n] = true;
-  } else {
+  } else if (_env.subset) {
     _sampled_users.clear();
     do {
       uint32_t n = gsl_rng_uniform_int(_r, _n);
       _sampled_users[n] = true;
     } while (_sampled_users.size() < 10000 && _sampled_users.size() < _n / 2);
   }
+#endif
     
   KVArray mlist(_m);
+  KVIArray ndcglist(_m);
   for (UserMap::const_iterator itr = _sampled_users.begin();
        itr != _sampled_users.end(); ++itr) {
     uint32_t n = itr->first;
@@ -856,6 +877,8 @@ HGAPRec::compute_precision(bool save_ranking_file)
       if (_ratings.r(n,m) > 0 || is_validation(r)) { // skip training and validation
 	mlist[m].first = m;
 	mlist[m].second = .0;
+	ndcglist[m].first = m;
+	ndcglist[m].second = 0; 
 	continue;
       }
       double u = .0;
@@ -867,8 +890,16 @@ HGAPRec::compute_precision(bool save_ranking_file)
 	u = _env.hier ? prediction_score_hier(n, m) : prediction_score(n, m);
       mlist[m].first = m;
       mlist[m].second = u;
+      ndcglist[m].first = m;
+      CountMap::const_iterator itr = _test_map.find(r);
+      if (itr != _test_map.end()) {
+          ndcglist[m].second = itr->second;
+      } else { 
+          ndcglist[m].second = 0;
+      }      
     }
     uint32_t hits10 = 0, hits100 = 0;
+    double   dcg10 = .0, dcg100 = .0; 
     mlist.sort_by_value();
     for (uint32_t j = 0; j < mlist.size() && j < _topN_by_user; ++j) {
       KV &kv = mlist[j];
@@ -891,8 +922,9 @@ HGAPRec::compute_precision(bool save_ranking_file)
 
       CountMap::const_iterator itr = _test_map.find(r);
       if (itr != _test_map.end()) {
-	int v = itr->second;
-	if (_ratings.test_hit(v))
+	int v_ = itr->second;
+	int v;
+	if (_ratings.test_hit(v_))
 	  v = 1;
 	else
 	  v = 0;
@@ -903,13 +935,21 @@ HGAPRec::compute_precision(bool save_ranking_file)
 	  }
 	}
 	
-	if (v > 0)
-	  if (j < 10) {
+	if (j < 10) {
+	  if (v > 0) { //hit
 	    hits10++;
 	    hits100++;
-	  } else if (j < 100) {
-	    hits100++;
+	    }
+	  if (v_ > 0) { //has non-zero relevance
+	    dcg10 += (pow(2.,v_) - 1)/log(j+2);
+	    dcg100 += (pow(2.,v_) - 1)/log(j+2);
 	  }
+	} else if (j < 100) {
+	  if (v > 0)
+	    hits100++;
+	  if (v_ > 0)
+	    dcg100 += (pow(2.,v_) - 1)/log(j+2);
+	}
       } else {
 	if (save_ranking_file) {
 	  if (_ratings.r(n, m) == .0) {
@@ -922,6 +962,29 @@ HGAPRec::compute_precision(bool save_ranking_file)
     mhits10 += (double)hits10 / 10;
     mhits100 += (double)hits100 / 100;
     total_users++;
+    //DCG normalizer
+    double dcg10_gt = 0, dcg100_gt = 0;
+    bool user_has_test_ratings = true; 
+    ndcglist.sort_by_value();
+    for (uint32_t j = 0; j < ndcglist.size() && j < _topN_by_user; ++j) {
+        int v = ndcglist[j].second; 
+        if(v==0) { //all subsequent docs are irrelevant
+          if(j==0)
+              user_has_test_ratings = false; 
+          break;
+        }
+
+        if (j < 10) { 
+            dcg10_gt += (pow(2.,v) - 1)/log(j+2);
+            dcg100_gt += (pow(2.,v) - 1)/log(j+2);
+        } else if (j < 100) {
+            dcg100_gt += (pow(2.,v) - 1)/log(j+2);
+        }
+    }
+    if(user_has_test_ratings) { 
+        cumndcg10 += dcg10/dcg10_gt;
+        cumndcg100 += dcg100/dcg100_gt;
+    } 
   }
   if (save_ranking_file)
     fclose(f);
@@ -930,6 +993,10 @@ HGAPRec::compute_precision(bool save_ranking_file)
 	  (double)mhits10 / total_users, 
 	  (double)mhits100 / total_users);
   fflush(_pf);
+  fprintf(_df, "%.5f\t%.5f\n", 
+  	  cumndcg10 / total_users, 
+  	  cumndcg100 / total_users);
+  fflush(_df);
 }
 
 double
@@ -959,8 +1026,8 @@ HGAPRec::prediction_score(uint32_t user, uint32_t movie) const
 double
 HGAPRec::prediction_score_nmf(uint32_t user, uint32_t movie) const
 {
-  const double **etheta = _nmf_theta.const_data();
-  const double **ebeta = _nmf_beta.const_data();
+  const double **etheta = _nmf_theta->const_data();
+  const double **ebeta = _nmf_beta->const_data();
   double s = .0;
   for (uint32_t k = 0; k < _k; ++k)
     s += etheta[user][k] * ebeta[movie][k];
@@ -970,8 +1037,8 @@ HGAPRec::prediction_score_nmf(uint32_t user, uint32_t movie) const
 double
 HGAPRec::prediction_score_lda(uint32_t user, uint32_t movie) const
 {
-  const double **etheta = _lda_gamma.const_data();
-  const double **ebeta = _lda_beta.const_data();
+  const double **etheta = _lda_gamma->const_data();
+  const double **ebeta = _lda_beta->const_data();
   double s = .0;
   for (uint32_t k = 0; k < _k; ++k)
     s += etheta[user][k] * ebeta[k][movie];

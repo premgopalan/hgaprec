@@ -19,6 +19,7 @@
 #define SQR(x) (x * x)
 
 typedef std::pair<uint32_t, double> KV;
+typedef std::pair<uint32_t, uint8_t> KVI; // second uint32_t should be yval_t
 class Rating: public std::pair<uint32_t, uint32_t> {
 public:
   typedef std::pair<uint32_t, uint32_t>  inherited;
@@ -44,6 +45,7 @@ using namespace std;
 static int cmpdouble(const void *p1, const void *p2);
 static int cmpuint32(const void *p1, const void *p2);
 static int cmppairval(const void *p1, const void *p2);
+static int cmppairintval(const void *p1, const void *p2);
 static int cmppairedgeval(const void *p1, const void *p2);
 
 template <class T>
@@ -260,6 +262,12 @@ D1Array<RatingV>::sort_by_value()
   qsort(_data, _n, sizeof(RatingV), cmppairedgeval);
 }
 
+template<> inline void 
+D1Array<KVI>::sort_by_value()
+{
+  qsort(_data, _n, sizeof(KVI), cmppairintval);
+}
+
 static int
 cmpdouble(const void *p1, const void *p2)
 {
@@ -289,6 +297,14 @@ cmppairedgeval(const void *p1, const void *p2)
 {
   const RatingV &u = *(const RatingV *)p1;
   const RatingV &v = *(const RatingV *)p2;
+  return u.second < v.second;
+}
+
+static int
+cmppairintval(const void *p1, const void *p2)
+{
+  const KVI &u = *(const KVI *)p1;
+  const KVI &v = *(const KVI *)p2;
   return u.second < v.second;
 }
 
@@ -864,7 +880,7 @@ D2Array<T>::D2Array(uint32_t m, uint32_t n, bool zero):
   _data = new T*[m];
   for (uint32_t i = 0; i < m; ++i) {
     _data[i] = new T[n];
-    if (zero)
+    if (zero) 
       memset(_data[i], 0, sizeof(T)*n);
   }
 }
@@ -1041,7 +1057,7 @@ D2Array<T>::add_slice(uint32_t p, const D1Array<T> &u)
 {
   assert (_n <= u.n());
   const T * const ud = u.data();  
-  for (uint32_t i = 0; i < u.n(); ++i)
+  for (uint32_t i = 0; i < _n; ++i)
     _data[p][i] += ud[i];
 }
 
@@ -1050,7 +1066,7 @@ D2Array<T>::add_slice(uint32_t p, const D1Array<uint32_t> &u)
 {
   assert (_n <= u.n());
   const uint32_t * const ud = u.data(); 
-  for (uint32_t i = 0; i < u.n(); ++i)
+  for (uint32_t i = 0; i < _n; ++i)
     _data[p][i] += ud[i];
 }
 
@@ -1058,9 +1074,9 @@ D2Array<T>::add_slice(uint32_t p, const D1Array<uint32_t> &u)
 template<class T> inline void
 D2Array<T>::sub_slice(uint32_t p, const D1Array<T> &u)
 {
-  assert (_n == u.n());
+  assert (_n <= u.n());
   const T * const ud = u.data();  
-  for (uint32_t i = 0; i < u.n(); ++i)
+  for (uint32_t i = 0; i < _n; ++i)
     _data[p][i] -= ud[i];
 }
 
@@ -1269,11 +1285,11 @@ D2Array<double>::nmf_load(string name, bool transpose) const
       n++;
     } while (p != NULL);
     if (transpose) {
-      //if (n != _m)
-      //lerr("n = %d, _m = %d\n", n, _m);
+      if (n != _m)
+	lerr("n = %d, _m = %d\n", n, _m);
       assert (n == _m);
     } else if (n != _n) {
-      //lerr("n = %d, _n = %d\n", n, _n);
+      lerr("n = %d, _n = %d\n", n, _n);
       //assert (n == _n);
     }
     m++;

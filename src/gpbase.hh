@@ -95,10 +95,10 @@ public:
   void set_to_prior();
   void set_to_prior_curr();
 
-  void update_shape_next(uint32_t n, const Array &sphi);
-  void update_shape_next(uint32_t n, const uArray &sphi);
+  void update_shape_next1(uint32_t n, const Array &sphi);
+  void update_shape_next2(uint32_t n, const uArray &sphi);
   void update_shape_curr(uint32_t n, const uArray &sphi);
-  void update_shape_next(uint32_t n, uint32_t k, double v);
+  void update_shape_next3(uint32_t n, uint32_t k, double v);
 
   void update_rate_next(const Array &u, const Array &scale);
   void update_rate_next(const Array &u);
@@ -170,20 +170,20 @@ GPMatrix::set_prior_rate(const Array &ev, const Array &elogv)
 }
 
 inline void
-GPMatrix::update_shape_next(uint32_t n, const Array &sphi)
+GPMatrix::update_shape_next1(uint32_t n, const Array &sphi)
 {
   _snext.add_slice(n, sphi);
   //printf("snext = %s\n", _snext.s().c_str());
 }
 
 inline void
-GPMatrix::update_shape_next(uint32_t n, const uArray &sphi)
+GPMatrix::update_shape_next2(uint32_t n, const uArray &sphi)
 {
   _snext.add_slice(n, sphi);
 }
 
 inline void
-GPMatrix::update_shape_next(uint32_t n, uint32_t k, double v)
+GPMatrix::update_shape_next3(uint32_t n, uint32_t k, double v)
 {
   double **snextd = _snext.data();
   snextd[n][k] += v;

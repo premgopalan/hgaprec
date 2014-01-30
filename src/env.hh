@@ -24,6 +24,7 @@ typedef D2Array<double> Matrix;
 typedef D3Array<double> D3;
 typedef D2Array<KV> MatrixKV;
 typedef D1Array<KV> KVArray;
+typedef D1Array<KVI> KVIArray;
 
 typedef std::map<uint32_t, yval_t> RatingMap;
 typedef std::map<uint32_t, uint32_t> IDMap;
@@ -60,7 +61,7 @@ public:
       double av, double bv, double cv, double dv,
       Env::Dataset d, bool batch, bool binary_data, 
       bool bias, bool hier, bool explore, bool vb, 
-      bool nmf, bool lda, bool write_training,
+      bool nmf, bool nmfload, bool lda, bool write_training,
       uint32_t rating_threshold);
 
   ~Env() { fclose(_plogf); }
@@ -111,6 +112,7 @@ public:
   bool explore;
   bool vb;
   bool nmf;
+  bool nmfload;
   bool lda;
   bool write_training;
   uint32_t rating_threshold;
@@ -204,7 +206,8 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
 	 double av, double bv, double cv, double dv,
 	 Env::Dataset datasetv, bool batchv, 
 	 bool binary_datav, bool biasv,  bool hierv,
-	 bool explore, bool vbv, bool nmfv, bool ldav,
+	 bool explore, bool vbv, bool nmfv, bool nmfloadv, 
+	 bool ldav,
 	 bool write_trainingv, uint32_t rating_thresholdv)
   : dataset(datasetv),
     n(N),
@@ -242,6 +245,7 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
     hier(hierv),
     vb(vbv),
     nmf(nmfv),
+    nmfload(nmfloadv),
     lda(ldav),
     write_training(write_trainingv),
     rating_threshold(rating_thresholdv)
@@ -290,7 +294,7 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
   if (vb)
     sa << "-vb";
 
-  if (nmf)
+  if (nmf || nmfload)
     sa << "-nmf";
 
   if (lda)

@@ -805,6 +805,9 @@ public:
   void lognormalize();
   double logsum() const;
 
+  void normalize1();
+  void exp1();
+
   T **data() { return _data; }
   const T ** const data() const {return (const T **)_data;}
   const T ** const const_data() const {return (const T **)_data;}
@@ -813,8 +816,10 @@ public:
   D2Array &operator+=(const D2Array<T> &);
 
   void save(string name, const IDMap &m) const { lerr("save not implemented"); }
+  void save_transpose(string name, const IDMap &m) const;
   void load(string name, uint32_t skipcols=2, 
 	    bool transpose=false) const { lerr("load not implemented"); }
+  void nmf_load(string name, bool transpose) const;
   double abs_mean() const;
 
   // expensive
@@ -1088,6 +1093,27 @@ D2Array<double>::lognormalize()
       _data[i][j] = ::exp(_data[i][j] - s);
 }
 
+template<> inline void
+D2Array<double>::normalize1()
+{
+  for (uint32_t i = 0; i < _m; ++i) {
+    double sum = .0;
+    for (uint32_t j = 0; j < _n; ++j)
+      sum += _data[i][j];
+    assert (sum);
+    for (uint32_t j = 0; j < _n; ++j)
+      _data[i][j] /= sum;
+  }
+}
+
+template<> inline void
+D2Array<double>::exp1()
+{
+  for (uint32_t i = 0; i < _m; ++i)
+    for (uint32_t j = 0; j < _n; ++j)
+      _data[i][j] = exp(_data[i][j]);
+}
+
 
 //  name = Env::file_str(string("/") + "theta.tsv").c_str();
 template<> inline void
@@ -1118,6 +1144,36 @@ D2Array<double>::save(string name, const IDMap &m) const
   fclose(tf);
 }
 
+
+template<> inline void
+D2Array<double>::save_transpose(string name, const IDMap &m) const
+{
+  FILE * tf = fopen(name.c_str(), "w");
+  if (!tf) 
+    lerr("cannot open file %s\n", name.c_str());
+  assert (tf);
+  const double **cd = const_data();
+  uint32_t id = 0;
+  for (uint32_t i = 0; i < _n; ++i) {
+    IDMap::const_iterator idt = m.find(i);
+    if (idt != m.end()) 
+      id = idt->second;
+    else
+      id = i;
+
+    fprintf(tf,"%d\t", i);
+    fprintf(tf,"%d\t", id);
+    for (uint32_t k = 0; k < _m; ++k) {
+      if (k == _m - 1)
+	fprintf(tf,"%.8f\n", cd[k][i]);
+      else
+	fprintf(tf,"%.8f\t", cd[k][i]);
+    }
+  }
+  fclose(tf);
+}
+
+
 template<> inline void
 D2Array<double>::load(string name, uint32_t skipcols, 
 		      bool transpose) const
@@ -1141,7 +1197,8 @@ D2Array<double>::load(string name, uint32_t skipcols,
       double d = strtod(p, &q);
       if (q == p) {
 	if (n < _n - 1) {
-	  fprintf(stderr, "error parsing %s file\n", name.c_str());
+	  fprintf(stderr, "error parsing %s file n =%d, _n=%d\n", 
+		  name.c_str(), n, _n);
 	  assert(0);
 	}
 	break;
@@ -1153,6 +1210,61 @@ D2Array<double>::load(string name, uint32_t skipcols,
       } else {
 	if (n >= skipcols) // skip node id and seq
 	  md[m][n-skipcols] = d;
+      }
+      n++;
+    } while (p != NULL);
+    if (transpose) {
+      //if (n != _m)
+      //lerr("n = %d, _m = %d\n", n, _m);
+      assert (n == _m);
+    } else if (n != _n) {
+      //lerr("n = %d, _n = %d\n", n, _n);
+      //assert (n == _n);
+    }
+    m++;
+    memset(line, 0, sz);
+  }
+  //lerr("read %d lines\n", m);
+  //assert (m == _m);
+  fclose(f);
+  free(line);
+}
+
+template<> inline void
+D2Array<double>::nmf_load(string name, bool transpose) const
+{
+  FILE *f = fopen(name.c_str(), "r");
+  if (!f)
+    lerr("cannot open file %s\n", name.c_str());
+  assert(f);
+
+  double **md = _data;
+  uint32_t m = 0;
+  int sz = transpose ? 1024 *_m : 1024*_n;
+  char *line = (char *)malloc(sz);
+
+  // skip the header
+  assert (fgets(line, sz, f) != NULL && fgets(line, sz, f) != NULL);
+  while (!feof(f)) {
+    if (fgets(line, sz, f) == NULL)
+      break;
+    uint32_t n = 0;
+    char *p = line;
+    do {
+      char *q = NULL;
+      double d = strtod(p, &q);
+      if (q == p) {
+	if (n < _n - 1) {
+	  fprintf(stderr, "error parsing %s file\n", name.c_str());
+	  assert(0);
+	}
+	break;
+      }
+      p = q;
+      if (transpose)  {
+	  md[n][m] = d;
+      } else {
+	  md[m][n] = d;
       }
       n++;
     } while (p != NULL);

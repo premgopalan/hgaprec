@@ -13,25 +13,14 @@ public:
   void vb();
   void vb_bias();
   void vb_hier();
-  void nmf();
-  
-  void gen_ranking_for_users(bool load_model_state);
-  void gen_msr_csv();
-
-  void write_lda_training_matrix();
-  void write_nmf_training_matrix();
-  void load_nmf_beta_and_theta();
-  void load_lda_beta_and_theta();
+  void gen_ranking_for_users();
   
 private:
-
   void initialize();
   void approx_log_likelihood();
-  
   void get_phi(GPBase<Matrix> &a, uint32_t ai, 
 	       GPBase<Matrix> &b, uint32_t bi, 
 	       Array &phi);
-
   void get_phi(GPBase<Matrix> &a, uint32_t ai, 
 	       GPBase<Matrix> &b, uint32_t bi, 
 	       double biasa, double biasb,
@@ -44,20 +33,13 @@ private:
   
   void do_on_stop();
   void compute_precision(bool save_ranking_file);
-
   double prediction_score(uint32_t user, uint32_t movie) const;
-  double prediction_score_hier(uint32_t user, uint32_t movie) const;
-  double prediction_score_nmf(uint32_t user, uint32_t movie) const;
-  double prediction_score_lda(uint32_t user, uint32_t movie) const;
 
   void load_beta_and_theta();
   void save_model();
-  void logl();
 
   double rating_likelihood(uint32_t p, uint32_t q, yval_t y) const;
-  double rating_likelihood_hier(uint32_t p, uint32_t q, yval_t y) const;
   uint32_t duration() const;
-  bool is_validation(const Rating &r) const;
 
   Env &_env;
   Ratings &_ratings;
@@ -70,8 +52,8 @@ private:
   GPMatrixGR _theta;
   GPMatrixGR _beta;
 
-  GPMatrix _thetabias;
-  GPMatrix _betabias;
+  GPMatrixGR _thetabias;
+  GPMatrixGR _betabias;
 
   GPMatrix _htheta;
   GPMatrix _hbeta;
@@ -81,16 +63,9 @@ private:
   
   CountMap _validation_map;
   CountMap _test_map;
-  FreqMap _validation_users_of_movie;
-  IDMap _leave_one_out;
 
   UserMap _sampled_users;
   UserMap _sampled_movies;
-
-  Matrix _nmf_theta;
-  Matrix _nmf_beta;
-  Matrix _lda_gamma;
-  Matrix _lda_beta;
 
   uint32_t _start_time;
   gsl_rng *_r;
@@ -113,16 +88,6 @@ HGAPRec::duration() const
 {
   time_t t = time(0);
   return t - _start_time;
-}
-
-inline bool
-HGAPRec::is_validation(const Rating &r) const
-{
-  assert (r.first  < _n && r.second < _m);
-  CountMap::const_iterator itr = _validation_map.find(r);
-  if (itr != _validation_map.end())
-    return true;
-  return false;
 }
 
 #endif

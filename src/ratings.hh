@@ -31,7 +31,9 @@ public:
   ~Ratings() { }
 
   int read(string s);
-  const uint8_t rating_class(uint32_t v);
+  uint32_t input_rating_class(uint32_t v) const;
+  bool test_hit(uint32_t v) const;
+  int write_marginal_distributions();
   
   const SparseMatrix &users() const { return _users; }
   SparseMatrix &users() { return _users; }
@@ -171,12 +173,20 @@ Ratings::get_movies(uint32_t a)
   return v;
 }
 
-inline const uint8_t
-Ratings::rating_class(uint32_t v)
+inline bool
+Ratings::test_hit(uint32_t v) const
+{
+  if (_env.binary_data)
+    return v >= 1;
+  return v >= _env.rating_threshold;
+}
+
+inline uint32_t
+Ratings::input_rating_class(uint32_t v) const
 {
   if (!_env.binary_data)
     return v;
-  return v >= 1  ? 1 : 0;
+  return v >= _env.rating_threshold  ? 1 : 0;
 }
 
 inline string

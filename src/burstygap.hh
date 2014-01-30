@@ -1,37 +1,26 @@
-#ifndef HGAPREC_HH
-#define HGAPREC_HH
+#ifndef BURSTYGAP_HH
+#define BURSTYGAP_HH
 
 #include "env.hh"
 #include "ratings.hh"
 #include "gpbase.hh"
 
-class HGAPRec {
+class BurstyGAP {
 public:
-  HGAPRec(Env &env, Ratings &ratings);
-  ~HGAPRec();
+  BurstyGAP(Env &env, Ratings &ratings);
+  ~BurstyGAP();
 
   void vb();
   void vb_bias();
   void vb_hier();
-  void nmf();
-  
   void gen_ranking_for_users(bool load_model_state);
-  void gen_msr_csv();
-
-  void write_lda_training_matrix();
-  void write_nmf_training_matrix();
-  void load_nmf_beta_and_theta();
-  void load_lda_beta_and_theta();
   
 private:
-
   void initialize();
   void approx_log_likelihood();
-  
   void get_phi(GPBase<Matrix> &a, uint32_t ai, 
 	       GPBase<Matrix> &b, uint32_t bi, 
 	       Array &phi);
-
   void get_phi(GPBase<Matrix> &a, uint32_t ai, 
 	       GPBase<Matrix> &b, uint32_t bi, 
 	       double biasa, double biasb,
@@ -47,8 +36,6 @@ private:
 
   double prediction_score(uint32_t user, uint32_t movie) const;
   double prediction_score_hier(uint32_t user, uint32_t movie) const;
-  double prediction_score_nmf(uint32_t user, uint32_t movie) const;
-  double prediction_score_lda(uint32_t user, uint32_t movie) const;
 
   void load_beta_and_theta();
   void save_model();
@@ -57,7 +44,6 @@ private:
   double rating_likelihood(uint32_t p, uint32_t q, yval_t y) const;
   double rating_likelihood_hier(uint32_t p, uint32_t q, yval_t y) const;
   uint32_t duration() const;
-  bool is_validation(const Rating &r) const;
 
   Env &_env;
   Ratings &_ratings;
@@ -66,31 +52,15 @@ private:
   uint32_t _m;
   uint32_t _k;
   uint32_t _iter;
-  
-  GPMatrixGR _theta;
-  GPMatrixGR _beta;
 
-  GPMatrix _thetabias;
-  GPMatrix _betabias;
+  GPMatrix _theta;
+  ItemMap _beta;
 
-  GPMatrix _htheta;
-  GPMatrix _hbeta;
-
-  GPArray _thetarate;
-  GPArray _betarate;
-  
   CountMap _validation_map;
   CountMap _test_map;
-  FreqMap _validation_users_of_movie;
-  IDMap _leave_one_out;
 
   UserMap _sampled_users;
   UserMap _sampled_movies;
-
-  Matrix _nmf_theta;
-  Matrix _nmf_beta;
-  Matrix _lda_gamma;
-  Matrix _lda_beta;
 
   uint32_t _start_time;
   gsl_rng *_r;
@@ -109,20 +79,10 @@ private:
 };
 
 inline uint32_t
-HGAPRec::duration() const
+BurstyGAP::duration() const
 {
   time_t t = time(0);
   return t - _start_time;
-}
-
-inline bool
-HGAPRec::is_validation(const Rating &r) const
-{
-  assert (r.first  < _n && r.second < _m);
-  CountMap::const_iterator itr = _validation_map.find(r);
-  if (itr != _validation_map.end())
-    return true;
-  return false;
 }
 
 #endif

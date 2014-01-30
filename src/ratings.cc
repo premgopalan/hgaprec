@@ -24,8 +24,10 @@ Ratings::read(string s)
       read_echonest(s);
     else if (_env.dataset == Env::NYT)
       read_nyt(s);
-  } else
+  } else {
     read_generic_train(s);
+    write_marginal_distributions();
+  }
     
   char st[1024];
   sprintf(st, "read %d users, %d movies, %d ratings", 
@@ -66,32 +68,34 @@ Ratings::read_generic(FILE *f, CountMap *cmap)
     }
 
     IDMap::iterator it = _user2seq.find(uid);
-    if (it == _user2seq.end() && !add_user(uid)) {
-      //printf("error: exceeded user limit %d, %d, %d\n",
-      //uid, mid, rating);
-      //fflush(stdout);
-      continue;
-    }
-    
     IDMap::iterator mt = _movie2seq.find(mid);
-    if (mt == _movie2seq.end() && !add_movie(mid)) {
-      //printf("error: exceeded movie limit %d, %d, %d\n",
-      //uid, mid, rating);
-      //fflush(stdout);
+
+    if ((it == _user2seq.end() && _curr_user_seq >= _env.n) ||
+	(mt == _movie2seq.end() && _curr_movie_seq >= _env.m))
       continue;
-    }
+
+    if (input_rating_class(rating) == 0)
+      continue;
     
+    if (it == _user2seq.end())
+      assert(add_user(uid));
+    
+    if (mt == _movie2seq.end())
+      assert(add_movie(mid));
+
     uint32_t m = _movie2seq[mid];
     uint32_t n = _user2seq[uid];
     
-    if (rating_class(rating) > 0) {
+    if (input_rating_class(rating) > 0) {
       if (!cmap) {
 	_nratings++;
 	RatingMap *rm = _users2rating[n];
 	if (_env.binary_data)
 	  (*rm)[m] = 1;
-	else
+	else {
+	  assert (rating > 0);
 	  (*rm)[m] = rating;
+	}
 	_users[n]->push_back(m);
 	_movies[m]->push_back(n);
       } else {
@@ -109,6 +113,50 @@ Ratings::read_generic(FILE *f, CountMap *cmap)
 }
 
 int
+Ratings::write_marginal_distributions()
+{
+  FILE *f = fopen(Env::file_str("/byusers.tsv").c_str(), "w");
+  uint32_t x = 0;
+  uint32_t nusers = 0;
+  for (uint32_t n = 0; n < _env.n; ++n) {
+    const vector<uint32_t> *movies = get_movies(n);
+    IDMap::const_iterator it = seq2user().find(n);
+    if (!movies || movies->size() == 0) {
+      lerr("0 movies for user %d (%d)", n, it->second);
+      x++;
+      continue;
+    }
+    x = 0;
+    fprintf(f, "%d\t%d\t%d\n", n, it->second, movies->size());
+    nusers++;
+  }
+  fclose(f);
+  _env.n = nusers;
+  lerr("longest sequence of users with no movies: %d", x);
+
+  f = fopen(Env::file_str("/byitems.tsv").c_str(), "w");
+  x = 0;
+  uint32_t nitems = 0;
+  for (uint32_t n = 0; n < _env.m; ++n) {
+    const vector<uint32_t> *users = get_users(n);
+    IDMap::const_iterator it = seq2movie().find(n);
+    if (!users || users->size() == 0) {
+      lerr("0 users for movie %d (%d)", n, it->second);
+      x++;
+      continue;
+    }
+    x = 0;
+    fprintf(f, "%d\t%d\t%d\n", n, it->second, users->size());
+    nitems++;
+  }
+  fclose(f);
+  _env.m = nitems;
+  lerr("longest sequence of items with no users: %d", x);
+  Env::plog("post pruning nusers:", _env.n);
+  Env::plog("post pruning nitems:", _env.m);
+}
+
+int
 Ratings::read_test_users(FILE *f, UserMap *bmap)
 {
   assert (bmap);
@@ -123,7 +171,6 @@ Ratings::read_test_users(FILE *f, UserMap *bmap)
     if (it == _user2seq.end())
       continue;
     uint32_t n = _user2seq[uid];
-
     (*bmap)[n] = true;
   }
   Env::plog("read %d test users", bmap->size());

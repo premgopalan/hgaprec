@@ -103,7 +103,7 @@ public:
   void update_rate_next(const Array &u, const Array &scale);
   void update_rate_next(const Array &u);
   void update_rate_curr(const Array &u);
-  void update_rate_next(uint32_t k, double v);
+  void update_rate_next_all(uint32_t k, double v);
   void update_rate_next(uint32_t n, const Array &u);
 
   void swap();
@@ -220,7 +220,7 @@ GPMatrix::update_rate_next(const Array &u)
 }
 
 inline void
-GPMatrix::update_rate_next(uint32_t k, double v)
+GPMatrix::update_rate_next_all(uint32_t k, double v)
 {
   double **rd = _rnext.data();
   for (uint32_t i = 0; i < _n; ++i)
@@ -534,7 +534,6 @@ GPMatrixGR::update_shape_next(uint32_t n, const uArray &sphi)
   _snext.add_slice(n, sphi);
 }
 
-
 inline void
 GPMatrixGR::update_shape_next(uint32_t n, uint32_t k, double v)
 {
@@ -718,7 +717,8 @@ GPMatrixGR::compute_elbo_term_helper() const
     for (uint32_t k = 0; k < _k; ++k) {
       s += _sprior * log(_rprior) + (_sprior - 1) * elogtheta[n][k];
       s -= _rprior * etheta[n][k] + gsl_sf_lngamma(_sprior);
-      debug("ehelper: %f:%f:%f log:%f\n", s, etheta[n][k], gsl_sf_lngamma(_sprior), elogtheta[n][k]);
+      debug("ehelper: %f:%f:%f log:%f\n", 
+	    s, etheta[n][k], gsl_sf_lngamma(_sprior), elogtheta[n][k]);
     }
     double a = .0, b = .0;
     for (uint32_t k = 0; k < _k; ++k) {
@@ -817,6 +817,7 @@ public:
   void set_to_prior_curr();
   void update_shape_next(const Array &phi);
   void update_shape_next(uint32_t n, double v);
+  void update_shape_next(double v);
   void update_rate_next(const Array &v);
   void update_rate_next(uint32_t n, double v);
   void swap();
@@ -838,7 +839,7 @@ private:
   Array _rcurr;      // current variational rate posterior (global)
   Array _rnext;      // help compute gradient update
   Array _Ev;         // expected weights under variational
-		      // distribution
+		     // distribution
   Array _Elogv;      // expected log weights 
   gsl_rng **_r;
 };
@@ -861,6 +862,13 @@ inline void
 GPArray::update_shape_next(uint32_t n, double v)
 {
   _snext[n] += v;
+}
+
+inline void
+GPArray::update_shape_next(double v)
+{
+  for (uint32_t n = 0; n < _n; ++n)
+    _snext[n] += v;
 }
 
 inline void

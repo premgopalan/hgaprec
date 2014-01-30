@@ -74,8 +74,10 @@ main(int argc, char **argv)
   bool explore = false;
   bool gen_ranking_for_users = false;
   bool nmf = false;
+  bool lda = false;
   bool msr = false;
   bool write_training = false;
+  uint32_t rating_threshold = 1;
 
   uint32_t i = 0;
   while (i <= argc - 1) {
@@ -169,21 +171,26 @@ main(int argc, char **argv)
       msr = true;
     } else if (strcmp(argv[i], "-nmf") == 0) {
       nmf = true;
+    } else if (strcmp(argv[i], "-lda") == 0) {
+      lda = true;
     } else if (strcmp(argv[i], "-write-training") == 0) {
       write_training = true;
+    } else if (strcmp(argv[i], "-rating-threshold") == 0) {
+      rating_threshold = atoi(argv[++i]);
     } else if (i > 0) {
       fprintf(stdout,  "error: unknown option %s\n", argv[i]);
       assert(0);
     } 
     ++i;
   };
-
+  
   Env env(n, m, k, fname, nmi, ground_truth_fname, rfreq, 
 	  strid, label, logl, rand_seed, max_iterations, 
 	  model_load, model_location, 
 	  gen_heldout, a, b, c, d, dataset, 
 	  batch, binary_data, bias, hier, 
-	  explore, vb, nmf);
+	  explore, vb, nmf, lda, write_training,
+	  rating_threshold);
   env_global = &env;
 
   Ratings ratings(env);
@@ -192,7 +199,30 @@ main(int argc, char **argv)
 	    fname.c_str());
     return -1;
   }
-  
+
+  /* 
+  if (test) {
+    gsl_rng_env_setup();
+    const gsl_rng_type *T = gsl_rng_default;
+    gsl_rng *r = gsl_rng_alloc(T);
+
+    GPArray x("x", 0.1, 1, 3, &r);
+    x.initialize();
+
+    Array y(3);
+    y[0] = 1.0;
+    y[1] = 2.0;
+    y[2] = 3.0;
+
+    x.update_rate_next(y);
+    x.swap();
+    x.compute_expectations();
+    IDMap m;
+    x.save_state(m);
+    exit(0);
+  }
+  */
+
   if (msr) {
     HGAPRec hgaprec(env, ratings);
     hgaprec.gen_msr_csv();
@@ -201,14 +231,24 @@ main(int argc, char **argv)
 
   if (write_training) {
     HGAPRec hgaprec(env, ratings);
-    hgaprec.write_training_matrix();
+    if (lda)
+      hgaprec.write_lda_training_matrix();
+    else if (nmf)
+      hgaprec.write_nmf_training_matrix();
     exit(0);
   }
 
   if (nmf) {
     HGAPRec hgaprec(env, ratings);
+    hgaprec.nmf();
     //hgaprec.write_training_matrix();
-    hgaprec.load_nmf_beta_and_theta();
+    //hgaprec.load_nmf_beta_and_theta();
+    exit(0);
+  }
+
+  if (lda) {
+    HGAPRec hgaprec(env, ratings);
+    hgaprec.load_lda_beta_and_theta();
     exit(0);
   }
 

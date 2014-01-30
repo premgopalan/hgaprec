@@ -60,7 +60,8 @@ public:
       double av, double bv, double cv, double dv,
       Env::Dataset d, bool batch, bool binary_data, 
       bool bias, bool hier, bool explore, bool vb, 
-      bool nmf);
+      bool nmf, bool lda, bool write_training,
+      uint32_t rating_threshold);
 
   ~Env() { fclose(_plogf); }
 
@@ -110,6 +111,9 @@ public:
   bool explore;
   bool vb;
   bool nmf;
+  bool lda;
+  bool write_training;
+  uint32_t rating_threshold;
 
   template<class T> static void plog(string s, const T &v);
   static string file_str(string fname);
@@ -200,7 +204,8 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
 	 double av, double bv, double cv, double dv,
 	 Env::Dataset datasetv, bool batchv, 
 	 bool binary_datav, bool biasv,  bool hierv,
-	 bool explore, bool vbv, bool nmfv)
+	 bool explore, bool vbv, bool nmfv, bool ldav,
+	 bool write_trainingv, uint32_t rating_thresholdv)
   : dataset(datasetv),
     n(N),
     m(M),
@@ -236,7 +241,10 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
     bias(biasv), 
     hier(hierv),
     vb(vbv),
-    nmf(nmfv)
+    nmf(nmfv),
+    lda(ldav),
+    write_training(write_trainingv),
+    rating_threshold(rating_thresholdv)
 {
   ostringstream sa;
   sa << "n" << n << "-";
@@ -285,9 +293,17 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
   if (nmf)
     sa << "-nmf";
 
+  if (lda)
+    sa << "-lda";
+
   if (seed)
     sa << "-seed" << seed;
-  
+
+  if (write_training)
+    sa << "-write-training";
+
+  //if (rating_threshold)
+  //sa << "-rthresh" << rating_threshold;
   
   prefix = sa.str();
   level = Logger::TEST;
@@ -318,6 +334,7 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
   plog("bias", bias);
   plog("hier", hier);
   plog("nmf", nmf);
+  plog("lda", lda);
   
   //string ndatfname = file_str("/network.dat");
   //unlink(ndatfname.c_str());

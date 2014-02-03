@@ -180,7 +180,10 @@ sub main()
 	$m = \%en;
     } elsif ($dataset eq "nyt") {
 	$m = \%nyt;
+    } elsif ($dataset eq "netflixmsr") {
+	$m = \%nfmsr;
     }
+
     if ($nmfload) {
 	my $cmd = sprintf $m->{nmf_precision_cmd}, $K;
 	$cmd = process($cmd);

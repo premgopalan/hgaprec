@@ -126,8 +126,14 @@ Ratings::write_marginal_distributions()
       x++;
       continue;
     }
+    uint32_t t = 0;
+    for (uint32_t m = 0; m < movies->size(); m++) {
+      uint32_t mov = (*movies)[m];
+      yval_t y = r(n,mov);
+      t += y;
+    }
     x = 0;
-    fprintf(f, "%d\t%d\t%d\n", n, it->second, movies->size());
+    fprintf(f, "%d\t%d\t%d\t%d\n", n, it->second, movies->size(), t);
     nusers++;
   }
   fclose(f);
@@ -145,8 +151,14 @@ Ratings::write_marginal_distributions()
       x++;
       continue;
     }
+    uint32_t t = 0;
+    for (uint32_t m = 0; m < users->size(); m++) {
+      uint32_t u = (*users)[m];
+      yval_t y = r(u,n);
+      t += y;
+    }
     x = 0;
-    fprintf(f, "%d\t%d\t%d\n", n, it->second, users->size());
+    fprintf(f, "%d\t%d\t%d\t%d\n", n, it->second, users->size(), t);
     nitems++;
   }
   fclose(f);

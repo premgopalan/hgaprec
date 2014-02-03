@@ -155,7 +155,6 @@ HGAPRec::initialize()
     
     //_betarate.set_to_prior_curr();
     //_betarate.set_to_prior();
-    
     //_hbeta.initialize2(_n);
     //_hbeta.compute_expectations();
     
@@ -163,7 +162,6 @@ HGAPRec::initialize()
     _hbeta.initialize_exp();
 
     //_hbeta.initialize_exp(_betarate.expected_v()[0]);
-
     //_htheta.initialize2(_m);
     //_htheta.compute_expectations();
     
@@ -448,8 +446,8 @@ HGAPRec::vb()
 	if (y > 1)
 	  phi.scale(y);
 	
-	_theta.update_shape_next(n, phi);
-	_beta.update_shape_next(m, phi);
+	_theta.update_shape_next1(n, phi);
+	_beta.update_shape_next1(m, phi);
       }
     }
     
@@ -512,8 +510,8 @@ HGAPRec::vb_bias()
 	if (y > 1)
 	  phi.scale(y);
 
-	_theta.update_shape_next(n, phi);
-	_beta.update_shape_next(m, phi);
+	_theta.update_shape_next1(n, phi);
+	_beta.update_shape_next1(m, phi);
 	
 	_thetabias.update_shape_next3(n, 0, phi[_k]);
 	_betabias.update_shape_next3(m, 0, phi[_k+1]);
@@ -740,7 +738,7 @@ HGAPRec::compute_likelihood(bool validation)
   fflush(ff);
   a = s / k;  
   
-  if (validation)
+  if (!validation)
     return;
   
   bool stop = false;
@@ -754,7 +752,7 @@ HGAPRec::compute_likelihood(bool validation)
     else if (a > _prev_h)
       _nh = 0;
 
-    if (_nh > 3) { // be robust to small fluctuations in predictive likelihood
+    if (_nh > 2) { // be robust to small fluctuations in predictive likelihood
       why = 1;
       stop = true;
     }
@@ -928,12 +926,7 @@ HGAPRec::compute_precision(bool save_ranking_file)
 	  v = 1;
 	else
 	  v = 0;
-	if (save_ranking_file) {
-	  if (_ratings.r(n, m) == .0)  {
-	    double hol = _env.hier ? rating_likelihood_hier(n,m,v) : rating_likelihood(n,m,v);
-	    fprintf(f, "%d\t%d\t%.5f\t%d\n", n2, m2, pred, v);
-	  }
-	}
+
 	
 	if (j < 10) {
 	  if (v > 0) { //hit
@@ -950,11 +943,20 @@ HGAPRec::compute_precision(bool save_ranking_file)
 	  if (v_ > 0)
 	    dcg100 += (pow(2.,v_) - 1)/log(j+2);
 	}
+
+	if (save_ranking_file) {
+	  if (_ratings.r(n, m) == .0)  {
+	    double hol = _env.hier ? rating_likelihood_hier(n,m,v) : rating_likelihood(n,m,v);
+	    fprintf(f, "%d\t%d\t%.5f\t%d\t%.5f\n", n2, m2, pred, v, (pow(2.,v_) - 1)/log(j+2));
+	  }
+	}
+
+
       } else {
 	if (save_ranking_file) {
 	  if (_ratings.r(n, m) == .0) {
 	    double hol = _env.hier ? rating_likelihood_hier(n,m,0) : rating_likelihood(n,m,0);
-	    fprintf(f, "%d\t%d\t%.5f\t%d\n", n2, m2, pred, 0);
+	    fprintf(f, "%d\t%d\t%.5f\t%d\t%.5f\n", n2, m2, pred, 0, .0);
 	  }
 	}
       }

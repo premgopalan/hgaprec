@@ -1,0 +1,925 @@
+% This is "sig-alternate.tex" V2.0 May 2012
+% This file should be compiled with V2.5 of "sig-alternate.cls" May 2012
+%
+% This example file demonstrates the use of the 'sig-alternate.cls'
+% V2.5 LaTeX2e document class file. It is for those submitting
+% articles to ACM Conference Proceedings WHO DO NOT WISH TO
+% STRICTLY ADHERE TO THE SIGS (PUBS-BOARD-ENDORSED) STYLE.
+% The 'sig-alternate.cls' file will produce a similar-looking,
+% albeit, 'tighter' paper resulting in, invariably, fewer pages.
+%
+% ----------------------------------------------------------------------------------------------------------------
+% This .tex file (and associated .cls V2.5) produces:
+%       1) The Permission Statement
+%       2) The Conference (location) Info information
+%       3) The Copyright Line with ACM data
+%       4) NO page numbers
+%
+% as against the acm_proc_article-sp.cls file which
+% DOES NOT produce 1) thru' 3) above.
+%
+% Using 'sig-alternate.cls' you have control, however, from within
+% the source .tex file, over both the CopyrightYear
+% (defaulted to 200X) and the ACM Copyright Data
+% (defaulted to X-XXXXX-XX-X/XX/XX).
+% e.g.
+% \CopyrightYear{2007} will cause 2007 to appear in the copyright line.
+% \crdata{0-12345-67-8/90/12} will cause 0-12345-67-8/90/12 to appear in the copyright line.
+%
+% ---------------------------------------------------------------------------------------------------------------
+% This .tex source is an example which *does* use
+% the .bib file (from which the .bbl file % is produced).
+% REMEMBER HOWEVER: After having produced the .bbl file,
+% and prior to final submission, you *NEED* to 'insert'
+% your .bbl file into your source .tex file so as to provide
+% ONE 'self-contained' source file.
+%
+% ================= IF YOU HAVE QUESTIONS =======================
+% Questions regarding the SIGS styles, SIGS policies and
+% procedures, Conferences etc. should be sent to
+% Adrienne Griscti (griscti@acm.org)
+%
+% Technical questions _only_ to
+% Gerald Murray (murray@hq.acm.org)
+% ===============================================================
+%
+% For tracking purposes - this is V2.0 - May 2012
+
+\documentclass{sig-alternate}
+
+\input{preamble}
+
+\begin{document}
+%
+% --- Author Metadata here ---
+%\conferenceinfo{WOODSTOCK}{'97 El Paso, Texas USA}
+%\CopyrightYear{2007} % Allows default copyright year (20XX) to be over-ridden - IF NEED BE.
+%\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
+% --- End of Author Metadata ---
+
+\title{Scalable Recommendation with Poisson Factorization}
+
+%
+% You need the command \numberofauthors to handle the 'placement
+% and alignment' of the authors beneath the title.
+%
+% For aesthetic reasons, we recommend 'three authors at a time'
+% i.e. three 'name/affiliation blocks' be placed beneath the title.
+%
+% NOTE: You are NOT restricted in how many 'rows' of
+% "name/affiliations" may appear. We just ask that you restrict
+% the number of 'columns' to three.
+%
+% Because of the available 'opening page real-estate'
+% we ask you to refrain from putting more than six authors
+% (two rows with three columns) beneath the article title.
+% More than six makes the first-page appear very cluttered indeed.
+%
+% Use the \alignauthor commands to handle the names
+% and affiliations for an 'aesthetic maximum' of six authors.
+% Add names, affiliations, addresses for
+% the seventh etc. author(s) as the argument for the
+% \additionalauthors command.
+% These 'additional authors' will be output/set for you
+% without further effort on your part as the last section in
+% the body of your article BEFORE References or any Appendices.
+
+\numberofauthors{3}
+
+% %  in this sample file, there are a *total*
+% of EIGHT authors. SIX appear on the 'first-page' (for formatting
+% reasons) and the remaining two appear in the \additionalauthors section.
+%
+\author{}
+% You can go ahead and credit any number of authors here,
+% e.g. one 'row of three' or two rows (consisting of one row of three
+% and a second row of one, two or three).
+%
+% The command \alignauthor (no curly braces needed) should
+% precede each author name, affiliation/snail-mail address and
+% e-mail address. Additionally, tag each line of
+% affiliation/address with \affaddr, and tag the
+% e-mail address with \email.
+%
+% 1st. author
+
+%% \alignauthor
+%% Prem Gopalan\\
+%% \affaddr{Princeton University}\\
+%% \affaddr{35 Olden Street}\\
+%% \affaddr{Princeton, NJ}\\
+%% \email{pgopalan@cs.princeton.edu}
+%% % 2nd. author
+%% \alignauthor
+%% Jake M. Hofman \\
+%% \affaddr{Microsoft Research}\\
+%% \affaddr{641 Sixth Avenue, Floor 7}\\
+%% \affaddr{New York, NY}\\
+%% \email{jmh@microsoft.com}
+%% % 3rd. author
+%% \alignauthor
+%% David M. Blei \\
+%% \affaddr{ Princeton University}\\
+%% \affaddr{35 Olden Street}\\
+%% \affaddr{Princeton, NJ}\\
+%% \email{blei@cs.princeton.edu}
+%% }
+\maketitle
+
+\begin{abstract}
+  We develop a Bayesian Poisson matrix factorization model for forming
+  recommendations from sparse user behavior data.  These data are
+  large user/item matrices where each user has provided feedback on
+  only a small subset of items, either explicitly (e.g., through star
+  ratings) or implicitly (e.g., through views or purchases). In
+  contrast to traditional matrix factorization approaches, Poisson
+  factorization implicitly models each user's limited attention to
+  consume items. Moreover, because of the mathematical form of the
+  Poisson likelihood, the model needs only to explicitly consider the
+  observed entries in the matrix, leading to both scalable computation
+  and good predictive performance. We develop a variational inference
+  algorithm for approximate posterior inference that scales up to
+  massive data sets. This is an efficient algorithm that iterates over
+  the observed entries and adjusts an approximate posterior over the
+  user/item representations. We apply our method to large real-world
+  user data containing users rating movies, users listening to songs,
+  and users reading scientific papers. In all these settings, Bayesian
+  Poisson factorization outperforms state-of-the-art matrix
+  factorization methods.
+\end{abstract}
+
+%% % A category with the (minimum) three required fields
+%% \category{H.4}{Information Systems Applications}{Miscellaneous}
+%% %A category including the fourth, optional field follows...
+%% \category{D.2.8}{Software Engineering}{Metrics}[complexity measures, performance measures]
+%% \terms{Theory}
+
+%% \keywords{ACM proceedings, \LaTeX, text tagging}
+
+
+\section{Introduction}
+
+Recommendation systems are a vital component of the modern Web.  They
+help readers effectively navigate otherwise unwieldy archives of
+information and help websites direct users to items---movies,
+articles, songs, apps---that they will like.  A recommendation system
+is built from user behavior data, historical data about which items
+each user has consumed.  First, a statistical machine learning
+algorithm is used to uncover behavioral patterns that reveal the
+various types of users and the items they tend to like.  Then, the
+system exploits these discovered patterns to recommend future items to
+its users.
+
+As an example, Figure 1 illustrates movie recommendation for a user
+$U$ from the MovieLens data set~\cite{Herlocker:1999}.  This data set
+is a large sparse matrix where rows are people and columns are movies.
+Each entry of the matrix (indexed by a user and a movie) contains the
+rating that the user gave to the movie, or a zero if she has not seen
+it. The list of movies at the top of the
+\myfig{movielens-illustration} shows that user $U$ enjoys various
+types of drama movies (such as the war drama ``Breaker Morant'' and
+the romantic drama ``Leaving Las Vegas''). Of course, she has only
+seen a handful of the available movies, and the goal of a
+recommendation system is to suggest other movies.  The list of movies
+at the bottom of the figure was suggested by our algorithm. It
+includes other war drama movies (such as "Apocalypse Now") and other
+romantic drama (such as "Breakfast at Tiffany's").  In this paper, we
+develop a new algorithm for building recommendation systems that is
+both more efficient and performs better than the existing
+state-of-the-art.
+
+\begin{figure*}[th]
+\centering
+\caption{The top 5 movies in each of the top 4 components of the user
+  $U$ illustrated in Fig~\ref{fig:movielens-illustration}.}
+\vspace{0.1cm}
+\small
+\begin{tabular}{c}
+\toprule
+\bf{``Drama, Romance''}\\
+\midrule
+Breakfast at Tiffany's\\
+Casablanca\\
+The Graduate\\
+Shakespeare in Love\\
+The African Queen\\
+\bottomrule
+\end{tabular}
+\begin{tabular}{c}
+\toprule
+\bf{``Drama''}\\
+\midrule
+Jean de Florette\\
+Manon of the Spring\\
+Diva\\
+The Return of Martin Guerre\\
+Blue Velvet\\
+\bottomrule
+\end{tabular}
+\begin{tabular}{c}
+\toprule
+\bf{``Children's Drama''}\\
+\midrule
+The Secret Garden\\
+The Secret of Roan Inish\\
+A Little Princess\\
+Fly Away Home\\
+Black Beauty\\
+\bottomrule
+\end{tabular}
+\begin{tabular}{c}
+\toprule
+\bf{``Drama, War''}\\
+\midrule
+The Bridge on the River Kwai\\
+The Right Stuff\\
+Patton\\
+The Killing Fields\\
+Gandhi\\
+\bottomrule
+\end{tabular}
+
+\end{figure*}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.8\columnwidth]{figures/movielens-user2.pdf}\\
+\caption{An illustration showing a subset of the highly rated movies
+  of a selected user $U$ in the MovieLens data set~\cite{Herlocker:1999},
+  and a subset of the movies in the top 15 recommended to the user by
+  our algorithm. The expected user's $K$-vector of weights $\theta_u$,
+  inferred by our algorithm is shown. In our analysis, $K$ was set to
+  100.}
+\label{fig:movielens-illustration}
+\end{figure}
+
+
+%%
+%%\begin{figure}
+%%\centering
+%%\includegraphics[width=0.8\columnwidth]{figures/movielens-user.pdf}\\
+%%\includegraphics[width=0.8\columnwidth]{figures/movielens-item.pdf}\\
+%%\caption{The weights of the randomly chosen user $U$ (Top) in the
+ %% movielens data set and the weights of her top recommended movie
+  %%\emph{Shakespeare in Love} (Bottom) are shown. User $U$ views a
+  %%variety of movies, and her weights span a range of factor. User $U$
+  %%had 184 views in the data set of movies ranging from Drama, Comedy,
+  %%Thriller to Musical. Of these movies, 126 were either 4 or 5
+  %%stars. Movies are generally characterized by a sparse set of
+  %%factors.}
+%%\end{figure}
+
+
+Currently, the workhorse method for recommendation systems is matrix
+factorization (MF). MF represents users and items with low dimensional
+vectors and computes the affinity between a user and item (that is,
+whether the user will like it) with the dot product of their
+respective representations.  MF is typically fit with squared loss,
+where the algorithm finds representations that minimize the squared
+difference between the predicted value and the observed rating.  (This
+corresponds to a Gaussian model of the
+data~\cite{Salakhutdinov:2008}.)  MF has been extended in many ways to
+implement modern recommendation
+systems~\cite{Dror:2012,Koren:2008,Rendle:2009,Stern:2009p9238}.
+
+However, the assumptions behind traditional MF are fundamentally
+flawed when analyzing real-world user behavior data.  In real-world
+data, each user has only rated a small subset of the large population
+of available items. An item a user did \textit{not} rate can arise in
+two ways: either she considered it and chose not to rate it or she did
+not consider it at all.  Each user has a limited budget (of money,
+attention, or time) and therefore most of the unrated items in the
+matrix arise from users not considering (as opposed to actively disliking) them.
+
+The issue with traditional MF is that it treats all the missing cells
+as observations, as though every user has enough attention to consider
+every available item and decide whether to rate it.  Thus, the missing
+cells are seen as evidence for users not liking the items, and this
+significantly biases the learned representations.  To address the
+problem, researchers have patched MF in a variety of ways, for example
+by artificially down-weighting the contribution of the unrated items~\cite{Hu:2008p9402},
+by sub-sampling from the unrated items to give equal weight to the
+rated items~\cite{Gantner:2012p9364,Dror:2012a}, or by explicitly modeling the unrated
+items as missing data~\cite{Paquet:2013p9197}.
+
+This issue is particularly critical when analyzing binary data, such
+as product purchases or webpage clicks.  Binary behavior data records
+whether each user consumed an item but does provide a rating.
+Building recommendation systems from such matrices is known as
+one-class collaborative filtering or recommendation with implicit
+feedback~\cite{Hu:2008p9402,Paquet:2013p9197}.
+
+In this paper, we develop a Bayesian Poisson factorization model as an
+alternative to traditional MF for building recommendation systems.
+Our model implicitly assumes that each user has a limited budget with
+which to consume items~\cite{Goodhardt:1984}, and thus an item that a
+user has consumed provides a stronger signal about her preferences
+than an item that a user has not consumed.  With several kinds of data
+sets---users rating movies~\cite{Herlocker:1999,Koren:2009}, users
+listening to songs~\cite{Bertin-Mahieux:2011}, and users reading
+scientific papers~\cite{Jack:2010}---we demonstrate that Poisson
+factorization leads to better recommendations than both traditional
+matrix factorization and its variants that adjust for sparse data.
+
+Furthermore, Poisson factorization is computationally more efficient
+than traditional MF.  Most algorithms for fitting MF must iterate over
+all user/item pairs, which is expensive for even modestly-sized user
+behavior matrices and cannot take advantage of the sparsity of the
+data~\cite{Hu:2008p9402}.  (To address this issue, practical applications of matrix
+factorization rely on stochastic optimization~\cite{Mairal:2010}.)  In
+this paper, we derive efficient variational inference algorithms for
+Poisson factorization that take advantage of the sparsity of the
+data. Our algorithms need only iterate over the non-zero entries of
+the user behavior matrix.  This lets us handle data at a scale that
+basic (non-stochastic) MF algorithms cannot handle.
+
+% prem: no longer use stochastic 
+
+%% Further speed-ups using stochastic variational
+%% inference~\cite{Hoffman:2013} let us fit Poisson factorization models
+%% to massive data.
+
+
+\section{Poisson Recommendation}
+\label{sec:model}
+
+% !!! review the Gamama and Poisson near the generative process.
+% !!! make n_u and n_i the sums
+% !!! somewhere we need to make clear how our notation works
+
+We are given data about users and items.  Each user has consumed and
+possibly rated a set of items.  The observation $y_{ui}$ is the rating
+that user $i$ gave to item $j$, or zero if no rating was given.  (In
+simple consumer data, $y_{ui}$ equals one if user $u$ consumed item
+$i$ and zero otherwise.)  User behavior data, such as purchases,
+ratings, clicks, ``likes'', or ``check ins'', are typically sparse.
+Most of the values of the matrix $y$ are zero.
+
+We model this data with factorized Poisson
+distributions~\cite{Canny:2004}. Each user $u$ and each item $i$ is
+associated with a $K$-vector of positive weights, $\theta_u$ and
+$\beta_i$ respectively.  (The number $K$ is fixed in advance.)  The
+user/item observation $y_{ui}$ is modeled with a Poisson parameterized
+by the inner product of the user's and item's weights $y_{ui} \sim
+\poisson(\theta_u^\top \beta_i)$.  This is a variant of
+probabilistic matrix factorization~\cite{Salakhutdinov:2008a} but
+where each user and item's weights are positive~\cite{Lee:1999}---we
+place Gamma priors on them--- and where the Poisson likelihood
+replaces the Gaussian likelihood.
+
+% dmb: jake cites something below
+% dmb: also cite "The Dirichlet", old marketing paper
+
+This Poisson model has good properties when modeling user/item data.
+It implicitly assumes that each user consumes a negative-binomial number of
+items---a heavy-tailed distribution that is known to fit user activity
+well~\cite{Goodhardt:1984}--and this forces it to down-weight the
+contribution of the items that each user did not consume. The reason
+is that the model has two ways of explaining that a user does not
+consume an item: either she is not interested in it or she would be
+but has already consumed her allotted negative-binomial number.  In
+contrast, a user that consumes an item must be interested in it.
+Thus, the model benefits more from making a consumed user/item pair
+more similar than making an unconsumed user/item pair less similar.
+
+Classical matrix factorization is based on Gaussian likelihoods (i.e.,
+squared loss), which gives equal weight to consumed and unconsumed
+items.  Consequently, when faced with a sparse matrix, matrix
+factorization places more total emphasis on the unconsumed user/item
+pairs.  To address this, researchers have patched the model in complex
+ways, for example, by including per-observation
+confidences~\cite{Koren:2009} or considering all zeroes to be hidden
+variables~\cite{Paquet:2013p9197}.  Poisson factorization more naturally solves this
+problem by capturing each user's rate of consumption.
+
+As an example, consider two similar science fiction movies, ``Star
+Wars'' and ``The Empire Strikes Back'', and consider a user who has
+seen one of them.  The Gaussian model pays an equal penalty for making
+the user similar to these items as it does for making the user
+different from them---with quadratic loss, seeing ``Star Wars'' is
+evidence for liking science fiction, but not seeing ``The Empire
+Strikes Back'' is evidence for disliking it.  The Poisson model,
+however, will prefer to bring the user's latent weights closer to the
+movies' weights because it favors the information from the user
+watching ``Star Wars''. Further, because the movies are similar, this
+increases the Poisson model's predictive score that a user who watches
+``Star Wars'' will also watch ``The Empire Strikes Back''.
+
+
+\subsection{The generative model}
+
+The generative process of the Poisson factorization model is as
+follows:
+\begin{enumerate}
+\item For each user $u$ and each component $k$, choose weight
+  \begin{equation*}
+    \theta_{uk} \sim \gam(a, b).
+  \end{equation*}
+\item For each user $u$ and each component $k$, choose weight
+  \begin{equation*}
+    \beta_{ik} \sim \gam(c, d).
+  \end{equation*}
+\item For each user $u$ and item $i$, choose rating
+  \begin{equation*}
+    y_{ui} \sim \poisson(\theta_u^\top \beta_i).
+  \end{equation*}
+\end{enumerate}
+The posterior distribution of the latent variables $p(\theta, \beta \g
+y)$ embeds users and items in a latent space of $K$-dimensional
+positive vectors.
+
+We use Poisson factorization to recommend items to users by predicting
+which of the unconsumed items each will like.  We rank each user's
+unconsumed items by their posterior expected Poisson parameters,
+\begin{equation}
+  \label{eq:score}
+  \textrm{score}_{ui} = \E[\theta_u^\top \beta_i \g y].
+\end{equation}
+This amounts to asking the model to rank by probability which of the
+presently unconsumed items each user will likely consume in the
+future.
+
+With these details in place, we highlight two statistical properties of the
+model. First, we mentioned above that the marginal distribution of
+each user's ratings is a negative binomial.  Let $y_{u} = \sum_{i}
+y_{ui}$ be the sum of the ratings for user $u$.  Since each of the
+terms in the sum is a Poisson distribution with rate $\theta_u^\top
+\beta_i$, the sum is itself a Poisson random
+variable~\cite{Johnson:2005}.
+\begin{equation}
+  y_u \sim \poisson\left(\theta_u^\top (\textstyle \sum_{i} \beta_{i})\right).
+\end{equation}
+Holding the item weights fixed, note that the rate of this Poisson is
+a sum of scaled Gamma random variables $\beta_{ik} \theta_{uk}$, which is
+itself a Gamma variable~\cite{Norman:1994}.  Thus the marginal
+distribution of $y_u$ is from an integrated Gamma-Poisson
+distribution, which is a negative binomial~\cite{Gelman:1995}.
+
+% dmb: above, maybe add a comment above that this is a heavy-tailed
+% realistic distribution for consumer data.  cite goodhardt 1984
+% again.
+
+Second, the likelihood of the observed data depends only on the
+consumed items, that is, the non-zero elements of the user/item matrix
+$y$.  Given the latent variables $\theta_u$ and $\beta_i$, the Poisson
+distribution of $y_{ui}$ is
+\begin{equation}
+  p(y_{ui} \g \theta_u, \beta_i) =
+  \left(\theta_u^\top \beta_i\right)^y
+  \exp\left\{-\theta_u^\top \beta_i \right\} / y_{ui}!
+\end{equation}
+Recall the elementary fact that $0! = 1$.  The log probability of the
+complete matrix $y$ is
+\begin{align}
+  \log p(y \g \theta, \beta) =
+  & \left(\textstyle \sum_{\{y_{ui} > 0\}}
+    y_{ui} \log (\theta_u^\top \beta_i) - \log y_{ui}!
+  \right) \\
+  & -
+  \left(\textstyle\sum_{u} \theta_u\right)^\top \left(\textstyle
+    \sum_{i} \beta_i\right).
+\end{align}
+That this likelihood depends only on the non-zero elements facilitates
+inference with sparse matrices.  In contrast, classical matrix
+factorization methods, especially when applied to
+massive data sets, must address the zeros either through
+sub-sampling~\cite{Dror:2012a} or approximation~\cite{Hu:2008p9402}.
+
+Finally, we follow the literature on recommendation systems which
+finds that per-item and per-user bias terms significantly help
+performance. These terms capture universally popular items and
+frequently consuming users.  For simplicity, we present our algorithms
+without these terms, but we include them in our empirical study. The
+corresponding changes to the algorithm are minimal.\footnote{In
+particular, we include these biases with dummy factors that are always
+equal to one for each user and each item.}
+
+\subsection{Related work}
+
+The roots of Poisson factorization come from nonnegative matrix
+factorization~\cite{Lee:1999}, where the objective function is
+equivalent to a factorized Poisson likelihood.  Placing a Gamma prior
+on the user weights gives the GaP model~\cite{Canny:2004}, which was
+developed as an alternative text model to latent Dirichlet allocation
+(LDA)~\cite{Blei:2003b}.
+
+A difference between our treatment and GaP is that GaP fits the item
+weights with maximum likelihood via the expectation maximization
+algorithm.  Our model places Gamma priors on these weights (step 2,
+above) and we approximate the full posterior with variational
+inference.  Placing priors on both sets of weights further regularizes
+the model and lets us use the same inferential machinery in both
+user-space and item-space.  
+
+% prem: removed reference to stochastic inference
+%       we should add this in future work/discussion
+%% Furthermore, using variational inference opens the door to scaling to
+%% massive data sets, even larger than the data sets we analyze in this
+%% paper, using stochastic variational inference~\cite{Hoffman:2013} (see
+%% \mysec{inference}).
+
+We note that GaP was developed as an alternative to LDA. In Appendix
+A, we show that LDA can be reinterpreted as an instance of Poisson
+factorization where we condition on the user counts and use an
+alternative prior on the item weights.  (This connection was
+previously unknown.)
+
+Independently of GaP, Bayesian Poisson factorization has been studied
+in the signal processing community for performing source separation
+from spectrogram data~\cite{Cemgil:2009,Hoffman:2012}.  This research
+includes variational approximations to the posterior, though the
+issues and details around spectrogram data differ significantly from
+user behavior data we consider and our derivation below (based on
+auxiliary variables) is more direct.  As future work, the methods
+developed here could lead to improved methods for massive simultaneous
+analysis of audio spectrograms. In the context of network data, a
+Poisson model of overlapping communities was described by the authors
+of ~\cite{Ball:2011}. As with GaP, this model is unregularized and the
+authors fit the model with maximum likelihood via expectation
+maximization.
+
+We discuss further differences between our method and previous work on
+matrix factorization in the empirical results below.
+
+% !!! add reference to canny's click data
+
+\section{Variational Inference}
+\label{sec:inference}
+
+The key computation for Poisson factorization is the posterior
+distribution of the user weights $\theta_{uk}$ and item
+weights $\beta_{ik}$, given on an observed matrix of user behavior
+$y$,
+\begin{equation*}
+  p(\theta, \beta \g y) = \frac{p(\theta) p(\beta) p(y \g \theta, \beta)}
+  {\int_{\theta} \int_{\beta} p(\theta) p(\beta) p(y \g \theta, \beta)}.
+\end{equation*}
+We need the posterior to form recommendations with the posterior
+expectations in \myeq{score}.
+
+As for many Bayesian models of interest, however, the posterior is
+intractable to compute exactly.  The problem is with the denominator,
+which is the marginal probability of the observed matrix and involves
+a complicated and high-dimensional integral.  In this section, we show
+how to efficiently approximate the posterior with mean-field
+variational inference.
+
+Variational inference is a general strategy for approximating
+posterior distributions in complex probabilistic
+models~\cite{Jordan:1999,Wainwright:2008}.  Variational inference
+algorithms posit a family of distributions over the hidden variables,
+indexed by free ``variational'' parameters, and then find the member
+of that family that is closest in KL divergence to the true posterior.
+(The form of the family is chosen to make this optimization possible.)
+Thus, variational inference turns the inference problem into an
+optimization problem.  Variational algorithms tend to scale better
+than alternative sampling-based approaches, like Monte Carlo Markov
+chain sampling, and have been deployed to solve many applied problems
+with complex models, including large-scale recommendation~\cite{Paquet:2013p9197}.
+
+We develop mean-field variational inference algorithm for Poisson
+factorization.  We first describe the mean-field variational family
+and the corresponding variational objective.  We then derive a batch
+algorithm that fits the variational distribution by repeatedly cycling
+through the non-zero data and updating its estimates of the latent
+representations. The simple structure of the algorithm lets us scale
+our approach to data sets like the full Netflix data (18,000 movies
+and 480,000 users) on a single CPU.
+
+% prem: remove stochastic
+%% Finally, we develop a scalable stochastic variational inference
+%% algorithm for massive data.  This algorithm repeatedly subsamples
+%% users from the matrix and updates its estimates of the latent
+%% representations.  
+
+Before beginning these derivations, however, we give an alternative
+formulation of the model in which we add a layer of latent variables.
+These auxiliary variables allow us to take advantage of some general
+results for variational
+algorithms~\cite{Ghahramani:2001,Hoffman:2013}.  For each user and
+item we add $K$ latent variables $z_{uik} \sim \poisson(\theta_{uk}
+\beta_{ik})$, which are integers that sum to the user/item value
+$y_{ui}$.  A sum of Poisson random variables is itself a Poisson with
+rate equal to the sum of the rates.  Thus, these new latent variables
+preserve the marginal distribution of the observation, $y_{ui} \sim
+\poisson(\theta_{u}^\top \beta_{i})$.  These variables can be thought
+of as the contribution from component $k$ to the total observation
+$y_{ui}$.  Note that when $y_{ui} = 0$, these auxiliary variables are
+not random---the posterior distribution of $z_{ui}$ will place all its
+mass on the zero vector.  Consequently, our inference procedure need
+only consider $z_{ui}$ for those user/item pairs where $y_{ui} > 0$.
+
+\subsection{Mean-field variational inference} The latent variables in
+the model are user weights $\theta_{uk}$, item weights $\beta_{ik}$,
+and user-item contributions $z_{uik}$, which we represent as a
+$K$-vector of counts $z_{ui}$.  The mean-field family considers these
+variables to be independent and each governed by its own distribution,
+\begin{align}
+  \label{eq:q}
+  q(\beta, \theta, z) =& \prod_{i,k} q(\beta_{ik} \g \lambda_{ik})
+  \prod_{u,k} q(\theta_{uk} \g \gamma_{uk}) \prod_{u,i} q(z_{ui} \g
+  \phi_{ui}).
+\end{align}
+Though the variables are independent, this is a flexible family of
+distributions because each variable is governed by its own free
+parameter.  (We postpone specifying the forms of each of these factors
+to below.)
+
+After specifying the family, we fit the variational parameters $\nu =
+\{\lambda, \gamma, \phi\}$ to minimize the KL divergence to the
+posterior
+\begin{equation*}
+  \nu^* = \arg \min_\nu \textrm{KL}(q(\beta,
+  \theta, z \g \nu) || p(\beta, \theta, z \g y)).
+\end{equation*}
+We then use the corresponding variational distribution $q(\cdot \g
+\nu^*)$ as a proxy for the posterior.\footnote{In fact, variational inference
+optimizes an equivalent objective that is the KL divergence up to an
+additive constant.  But this detail is not needed here.}  The
+mean-field factorization facilitates both optimizing the variational
+objective and downstream computations with the approximate posterior,
+such as the recommendation score of \myeq{score}.
+
+\subsection{Complete conditionals}
+
+Variational inference fits the variational parameters to minimize
+their KL divergence to the posterior.  For a large class of models, we
+can easily perform this optimization with a coordinate-ascent
+algorithm, one in which we iteratively optimize each variational
+parameter while holding the others fixed.  Specifically, we appeal to
+general results about the class of \textit{conditionally conjugate}
+models~\cite{Ghahramani:2001,Hoffman:2013}.  We define the class, show
+that Poisson factorization is in the class, and then give the
+variational inference algorithm.
+
+A \textit{complete conditional} is the conditional distribution of a
+latent variable given the observations and the other latent variables
+in the model.  A conditionally conjugate model is one where each
+complete conditional is in an exponential family (such as a Gaussian,
+Gamma, Poisson, multinomial, or others).  This is a large class of
+models.
+
+The Poisson factorization model, with the $z_{ui}$ variables described
+above, is a conditionally conjugate model.  (Without the auxiliary
+variables, it is not conditionally conjugate.) For the user weights
+$\theta_{uk}$, the complete conditional is a Gamma,
+\begin{equation}
+  \label{eq:user-weight-cc}
+  \theta_{uk} \g \beta, z, y \sim
+  \gam(a + \textstyle \sum_{i} z_{uik},
+  b + \sum_{i} \beta_{ik}).
+\end{equation}
+The complete conditional for item weights $\beta_{ik}$ is symmetric,
+\begin{equation}
+  \label{eq:item-weight-cc}
+  \beta_{ik} \g \theta, z, y \sim
+  \gam(a + \textstyle \sum_{u} z_{uik},
+  b + \sum_{i} \theta_{uk}).
+\end{equation}
+These distributions stem from conjugacy properties between the Gamma
+and Poisson. In the user weight distribution, for example, the item
+weights $\beta_{ik}$ act as ``exposure'' variables~\cite{Gelman:1995}.
+(The roles are reversed in the item weight distribution.)
+
+The final latent variables are the auxiliary variables.  Recall that
+each $z_{ui}$ is a $K$-vector of Poisson counts that sum to the
+observation $y_{ui}$. The complete conditional for this vector is
+\begin{equation}
+  \label{eq:aux-cc}
+  z_{ui} \g \beta, \theta, y \sim \mult\left(y_{ui}, \frac{\theta_{u} 
+      \beta_{i}}{\textstyle \sum_{k} \theta_{uk} \beta_{ik}}\right).
+\end{equation}
+Though these variables are Poisson in the model, their complete
+conditional is multinomial.  The reason is that the conditional
+distribution of a set of Poisson variables, given their sum, is a
+multinomial for which the parameter is their normalized set of rates.
+See~\cite{Johnson:2005} (and Appendix A).
+
+\subsection{Variational algorithm}
+
+We now derive variational inference for Poisson factorization. First,
+we set each factor in the mean-field family (\myeq{q}) to be the same
+type of distribution as its complete conditional.  The complete
+conditionals for the item weights $\beta_{ik}$ and user weights
+$\theta_{uk}$ are Gamma distributions (Equations
+\ref{eq:user-weight-cc} and \ref{eq:item-weight-cc}); thus the
+variational parameters $\lambda_{ik}$ and $\gamma_{uk}$ are Gamma
+parameters, each containing a shape and a rate.  The complete
+conditional of the auxiliary variables $z_{uik}$ is a multinomial
+(\myeq{aux-cc}); thus the variational parameter $\phi_{ui}$ is a
+multinomial parameter, a point on the $K$-simplex, and the variational
+distribution for $z_{ui}$ is $\mult(y_{ui}, \phi_{ui})$.
+
+In coordinate ascent we iteratively optimize each variational
+parameter while holding the others fixed.  In conditionally conjugate
+models, this amounts to setting each variational parameter equal to
+the expected parameter (under $q$) of the complete
+conditional.\footnote{It is a little more complex then this.  We must
+  be working with the natural parameterization of the corresponding
+  exponential families.  For details, see~\cite{Hoffman:2013}.}  The
+parameter to each complete conditional is a function of the other
+latent variables (by definition) and the mean-field family sets all
+the variables to be independent.  These facts guarantee that the
+parameter we are optimizing will not appear in the expected parameter.
+
+
+For the user and item weights, we update the variational shape and
+rate parameters.  (We denote shape with the superscript ``shp'' and
+rate with the superscript ``rte''.) The updates are
+\begin{eqnarray}
+  \gamma_{uk} &=& \langle a + \textstyle \sum_{i} y_{ui} \phi_{uik},
+  b + \textstyle \sum_i \lambda_{ik}^{\shape} / \lambda_{ik}^{\rate} \rangle \\
+  \lambda_{ik} &=& \langle c + \textstyle \sum_{u} y_{ui} \phi_{uik},
+  d + \textstyle \sum_u \gamma_{ik}^{\shape} / \gamma_{ik}^{\rate} \rangle.
+\end{eqnarray}
+These are expectations of the complete conditionals in
+Equations~\ref{eq:user-weight-cc} and \ref{eq:item-weight-cc}.  In the
+shape parameter, we use that the expected count of the $k$th item in
+the multinomial is $\E_q[z_{uik}] = y_{ui} \phi_{uik}$. In the rate
+parameter, we use that the expectation of a Gamma variable is the
+shape divided by the rate.
+
+For the variational multinomial the update is
+\begin{equation}
+  \phi_{ui} \propto \exp\{\Psi(\gamma_{uk}^\shape) - \log
+  \gamma_{uk}^{\rate} + \Psi(\lambda_{ik}^\shape) - \log
+  \lambda_{ik}^\rate\},
+\end{equation}
+where $\Psi(\cdot)$ is the digamma function (the first derivative of
+the log $\Gamma$ function).  This update comes from the expectation of
+the log of a Gamma variable, for example $\E_q[\log \theta_{uk}] =
+\Psi(\gamma_{nk}^\shape) - \log \gamma_{nk}^{\rate}$.
+
+The coordinate ascent algorithm iteratively executes these updates
+(see \myfig{batch}).  This algorithm is very efficient on sparse
+matrices. In step 1, the algorithm only needs to update variational
+multinomials for the non-zero user/item observations $y_{ui}$.  In
+steps 2 and 3, the sums over users and items also only need to
+consider non-zero observations.  In contrast, fitting a traditional
+matrix factorization with squared loss must iteratively consider every
+cell of the matrix, both zeros and non-zeros. This makes matrix
+factorization difficult to fit with large matrices, though there are
+innovative solutions based on stochastic
+optimization~\cite{Mairal:2010}.
+
+Implemented in parallel, the coordinate updates are equal to the
+natural gradient of the variational objective. We found that following
+these natural gradients~\cite{Hoffman:2013, Honkela:2008,Sato:2012}
+(with step size one) resulted in a better way to fit the objective.
+The algorithm in \myfig{batch} remains the same, except we now compute
+steps 2 and 3 in parallel, updating the variational shape and rate
+parameters of all users and items using the multinomial $\phi_{ui}$
+parameters.
+
+% prem: modified the init to reflect what we do
+% shape intialization:  prior + 0.01 * gsl_rng_uniform(_r);
+% scale initialization: prior + 0.1 * gsl_rng_uniform(_r);
+% prior = 0.3
+
+\begin{figure}
+  \begin{framed}
+    For all users and items, initialize the user parameters
+    $\gamma_u$ and item parameters $\lambda_i$ to the prior with a
+    small random offset.
+
+    \vspace{0.1in}
+
+    Repeat until convergence:
+    \begin{enumerate}
+    \item For each user/item such that $y_{ui} > 0$, update the multinomial:
+      \begin{equation*}
+        \phi_{ui} \propto \exp\{\Psi(\gamma_{uk}^\shape) - \log
+        \gamma_{uk}^{\rate} + \Psi(\lambda_{ik}^\shape) - \log
+        \lambda_{ik}^\rate\}.
+      \end{equation*}
+    \item For each user, update the user weight parameters:
+      \begin{eqnarray*}
+        \gamma_{uk}^\shape &=& a + \textstyle \sum_{i} y_{ui}
+        \phi_{uik} \\
+        \gamma_{uk}^\rate &=&  b + \textstyle \sum_i \lambda_{ik}^{\shape} /
+        \lambda_{ik}^{\rate}.
+      \end{eqnarray*}
+    \item For each item, update the item weight parameters:
+      \begin{eqnarray*}
+        \lambda_{ik}^\shape &=& c + \textstyle \sum_{u} y_{ui}
+        \phi_{uik} \\
+        \lambda_{ik}^\rate &=& d + \textstyle \sum_u
+        \gamma_{uk}^{\shape} / \gamma_{uk}^{\rate}.
+      \end{eqnarray*}
+    \end{enumerate}
+\end{framed}
+\caption{\label{fig:batch}Batch variational inference for Poisson
+  factorization.  Each iteration only needs to consider the non-zero
+  elements of the user/item matrix.}
+\end{figure}
+
+\input{eval.tex}
+
+\input{discussion.tex}
+
+\bibliographystyle{abbrv}
+\bibliography{bib}
+
+\appendix
+
+\section{Poisson factorization and LDA}
+
+We show that LDA is equivalent to Poisson factorization, conditioned
+on the per-user sums and where the item weights are constrained to sum
+to one (across items, for each component).  To show this fact we
+appeal to the relationships between the Gamma and Dirichlet
+distributions and between the Poisson and multinomial distributions.
+
+LDA is a mixed-membership model of word counts.  There are a set of
+``topics'' $\gamma_{1:K}$, distributions over a fixed vocabulary, and
+each document exhibits those topics with different proportions.
+Applied to the setting here, the vocabulary is the set of items; each
+user is a ``document'', represented as a sparse vector of item counts;
+a topic is a distribution over items, $\sum_{j} \gamma_{kj} = 1$; each
+user's topic proportions are denoted $\pi_u$, where $\sum_k \pi_{uk} =
+1$.  User/item data, treated as documents, was one of the original
+applications of LDA~\cite{Blei:2003b}.
+
+To see the connection to Poisson factorization, we take the
+``multinomial PCA'' perspective of LDA~\cite{Buntine:2004}.  Let
+$\Gamma$ be the $K \times I$ matrix of topics, where each row
+$\gamma_k$ is a distribution over $I$ items.  Recall that the
+Dirichlet distribution is a distribution over the simplex,
+non-negative vectors that sum to one.  For a distribution on the
+$K$-simplex, the Dirichlet parameter is a positive $K$-vector.  The
+generative process for LDA is
+\begin{eqnarray*}
+  \gamma_k \sim & \dir(\eta) & \quad k \in \{1, \ldots,
+  K\} \\
+  \pi_u  \sim &\dir(\alpha) & \quad u \in \{1, \ldots, U\}
+  \\
+  y_u \sim & \mult(n_u, \pi_u^\top \Gamma). & \quad u \in
+  \{1, \ldots, U\}.
+\end{eqnarray*}
+This process conditions on $n_u$, the sum of the counts for user $u$.
+Further, we assume exchangeable Dirichlets, that is, the
+hyperparameters $\alpha$ and $\eta$ are scalars repeated $K$ and $I$
+times, respectively, for their corresponding Dirichlet parameters.
+This generative process is different from but equivalent to the
+original process for LDA~\cite{Blei:2003b}.
+
+Before connecting LDA and Poisson factorization, we articulate the
+relationship between the Gamma and Dirichlet and between the Poisson
+and multinomial.  The relationship between the Dirichlet and Gamma
+distributions is that we can write a Dirichlet random vector as a
+normalized vector of independent Gammas.  Let $\pi$ be a
+$K$-dimensional simplex vector and let $\alpha$ is a positive
+$K$-vector.  If we generate $\pi$ from the following two-stage
+process,
+\begin{eqnarray*}
+  \theta_k &\sim& \gam(\alpha_k, 1) \\
+  \pi_k &=& \frac{\theta_k}{\sum_{j} \theta_j},
+\end{eqnarray*}
+then $\pi \sim \dir(\alpha)$.
+
+The relationship between the Poisson and multinomial is that a set of
+Poisson variables, conditioned on their sum, is a
+multinomial~\cite{Johnson:2005}.  Let $z_{1:K}$ be a set of Poisson
+variables, each with different rates $\mu_{1:K}$.  Conditioned on
+their sum $n = \sum_k z_k$, the joint distribution of $z_{1:K}$ is a
+multinomial (giving a vector of counts) whose proportions are the
+normalized rates,
+\begin{equation*}
+  z \sim \mult\left(n, \pi \right)
+\end{equation*}
+where $\pi_k = \mu_k / \sum_j \mu_j$.
+
+With these two facts in hand, we can show that LDA is a type of
+Poisson factorization.  First, we re-parameterize the Dirichlet topic
+proportions with Gamma distributions,
+\begin{eqnarray*}
+  \theta_{uk} &\sim& \gam(\alpha, 1) \\
+  \pi_{uk} &=& \theta_{uk} / \textstyle \sum_{j} \theta_{uj}.
+\end{eqnarray*}
+Second, we note that $y_u$ coming from a multinomial is equivalent to
+a conditional bank of Poissons (denoted by $\poisson_{n_u}$),
+\begin{equation*}
+  y_u \g n_u \sim \poisson_{n_u}(\pi_u^\top \Gamma).
+\end{equation*}
+This conditional Poisson is equivalent to any other with the rates
+scaled by a constant.  We can thus use the original Gamma variables
+$\theta_{uk}$ because $\pi$ is simply scaled by its sum,
+\begin{equation*}
+  y_u \g n_u \sim \poisson_{n_u}(\theta_u^\top \Gamma).
+\end{equation*}
+Note that we cannot symmetrically scale by a Gamma representation of
+$\beta_{ik}$ because the vector $\gamma_{\cdot i}$, which are the
+per-topic probabilities for a fixed item, cannot be represented by a
+normalized Gamma.  (Rather, it is the topics themselves, across words,
+which are normalized Gammas.)
+
+In summary, LDA is a form of Poisson factorization where (a) the
+scaling parameter on the gamma priors is fixed to be one (b) we
+condition on the marginal sums for each user (c) the per-item weights
+are scaled to sum to one for each component.
+
+% dmb: consider adding a cite to tina's paper.  note: this justifies
+% using LDA where it might seem "unnatural" to think about bags of
+% words
+
+\end{document}

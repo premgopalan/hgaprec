@@ -1,0 +1,26 @@
+\section{Discussion}
+
+In settings where there are many more items than the typical user
+can consume, unobserved consumption is likely explained by finite
+attention, as opposed to an active dislike for the associated
+content. Likewise, a user's choice in selecting a particular set of
+items amongst the many available options is a relatively strong
+indicator of her interests. BPF captures these features of sparse user
+data via the Poisson likelihood, which appropriately balances strong
+signals of consumption with weaker signals of unobserved activity.
+
+Conveniently, the same Poisson likelihood also leads to
+computationally efficient inference on sparse data sets, as it requires
+evaluation of only the consumed user-item pairs, which comprise a
+small fraction of all possible observations. This avoids the issue
+faced by traditional matrix factorization in down-weighting or sampling
+negative examples during training. In addition to this computational
+advantage, BPF empirically outperforms classical MF across a wide array
+of data sets---from movies to music to scientific articles---in
+recommending relevant content to users.
+%Furthermore, we have shown that BPF is a variant of LDA conditioned on
+%each user's activity, a previously unknown connection.
+
+%Future work includes exploring modifications to BPF to incorporate
+%additional features---e.g., user and item metadata---as well as
+%stochastic inference to scale to massive data sets.

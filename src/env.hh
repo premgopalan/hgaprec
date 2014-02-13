@@ -61,8 +61,9 @@ public:
       double av, double bv, double cv, double dv,
       Env::Dataset d, bool batch, bool binary_data, 
       bool bias, bool hier, bool explore, bool vb, 
-      bool nmf, bool nmfload, bool lda, bool write_training,
-      uint32_t rating_threshold);
+      bool nmf, bool nmfload, bool lda, bool vwlda, 
+      bool write_training, uint32_t rating_threshold,
+      bool graphchi);
 
   ~Env() { fclose(_plogf); }
 
@@ -114,8 +115,10 @@ public:
   bool nmf;
   bool nmfload;
   bool lda;
+  bool vwlda;
   bool write_training;
   uint32_t rating_threshold;
+  bool graphchi;
 
   template<class T> static void plog(string s, const T &v);
   static string file_str(string fname);
@@ -207,8 +210,9 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
 	 Env::Dataset datasetv, bool batchv, 
 	 bool binary_datav, bool biasv,  bool hierv,
 	 bool explore, bool vbv, bool nmfv, bool nmfloadv, 
-	 bool ldav,
-	 bool write_trainingv, uint32_t rating_thresholdv)
+	 bool ldav, bool vwldav, 
+	 bool write_trainingv, uint32_t rating_thresholdv,
+	 bool graphchiv)
   : dataset(datasetv),
     n(N),
     m(M),
@@ -247,8 +251,10 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
     nmf(nmfv),
     nmfload(nmfloadv),
     lda(ldav),
+    vwlda(vwldav),
     write_training(write_trainingv),
-    rating_threshold(rating_thresholdv)
+    rating_threshold(rating_thresholdv),
+    graphchi(graphchiv)
 {
   ostringstream sa;
   sa << "n" << n << "-";
@@ -299,6 +305,12 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
 
   if (lda)
     sa << "-lda";
+
+  if (vwlda)
+    sa << "-vwlda";
+
+  if (graphchi)
+    sa << "-chi";
 
   if (seed)
     sa << "-seed" << seed;

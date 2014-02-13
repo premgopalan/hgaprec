@@ -75,10 +75,13 @@ main(int argc, char **argv)
   bool gen_ranking_for_users = false;
   bool nmf = false;
   bool nmfload = false;
+  bool vwload = false;
   bool lda = false;
+  bool vwlda = false;
   bool msr = false;
   bool write_training = false;
   uint32_t rating_threshold = 1;
+  bool chi = false;
 
   uint32_t i = 0;
   while (i <= argc - 1) {
@@ -174,10 +177,16 @@ main(int argc, char **argv)
       nmf = true;
     } else if (strcmp(argv[i], "-nmfload") == 0) {
       nmfload = true;
+    } else if (strcmp(argv[i], "-vwload") == 0) {
+      vwload = true;
     } else if (strcmp(argv[i], "-lda") == 0) {
       lda = true;
+    } else if (strcmp(argv[i], "-vwlda") == 0) {
+      vwlda = true;
     } else if (strcmp(argv[i], "-write-training") == 0) {
       write_training = true;
+    } else if (strcmp(argv[i], "-chi") == 0) {
+      chi = true;
     } else if (strcmp(argv[i], "-rating-threshold") == 0) {
       rating_threshold = atoi(argv[++i]);
     } else if (i > 0) {
@@ -192,8 +201,9 @@ main(int argc, char **argv)
 	  model_load, model_location, 
 	  gen_heldout, a, b, c, d, dataset, 
 	  batch, binary_data, bias, hier, 
-	  explore, vb, nmf, nmfload, lda, write_training,
-	  rating_threshold);
+	  explore, vb, nmf, nmfload, lda, vwlda, 
+	  write_training, rating_threshold, 
+	  chi);
   env_global = &env;
 
   Ratings ratings(env);
@@ -202,16 +212,19 @@ main(int argc, char **argv)
 	    fname.c_str());
     return -1;
   }
-  /*
-  if (test) {
-    gsl_rng_env_setup();
-    const gsl_rng_type *T = gsl_rng_default;
-    gsl_rng *r = gsl_rng_alloc(T);
-    GPMatrix _htheta("htheta", 0.3, 0.3, env.n, env.k, &r);
-    _htheta.swap();
+
+  if (chi) {
+    HGAPRec hgaprec(env, ratings);
+    hgaprec.write_chi_training_matrix();
+    hgaprec.run_chi_nmf();
     exit(0);
   }
-  */
+  
+  if (test) {
+    HGAPRec hgaprec(env, ratings);
+    hgaprec.test();
+    exit(0);
+  }
 
   if (msr) {
     HGAPRec hgaprec(env, ratings);
@@ -225,12 +238,20 @@ main(int argc, char **argv)
       hgaprec.write_lda_training_matrix();
     else if (nmf)
       hgaprec.write_nmf_training_matrix();
+    else if (vwlda)
+      hgaprec.write_vwlda_training_matrix();
     exit(0);
   }
 
   if (nmfload) {
     HGAPRec hgaprec(env, ratings);
     hgaprec.load_nmf_beta_and_theta();
+    exit(0);
+  }
+
+  if (vwload) {
+    HGAPRec hgaprec(env, ratings);
+    hgaprec.load_vwlda_beta_and_theta();
     exit(0);
   }
 
@@ -245,6 +266,13 @@ main(int argc, char **argv)
   if (lda) {
     HGAPRec hgaprec(env, ratings);
     hgaprec.load_lda_beta_and_theta();
+    exit(0);
+  }
+  
+  if (vwlda) {
+    HGAPRec hgaprec(env, ratings);
+    hgaprec.write_vwlda_training_matrix();
+    hgaprec.run_vwlda();
     exit(0);
   }
 

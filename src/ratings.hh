@@ -57,21 +57,25 @@ public:
   const IDMap &movie2seq() const { return _movie2seq; }
   const IDMap &seq2movie() const { return _seq2movie; }
   int read_generic(FILE *f, CountMap *m);
+  
+  int read_nyt_train(FILE *f, CountMap *m);
+  int read_nyt_titles(string dir);
+  
   void load_movies_metadata(string dir);
   int read_test_users(FILE *f, UserMap *);
 
   string movie_type(uint32_t movie_seq) const;
   string movie_name(uint32_t movie_seq) const;
+  int read_netflix_movie(string dir, uint32_t movie);
+  int read_netflix_metadata(string dir);
+  int read_movielens_metadata(string dir);
   
 private:
   int read_generic_train(string dir);
-  int read_netflix_movie(string dir, uint32_t movie);
   int read_movielens(string dir);
   int read_mendeley(string dir);
   int read_echonest(string dir);
   int read_nyt(string dir);
-  int read_movielens_metadata(string dir);
-  int read_netflix_metadata(string dir);
   int read_mendeley_metadata(string dir);
   string movies_by_user_s() const;
   bool add_movie(uint32_t id);

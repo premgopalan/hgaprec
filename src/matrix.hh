@@ -794,7 +794,7 @@ D1Array<double>::load(string name) const
       k++;
     } while (p != NULL);
     n++;
-    lerr("read %d entries\n", n);
+    debug("read %d entries\n", n);
     memset(line, 0, sz);
   }
   assert (n <= _n);
@@ -834,7 +834,12 @@ public:
   void save(string name, const IDMap &m) const { lerr("save not implemented"); }
   void save_transpose(string name, const IDMap &m) const;
   void load(string name, uint32_t skipcols=2, 
-	    bool transpose=false) const { lerr("load not implemented"); }
+	    bool transpose=false, uint32_t skiprows=0) 
+    const { lerr("load not implemented"); }
+  void mm_load_rowmajor(string name) 
+    const { lerr("load not implemented"); }
+  void mm_load_colmajor(string name) 
+    const { lerr("load not implemented"); }
   void nmf_load(string name, bool transpose) const;
   double abs_mean() const;
 
@@ -1191,8 +1196,10 @@ D2Array<double>::save_transpose(string name, const IDMap &m) const
 
 
 template<> inline void
-D2Array<double>::load(string name, uint32_t skipcols, 
-		      bool transpose) const
+D2Array<double>::load(string name, 
+		      uint32_t skipcols, 
+		      bool transpose,
+		      uint32_t skiprows) const
 {
   FILE *f = fopen(name.c_str(), "r");
   if (!f)
@@ -1203,20 +1210,22 @@ D2Array<double>::load(string name, uint32_t skipcols,
   uint32_t m = 0;
   int sz = transpose ? 1024 *_m : 1024*_n;
   char *line = (char *)malloc(sz);
+  uint32_t l = 0, skipped = 0;
   while (!feof(f)) {
     if (fgets(line, sz, f) == NULL)
       break;
+    if (l < skiprows) { //skip header, if any (e.g., vowpal wabbit output)
+	l++;
+	skipped++;
+	continue;
+    }
+    l++;
     uint32_t n = 0;
     char *p = line;
     do {
       char *q = NULL;
       double d = strtod(p, &q);
       if (q == p) {
-	if (n < _n - 1) {
-	  fprintf(stderr, "error parsing %s file n =%d, _n=%d\n", 
-		  name.c_str(), n, _n);
-	  assert(0);
-	}
 	break;
       }
       p = q;
@@ -1231,19 +1240,122 @@ D2Array<double>::load(string name, uint32_t skipcols,
     } while (p != NULL);
     if (transpose) {
       //if (n != _m)
-      //lerr("n = %d, _m = %d\n", n, _m);
-      assert (n == _m);
+      lerr("n = %d, _m = %d\n", n, _m);
+      if (m >= _n - 1)
+	break;
     } else if (n != _n) {
       //lerr("n = %d, _n = %d\n", n, _n);
       //assert (n == _n);
+      if (m >= _m - 1) 
+	break;
     }
     m++;
     memset(line, 0, sz);
   }
+  lerr("skipped %d lines\n", skipped);
   //lerr("read %d lines\n", m);
   //assert (m == _m);
   fclose(f);
   free(line);
+}
+
+template<> inline void
+D2Array<double>::mm_load_rowmajor(string name) const
+{
+  FILE *f = fopen(name.c_str(), "r");
+  if (!f) {
+    lerr("cannot open file %s\n", name.c_str());
+    return;
+  }
+  assert(f);
+
+  double **md = _data;
+  int sz = 4096;
+  char line[sz];
+  uint32_t l = 0, skiprows = 3;
+  uint32_t n = 0, m = 0;
+  while (!feof(f)) {
+    if (fgets(line, sz, f) == NULL)
+      break;
+
+    if (l < skiprows) {
+      l++;
+      continue;
+    }
+    char *p = line;
+    do {
+      char *q = NULL;
+      double d = strtod(p, &q);
+      if (q == p) {
+	break;
+      }
+      p = q;
+      md[m][n] = d;
+      l++;
+    } while (p != NULL);
+    n++;
+    if (m == _m - 1 && n == _n)
+      break;
+    else if (n == _n) {
+      n = 0;
+      m++;
+    }
+    memset(line, 0, sz);
+  }
+  lerr("l = %d, n = %d, m = %d", l, n, m);
+  //assert (n == _n && m == _m);
+  fclose(f);
+}
+
+template<> inline void
+D2Array<double>::mm_load_colmajor(string name) const
+{
+  FILE *f = fopen(name.c_str(), "r");
+  if (!f) {
+    lerr("cannot open file %s\n", name.c_str());
+    return;
+  }
+  assert(f);
+
+  double **md = _data;
+  int sz = 4096;
+  char line[sz];
+  uint32_t l = 0, skiprows = 3;
+  uint32_t n = 0, m = 0;
+  while (!feof(f)) {
+    if (fgets(line, sz, f) == NULL)
+      break;
+
+    if (l < skiprows) {
+      l++;
+      continue;
+    }
+    lerr("%s", line);
+    
+    char *p = line;
+    do {
+      char *q = NULL;
+      double d = strtod(p, &q);
+      if (q == p) {
+	break;
+      }
+      p = q;
+      md[m][n] = d;
+      lerr("%f", d);
+      l++;
+    } while (p != NULL);
+    m++;
+    if (m == _m && n == _n - 1)
+      break;
+    else if (m == _m) {
+      m = 0;
+      n++;
+    }
+    memset(line, 0, sz);
+  }
+  lerr("l = %d, n = %d, m = %d", l, n, m);
+  //assert (n == _n && m == _m);
+  fclose(f);
 }
 
 template<> inline void

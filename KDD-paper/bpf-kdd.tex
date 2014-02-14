@@ -127,27 +127,21 @@
 \maketitle
 
 \begin{abstract}
-  We develop a Bayesian Poisson matrix factorization model for forming
-  recommendations from sparse user behavior data.  These data are
-  large user/item matrices where each user has provided feedback on
-  only a small subset of items, either explicitly (e.g., through star
-  ratings) or implicitly (e.g., through views or purchases). In
-  contrast to traditional matrix factorization approaches, Poisson
-  factorization implicitly models each user's limited attention to
-  consume items. Moreover, because of the mathematical form of the
-  Poisson likelihood, the model needs only to explicitly consider the
-  observed entries in the matrix, leading to both scalable computation
-  and good predictive performance. We develop a variational inference
-  algorithm for approximate posterior inference that scales up to
-  massive data sets. This is an efficient algorithm that iterates over
-  the observed entries and adjusts an approximate posterior over the
-  user/item representations. We apply our method to large real-world
-  user data containing users rating movies, users listening to songs,
-  and users reading scientific papers. In all these settings, Bayesian
-  Poisson factorization outperforms state-of-the-art matrix
-  factorization methods.
+We develop hierarchical Poisson matrix factorization (HPF) for
+recommendation.  HPF models sparse user behavior data, large user/item
+matrices where each user has provided feedback on only a small subset
+of items.  HPF handles both explicit ratings, such as a number of
+stars, or implicit ratings, such as views, clicks, or purchases.  We
+develop a variational algorithm for approximate posterior inference
+that scales up to massive data sets, and we demonstrate its
+performance on a wide variety of real-world recommendation
+problems--users rating movies, users listening to songs, users reading
+scientific papers, and users reading news articles.  Our study reveals
+that hierarchical Poisson factorization definitively outperforms
+previous methods, including nonnegative matrix factorization, topic
+models, and state-of-the-art probabilistic matrix factorization
+techniques.
 \end{abstract}
-
 %% % A category with the (minimum) three required fields
 %% \category{H.4}{Information Systems Applications}{Miscellaneous}
 %% %A category including the fourth, optional field follows...

@@ -1,11 +1,11 @@
 # placeholder
 
 pdf:
-	pdflatex poisson-wsdm.tex
+	pdflatex bpf-kdd.tex
 
 
 all:
-	pdflatex poisson-wsdm.tex
-	bibtex poisson-wsdm
-	pdflatex poisson-wsdm.tex
-	pdflatex poisson-wsdm.tex
+	pdflatex bpf-kdd.tex
+	bibtex bpf-kdd
+	pdflatex bpf-kdd.tex
+	pdflatex bpf-kdd.tex

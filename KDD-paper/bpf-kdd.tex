@@ -343,7 +343,6 @@ basic (non-stochastic) MF algorithms cannot handle.
 \label{fig:marginals}
 \end{figure*}
 
-
 % prem: no longer use stochastic 
 
 %% Further speed-ups using stochastic variational
@@ -447,8 +446,25 @@ The model places a \gam~prior on each of the \gam~rate parameters
 governing user and item weights. The prior on $b_u$ captures the
 uncertainty around user $u$'s purchasing or rating activity; the prior
 on $d_i$ captures the uncertainty around item $i$'s popularity among
-users.
+users. 
 
+The HPF model is more powerful than basic Poisson
+factorization. Hierarchical models generally allow for the sharing of
+statistical strength. In the HPF, for example, learning about the
+number of items consumed by one set of users provides weak, indirect
+evidence relevant to other users consumption. This can improve
+predictions for existing users and new users. A similar argument
+favors hierarchy over item popularities. In the HPF, we fix the shape
+parameters and share them across users and items. For a large shape,
+coefficients will tend to have similar magnitude, and the
+representations will be dense. In contrast, a small shape will result
+in a sparse representation.  Finally, the choice of the \gam~prior is
+motivated by conjugacy to the \gam~distributions with fixed shape that
+govern the weights. This results in a computationally efficient
+algorithm.
+
+%% explain the computational efficiency obtained?
+ 
 The posterior distribution of the latent variables $p(\theta, \beta,
 b, d \g y)$ embeds users and items in a latent space of
 $K$-dimensional positive vectors. 

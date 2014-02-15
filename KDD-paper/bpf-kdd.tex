@@ -405,22 +405,36 @@ increases the Poisson model's predictive score that a user who watches
 The generative process of the Poisson factorization model is as
 follows:
 \begin{enumerate}
-\item For each user $u$ and each component $k$, choose weight
+\item For each user $u$, choose activity
   \begin{equation*}
-    \theta_{uk} \sim \gam(a, b).
+    b_u \sim \gam(a', b').
   \end{equation*}
 \item For each user $u$ and each component $k$, choose weight
   \begin{equation*}
-    \beta_{ik} \sim \gam(c, d).
+    \theta_{uk} \sim \gam(a, b_u).
+  \end{equation*}
+\item For each item $i$, choose popularity
+  \begin{equation*}
+    d_i \sim \gam(c', d').
+  \end{equation*}
+\item For each item $i$ and each component $k$, choose weight
+  \begin{equation*}
+    \beta_{ik} \sim \gam(c, d_i).
   \end{equation*}
 \item For each user $u$ and item $i$, choose rating
   \begin{equation*}
     y_{ui} \sim \poisson(\theta_u^\top \beta_i).
   \end{equation*}
 \end{enumerate}
-The posterior distribution of the latent variables $p(\theta, \beta \g
-y)$ embeds users and items in a latent space of $K$-dimensional
-positive vectors.
+The model places a \gam~prior on each of the \gam~rate parameters
+governing user and item weights. These prior on $b_u$ captures user
+$u$'s purchasing or rating activity, and the prior on $d_i$ captures
+an item's popularity among users. The model captures uncertainty
+around each user's activity and each item's popularity.
+
+The posterior distribution of the latent variables $p(\theta, \beta,
+b, d \g y)$ embeds users and items in a latent space of
+$K$-dimensional positive vectors. 
 
 We use Poisson factorization to recommend items to users by predicting
 which of the unconsumed items each will like.  We rank each user's

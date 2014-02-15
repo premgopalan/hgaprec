@@ -427,10 +427,10 @@ is as follows:
   \end{equation*}
 \end{enumerate}
 The model places a \gam~prior on each of the \gam~rate parameters
-governing user and item weights. These prior on $b_u$ captures user
-$u$'s purchasing or rating activity, and the prior on $d_i$ captures
-an item's popularity among users. The model captures uncertainty
-around each user's activity and each item's popularity.
+governing user and item weights. The prior on $b_u$ captures the
+uncertainty around user $u$'s purchasing or rating activity; the prior
+on $d_i$ captures the uncertainty around item $i$'s popularity among
+users.
 
 The posterior distribution of the latent variables $p(\theta, \beta,
 b, d \g y)$ embeds users and items in a latent space of

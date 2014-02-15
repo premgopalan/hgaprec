@@ -331,6 +331,16 @@ basic (non-stochastic) MF algorithms cannot handle.
 \includegraphics[width=0.33\textwidth]{figures/marginals/echonest.pdf}
 \includegraphics[width=0.33\textwidth]{figures/marginals/nyt.pdf}
 \includegraphics[width=0.33\textwidth]{figures/marginals/netflix.pdf}
+\caption{Empirical distribution of item popularity on real datasets,
+  with fitted negative binomial and Gaussian distributions. The
+  distributions were fit using maximum likelihood estimation. The
+  negative binomial places significant probability mass on the left
+  tail, i.e., items with few ratings. As the colored bars show, such
+  items are most frequent. In contrast, the Gaussian distribution
+  places negligible mass on the left tail and mainly captures popular
+  items. The mode of the negative binomial distribution is also closer
+  to the empirical mode than the Gaussian distribution.}
+\label{fig:marginals}
 \end{figure*}
 
 

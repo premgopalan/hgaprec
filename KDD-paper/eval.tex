@@ -3,41 +3,29 @@ We studied the Bayesian Poisson Factorization (BPF) algorithm of
 Figure~\ref{fig:batch} on a variety of large real data sets. We
 demonstrate in this section that BPF definitively outperforms matrix
 factorization (MF) in predictive performance on all data sets.
-
 \begin{figure*}[th]
 \centering
-\includegraphics[width=\textwidth]{./figures/nyt/nyt-exploratory.pdf}\\
+\subfigure[]{
+  \includegraphics[width=0.6\textwidth]{./figures/nyt/nyt-exploratory.pdf}
+}
+\subfigure[]{
+  \includegraphics[width=0.45\textwidth]{./figures/nyt/itemsrate.pdf}
+}
+\subfigure[]{
+  \includegraphics[width=0.45\textwidth]{./figures/nyt/userrate.pdf}
+}
 \caption{Popularity of articles on the NYT dataset.}
 \label{fig:nyt-expl}
 \end{figure*}
 
 \begin{figure*}[th]
 \centering
-\includegraphics[width=\textwidth]{./figures/explicit/meanprecision.pdf}\\               
-\includegraphics[width=\textwidth]{./figures/explicit/meanrecall.pdf}\\               
-\includegraphics[width=\textwidth]{./figures/explicit/useractivity-precision.pdf}\\
-\includegraphics[width=\textwidth]{./figures/explicit/useractivity-recall.pdf}\\
-\caption{Results on explicit datasets.}
+\includegraphics[width=\textwidth]{./figures/meanprecision2.pdf}\\               
+\includegraphics[width=\textwidth]{./figures/meanrecall2.pdf}\\               
+\includegraphics[width=\textwidth]{./figures/useractivity-meanprecision2.pdf}\\
+\includegraphics[width=\textwidth]{./figures/useractivity-meanrecall2.pdf}\\
+\caption{Predictive performance on datasets.}
 \label{fig:precision_by_M}
-\end{figure*}
-
-\begin{figure*}[th]
-\centering
-\includegraphics[width=\textwidth]{./figures/implicit/meanprecision.pdf}\\               
-\includegraphics[width=\textwidth]{./figures/implicit/meanrecall.pdf}\\               
-\includegraphics[width=\textwidth]{./figures/implicit/useractivity-precision.pdf}\\
-\includegraphics[width=\textwidth]{./figures/implicit/useractivity-recall.pdf}\\
-\caption{Results on implicit datasets.}
-\label{fig:precision_by_M}
-\end{figure*}
-
-\begin{figure*}[th]
-\centering
-\includegraphics[width=\textwidth]{./figures/mean_precision_by_method.pdf}\\
-\includegraphics[width=\textwidth]{./figures/mean_recall_by_method.pdf}\\
-\caption{Mean recall for 10 to 100 recommendations across data sets and methods.}
-%%\includegraphics[width=\textwidth]{./figures/mean_coverage_by_method.pdf}\\
-\label{fig:recall_by_M}
 \end{figure*}
 
 {\bf Data Sets.} We study the Bayesian Poisson Factorization algorithm
@@ -189,12 +177,12 @@ number of passes over the training data. This results in a reasonably
 expensive grid search, from which we select
 the model that performs best on the validation set for each data set.
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{./figures/precision_by_user_activity_and_method.pdf}\\
-\label{fig:precision_by_user_activity}
-\caption{Precision at 100 recommendations by user activity across data sets and methods.}
-\end{figure*}
+%% \begin{figure*}[t]
+%% \centering
+%% \includegraphics[width=\textwidth]{./figures/precision_by_user_activity_and_method.pdf}\\
+%% \label{fig:precision_by_user_activity}
+%% \caption{Precision at 100 recommendations by user activity across data sets and methods.}
+%% \end{figure*}
 
 %% \begin{figure*}
 %% \centering

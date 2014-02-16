@@ -15,6 +15,25 @@ factorization (MF) in predictive performance on all data sets.
 \label{fig:nyt-expl}
 \end{figure*}
 
+
+\begin{table*}
+\centering
+\caption{Most popular articles in the NYT dataset}
+\begin{tabular}{|l|r|r|} \hline
+Title & Expected popularity & Number of factors\\\hline
+Blasts at Boston Marathon Kill 3 and Injure 100 & 0.043 & 1\\\hline
+FBI Posts Images of Pair Suspected in Boston Attack & 0.042 & 1\\\hline
+Bombing Inquiry Turns to Motive and Russia Trip & 0.037 & 1\\\hline
+War Zone at Mile 26: 'So Many People Without Legs' & 0.025 & 1\\\hline
+Suspects Seemed Set for Attacks Beyond Boston & 0.031 & 1\\\hline
+In Signal Image From Boston Bombing a Father Sees His Son & 0.029 & 1\\\hline
+Skeleton in British Parking Lot Hailed as Richard III & 0.027 & 4\\\hline
+Surviving Suspect is Charged by US in Boston Attack & 0.027 & 1\\\hline
+The Boy With A Thorn In His Joints & 0.026 & 3\\\hline
+Drowned in a Stream of Prescriptions & 0.025 & 3\\\hline
+\end{tabular} 
+\end{table*}
+
 \begin{figure*}[th]
 \centering
 \includegraphics[width=\textwidth]{./figures/meanprecision2.pdf}\\               
@@ -28,8 +47,8 @@ factorization (MF) in predictive performance on all data sets.
 {\bf Data Sets.} We study the Bayesian Poisson Factorization algorithm
 in Figure~\ref{fig:batch} on several large data sets:
 \begin{itemize}
-\item The {\bf MovieLens} data set~\cite{Herlocker:1999} with 6,000 users, 4,000
-  movies and 1 million ratings.
+\item The {\bf New York Times} data set with 1,615,675 users, 103390
+  articles movies and 80,071,435 ratings.
 \item The {\bf Netflix} data set~\cite{Koren:2009} with 480,000 users,
   17,770 movies and 100 million ratings is similar to MovieLens but
   significantly larger. Unlike the MovieLens data, the Netflix data

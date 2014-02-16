@@ -592,7 +592,7 @@ matrix factorization in the empirical results below.
 
 The key computation for the HPF is the posterior distribution of the
 user weights $\theta_{uk}$, item weights $\beta_{ik}$, user activity
-$\xi_{u}$ and item popularities $\eta_i$ given an observed matrix
+$\xi_{u}$ and item popularity $\eta_i$ given an observed matrix
 of user behavior $y$,
 \begin{equation*}
   p(\theta, \beta, \xi, \eta \g y) = \frac{p(\theta | \xi) p(\xi)
@@ -712,19 +712,28 @@ is not conditionally conjugate.) For the user weights $\theta_{uk}$,
 the complete conditional is a Gamma,
 \begin{equation}
   \label{eq:user-weight-cc}
-  \theta_{uk} \g \beta, z, y \sim
+  \theta_{uk} \g \beta, \xi, z, y \sim
   \gam(a + \textstyle \sum_{i} z_{uik}, \xi_u + \sum_{i} \beta_{ik}).
 \end{equation}
 The complete conditional for item weights $\beta_{ik}$ is symmetric,
 \begin{equation}
   \label{eq:item-weight-cc}
-  \beta_{ik} \g \theta, z, y \sim
+  \beta_{ik} \g \theta, \eta, z, y \sim
   \gam(a + \textstyle \sum_{u} z_{uik}, \eta_i + \sum_{i} \theta_{uk}).
 \end{equation}
 These distributions stem from conjugacy properties between the Gamma
 and Poisson. In the user weight distribution, for example, the item
 weights $\beta_{ik}$ act as ``exposure'' variables~\cite{Gelman:1995}.
-(The roles are reversed in the item weight distribution.)
+(The roles are reversed in the item weight distribution.) We can
+similarly write down the complete conditionals for the user activity
+$\xi_u$ and the item popularity $\eta_i$.
+\begin{align}
+  \label{eq:user-weight-cc}
+  \xi_{u} \g \theta \sim
+  \gam(a' + \textstyle Ka, b' + \sum_{k} \theta_{uk}).\nonumber\\
+  \eta_{i} \g \beta \sim
+  \gam(c' + \textstyle Kc, d' + \sum_{k} \beta_{ik}).\nonumber\\
+\end{align}
 
 The final latent variables are the auxiliary variables.  Recall that
 each $z_{ui}$ is a $K$-vector of Poisson counts that sum to the
@@ -742,18 +751,21 @@ See~\cite{Johnson:2005} (and Appendix A).
 
 \subsection{Variational algorithm}
 
-We now derive variational inference for Poisson factorization. First,
-we set each factor in the mean-field family (\myeq{q}) to be the same
-type of distribution as its complete conditional.  The complete
-conditionals for the item weights $\beta_{ik}$ and user weights
-$\theta_{uk}$ are Gamma distributions (Equations
-\ref{eq:user-weight-cc} and \ref{eq:item-weight-cc}); thus the
-variational parameters $\lambda_{ik}$ and $\gamma_{uk}$ are Gamma
-parameters, each containing a shape and a rate.  The complete
-conditional of the auxiliary variables $z_{uik}$ is a multinomial
-(\myeq{aux-cc}); thus the variational parameter $\phi_{ui}$ is a
-multinomial parameter, a point on the $K$-simplex, and the variational
-distribution for $z_{ui}$ is $\mult(y_{ui}, \phi_{ui})$.
+We now derive variational inference for the HPF. First, we set each
+factor in the mean-field family (\myeq{q}) to be the same type of
+distribution as its complete conditional.  The complete conditionals
+for the item weights $\beta_{ik}$ and user weights $\theta_{uk}$ are
+Gamma distributions (Equations \ref{eq:user-weight-cc} and
+\ref{eq:item-weight-cc}); thus the variational parameters
+$\lambda_{ik}$ and $\gamma_{uk}$ are Gamma parameters, each containing
+a shape and a rate.  Similarly, the variational user activity
+parameters $\kappa_u$ and the variational item popularity parameter
+$\tau_i$ are Gamma parameters, each containing a shape and a rate.
+The complete conditional of the auxiliary variables $z_{uik}$ is a
+multinomial (\myeq{aux-cc}); thus the variational parameter
+$\phi_{ui}$ is a multinomial parameter, a point on the $K$-simplex,
+and the variational distribution for $z_{ui}$ is $\mult(y_{ui},
+\phi_{ui})$.
 
 In coordinate ascent we iteratively optimize each variational
 parameter while holding the others fixed.  In conditionally conjugate
@@ -824,8 +836,12 @@ parameters.
 \begin{figure}
   \begin{framed}
     For all users and items, initialize the user parameters
-    $\gamma_u$ and item parameters $\lambda_i$ to the prior with a
-    small random offset.
+    $\gamma_u$, $kappa_u^{\rate}$ and item parameters $\lambda_i$,
+    $\tau_i^{\rate}$ to the prior with a small random offset. Set the
+    user activity and item popularity shape parameters:
+    \begin{align}
+      \kappa_u^{\shape} = a + Ka'; \quad \tau_i^{\shape} = c + Kc'\nonumber
+    \end{align}
 
     \vspace{0.1in}
 
@@ -837,20 +853,22 @@ parameters.
         \gamma_{uk}^{\rate} + \Psi(\lambda_{ik}^\shape) - \log
         \lambda_{ik}^\rate\}.
       \end{equation*}
-    \item For each user, update the user weight parameters:
-      \begin{eqnarray*}
-        \gamma_{uk}^\shape &=& a + \textstyle \sum_{i} y_{ui}
-        \phi_{uik} \\
-        \gamma_{uk}^\rate &=&  b + \textstyle \sum_i \lambda_{ik}^{\shape} /
-        \lambda_{ik}^{\rate}.
-      \end{eqnarray*}
+    \item For each user, update the user weight and activity parameters:
+      \begin{align}
+        \gamma_{uk}^\shape & = a + \textstyle \sum_{i} y_{ui}
+        \phi_{uik} \nonumber\\
+        \gamma_{uk}^\rate & = \frac{\kappa_u^{\shape}}{\kappa_u^{\rate}} + \textstyle \sum_i \lambda_{ik}^{\shape} / \lambda_{ik}^{\rate}\nonumber\\
+        \kappa_{u}^\rate & = b' + \sum_k \Psi(\gamma_u^{\shape}) - \log(\gamma_u^{\rate})\nonumber
+      \end{align}
     \item For each item, update the item weight parameters:
-      \begin{eqnarray*}
-        \lambda_{ik}^\shape &=& c + \textstyle \sum_{u} y_{ui}
-        \phi_{uik} \\
-        \lambda_{ik}^\rate &=& d + \textstyle \sum_u
-        \gamma_{uk}^{\shape} / \gamma_{uk}^{\rate}.
-      \end{eqnarray*}
+      \begin{align}
+        \lambda_{ik}^\shape & = c + \textstyle \sum_{u} y_{ui}
+        \phi_{uik}\nonumber\\
+        \lambda_{ik}^\rate & = \frac{\tau_i^{\shape}}{\tau_i^{\rate}} + \textstyle \sum_u
+        \gamma_{uk}^{\shape} / \gamma_{uk}^{\rate}\nonumber\\
+        \tau_{i}^\rate & = d' + \sum_k \Psi(\lambda_i^{\shape}) -
+        \log(\lambda_i^{\rate})\nonumber
+      \end{align}
     \end{enumerate}
 \end{framed}
 \caption{\label{fig:batch}Batch variational inference for Poisson

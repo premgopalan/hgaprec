@@ -819,19 +819,14 @@ factorization difficult to fit with large matrices, though there are
 innovative solutions based on stochastic
 optimization~\cite{Mairal:2010}.
 
-Implemented in parallel, the coordinate updates are equal to the
-natural gradient of the variational objective. We found that following
-these natural gradients~\cite{Hoffman:2013, Honkela:2008,Sato:2012}
-(with step size one) resulted in a better way to fit the objective.
-The algorithm in \myfig{batch} remains the same, except we now compute
-steps 2 and 3 in parallel, updating the variational shape and rate
-parameters of all users and items using the multinomial $\phi_{ui}$
-parameters.
-
-% prem: modified the init to reflect what we do
-% shape intialization:  prior + 0.01 * gsl_rng_uniform(_r);
-% scale initialization: prior + 0.1 * gsl_rng_uniform(_r);
-% prior = 0.3
+%% Implemented in parallel, the coordinate updates are equal to the
+%% natural gradient of the variational objective. We found that following
+%% these natural gradients~\cite{Hoffman:2013, Honkela:2008,Sato:2012}
+%% (with step size one) resulted in a better way to fit the objective.
+%% The algorithm in \myfig{batch} remains the same, except we now compute
+%% steps 2 and 3 in parallel, updating the variational shape and rate
+%% parameters of all users and items using the multinomial $\phi_{ui}$
+%% parameters.
 
 \begin{figure}
   \begin{framed}
@@ -860,7 +855,7 @@ parameters.
         \gamma_{uk}^\rate & = \frac{\kappa_u^{\shape}}{\kappa_u^{\rate}} + \textstyle \sum_i \lambda_{ik}^{\shape} / \lambda_{ik}^{\rate}\nonumber\\
         \kappa_{u}^\rate & = b' + \sum_k \Psi(\gamma_u^{\shape}) - \log(\gamma_u^{\rate})\nonumber
       \end{align}
-    \item For each item, update the item weight parameters:
+    \item For each item, update the item weight and popularity parameters:
       \begin{align}
         \lambda_{ik}^\shape & = c + \textstyle \sum_{u} y_{ui}
         \phi_{uik}\nonumber\\

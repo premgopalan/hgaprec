@@ -1,4 +1,4 @@
 1. symmetric Gaussian argument -- places equal mass on items with very
    high popularity and items with very low popularity
 
-2. 
+2. make initialization accurate

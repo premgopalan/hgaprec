@@ -423,11 +423,11 @@ The generative process of the hierarchical Poisson factorization model
 \begin{enumerate}
 \item For each user $u$, choose activity
   \begin{equation*}
-    \lambda_u \sim \gam(a', b').
+    \xi_u \sim \gam(a', b').
   \end{equation*}
 \item For each user $u$ and each component $k$, choose weight
   \begin{equation*}
-    \theta_{uk} \sim \gam(a, \lambda_u).
+    \theta_{uk} \sim \gam(a, \xi_u).
   \end{equation*}
 \item For each item $i$, choose popularity
   \begin{equation*}
@@ -443,13 +443,13 @@ The generative process of the hierarchical Poisson factorization model
   \end{equation*}
 \end{enumerate}
 The model places a \gam~prior on each of the \gam~rate parameters
-governing user and item weights. The prior on $\lambda_u$ captures the
+governing user and item weights. The prior on $\xi_u$ captures the
 uncertainty around user $u$'s consumption rate or activity; the prior
 on $\eta_i$ captures the uncertainty around item $i$'s popularity
 among users. 
 
 We also study a sub-class of the HPF where we fix the rate parameter
-$\lambda_u$ for each user, and the rate parameter $\eta_i$ for each
+$\xi_u$ for each user, and the rate parameter $\eta_i$ for each
 item. We call this model the Bayesian Poisson Factorization (BPF)
 model.
 
@@ -469,12 +469,12 @@ weights. This results in a computationally efficient algorithm.
 %% explain the computational efficiency obtained?
  
 The posterior distribution of the latent variables $p(\theta, \beta,
-\lambda, \eta \g y)$ embeds users and items in a latent space of
+\xi, \eta \g y)$ embeds users and items in a latent space of
 $K$-dimensional positive vectors. 
 
-We use Poisson factorization to recommend items to users by predicting
-which of the unconsumed items each will like.  We rank each user's
-unconsumed items by their posterior expected Poisson parameters,
+We use the HPF to recommend items to users by predicting which of the
+unconsumed items each will like.  We rank each user's unconsumed items
+by their posterior expected Poisson parameters,
 \begin{equation}
   \label{eq:score}
   \textrm{score}_{ui} = \E[\theta_u^\top \beta_i \g y].
@@ -590,13 +590,15 @@ matrix factorization in the empirical results below.
 \section{Variational Inference}
 \label{sec:inference}
 
-The key computation for Poisson factorization is the posterior
-distribution of the user weights $\theta_{uk}$ and item
-weights $\beta_{ik}$, given on an observed matrix of user behavior
-$y$,
+The key computation for the HPF is the posterior distribution of the
+user weights $\theta_{uk}$, item weights $\beta_{ik}$, user activity
+$\xi_{u}$ and item popularities $\eta_i$ given an observed matrix
+of user behavior $y$,
 \begin{equation*}
-  p(\theta, \beta \g y) = \frac{p(\theta) p(\beta) p(y \g \theta, \beta)}
-  {\int_{\theta} \int_{\beta} p(\theta) p(\beta) p(y \g \theta, \beta)}.
+  p(\theta, \beta, \xi, \eta \g y) = \frac{p(\theta | \xi) p(\xi)
+    p(\eta) p(\beta | \eta) p(y \g \theta, \beta, \xi, \eta)}
+  {\int_{\theta} \int_{\xi} \int_{\eta} \int_{\beta} p(\theta |
+    \xi) p(\xi) p(\beta) p(\beta | \eta) p(y \g \theta, \beta, \xi, \eta)}.
 \end{equation*}
 We need the posterior to form recommendations with the posterior
 expectations in \myeq{score}.
@@ -621,14 +623,14 @@ than alternative sampling-based approaches, like Monte Carlo Markov
 chain sampling, and have been deployed to solve many applied problems
 with complex models, including large-scale recommendation~\cite{Paquet:2013p9197}.
 
-We develop mean-field variational inference algorithm for Poisson
-factorization.  We first describe the mean-field variational family
-and the corresponding variational objective.  We then derive a batch
-algorithm that fits the variational distribution by repeatedly cycling
-through the non-zero data and updating its estimates of the latent
-representations. The simple structure of the algorithm lets us scale
-our approach to data sets like the full Netflix data (18,000 movies
-and 480,000 users) on a single CPU.
+We develop mean-field variational inference algorithm for the HPF.  We
+first describe the mean-field variational family and the corresponding
+variational objective.  We then derive a batch algorithm that fits the
+variational distribution by repeatedly cycling through the non-zero
+data and updating its estimates of the latent representations. The
+simple structure of the algorithm lets us scale our approach to data
+sets like the full Netflix data (18,000 movies and 480,000 users) on a
+single CPU.
 
 % prem: remove stochastic
 %% Finally, we develop a scalable stochastic variational inference
@@ -660,9 +662,10 @@ $K$-vector of counts $z_{ui}$.  The mean-field family considers these
 variables to be independent and each governed by its own distribution,
 \begin{align}
   \label{eq:q}
-  q(\beta, \theta, z) =& \prod_{i,k} q(\beta_{ik} \g \lambda_{ik})
-  \prod_{u,k} q(\theta_{uk} \g \gamma_{uk}) \prod_{u,i} q(z_{ui} \g
-  \phi_{ui}).
+  q(\beta, \theta, \xi, \eta, z) =& \prod_{i,k} q(\beta_{ik} \g \lambda_{ik})
+  \prod_{u,k} q(\theta_{uk} \g \gamma_{uk}) \nonumber\\ 
+  & \prod_{u} q(\xi_u \g \kappa_u) \prod_{i} q(\eta_i \g \tau_i)
+  \prod_{u,i} q(z_{ui} \g \phi_{ui}).
 \end{align}
 Though the variables are independent, this is a flexible family of
 distributions because each variable is governed by its own free
@@ -670,11 +673,11 @@ parameter.  (We postpone specifying the forms of each of these factors
 to below.)
 
 After specifying the family, we fit the variational parameters $\nu =
-\{\lambda, \gamma, \phi\}$ to minimize the KL divergence to the
+\{\lambda, \gamma, \kappa, \tau, \phi\}$ to minimize the KL divergence to the
 posterior
 \begin{equation*}
   \nu^* = \arg \min_\nu \textrm{KL}(q(\beta,
-  \theta, z \g \nu) || p(\beta, \theta, z \g y)).
+  \theta, \kappa, \tau, z \g \nu) || p(\beta, \theta, \kappa, \tau, z \g y)).
 \end{equation*}
 We then use the corresponding variational distribution $q(\cdot \g
 \nu^*)$ as a proxy for the posterior.\footnote{In fact, variational inference
@@ -693,8 +696,8 @@ algorithm, one in which we iteratively optimize each variational
 parameter while holding the others fixed.  Specifically, we appeal to
 general results about the class of \textit{conditionally conjugate}
 models~\cite{Ghahramani:2001,Hoffman:2013}.  We define the class, show
-that Poisson factorization is in the class, and then give the
-variational inference algorithm.
+that the HPF is in the class, and then give the variational inference
+algorithm.
 
 A \textit{complete conditional} is the conditional distribution of a
 latent variable given the observations and the other latent variables
@@ -703,22 +706,20 @@ complete conditional is in an exponential family (such as a Gaussian,
 Gamma, Poisson, multinomial, or others).  This is a large class of
 models.
 
-The Poisson factorization model, with the $z_{ui}$ variables described
-above, is a conditionally conjugate model.  (Without the auxiliary
-variables, it is not conditionally conjugate.) For the user weights
-$\theta_{uk}$, the complete conditional is a Gamma,
+The HPF, with the $z_{ui}$ variables described above, is a
+conditionally conjugate model.  (Without the auxiliary variables, it
+is not conditionally conjugate.) For the user weights $\theta_{uk}$,
+the complete conditional is a Gamma,
 \begin{equation}
   \label{eq:user-weight-cc}
   \theta_{uk} \g \beta, z, y \sim
-  \gam(a + \textstyle \sum_{i} z_{uik},
-  b + \sum_{i} \beta_{ik}).
+  \gam(a + \textstyle \sum_{i} z_{uik}, \xi_u + \sum_{i} \beta_{ik}).
 \end{equation}
 The complete conditional for item weights $\beta_{ik}$ is symmetric,
 \begin{equation}
   \label{eq:item-weight-cc}
   \beta_{ik} \g \theta, z, y \sim
-  \gam(a + \textstyle \sum_{u} z_{uik},
-  b + \sum_{i} \theta_{uk}).
+  \gam(a + \textstyle \sum_{u} z_{uik}, \eta_i + \sum_{i} \theta_{uk}).
 \end{equation}
 These distributions stem from conjugacy properties between the Gamma
 and Poisson. In the user weight distribution, for example, the item

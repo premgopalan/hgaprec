@@ -419,23 +419,23 @@ increases the Poisson model's predictive score that a user who watches
 \subsection{The generative model}
 
 The generative process of the hierarchical Poisson factorization model
-is as follows:
+(HPF) is as follows:
 \begin{enumerate}
 \item For each user $u$, choose activity
   \begin{equation*}
-    b_u \sim \gam(a', b').
+    \lambda_u \sim \gam(a', b').
   \end{equation*}
 \item For each user $u$ and each component $k$, choose weight
   \begin{equation*}
-    \theta_{uk} \sim \gam(a, b_u).
+    \theta_{uk} \sim \gam(a, \lambda_u).
   \end{equation*}
 \item For each item $i$, choose popularity
   \begin{equation*}
-    d_i \sim \gam(c', d').
+    \eta_i \sim \gam(c', d').
   \end{equation*}
 \item For each item $i$ and each component $k$, choose weight
   \begin{equation*}
-    \beta_{ik} \sim \gam(c, d_i).
+    \beta_{ik} \sim \gam(c, \eta_i).
   \end{equation*}
 \item For each user $u$ and item $i$, choose rating
   \begin{equation*}
@@ -443,30 +443,33 @@ is as follows:
   \end{equation*}
 \end{enumerate}
 The model places a \gam~prior on each of the \gam~rate parameters
-governing user and item weights. The prior on $b_u$ captures the
-uncertainty around user $u$'s purchasing or rating activity; the prior
-on $d_i$ captures the uncertainty around item $i$'s popularity among
-users. 
+governing user and item weights. The prior on $\lambda_u$ captures the
+uncertainty around user $u$'s consumption rate or activity; the prior
+on $\eta_i$ captures the uncertainty around item $i$'s popularity
+among users. 
 
-The HPF model is more powerful than basic Poisson
-factorization. Hierarchical models generally allow for the sharing of
-statistical strength. In the HPF, for example, learning about the
-number of items consumed by one set of users provides weak, indirect
-evidence relevant to other users consumption. This can improve
-predictions for existing users and new users. A similar argument
-favors hierarchy over item popularities. In the HPF, we fix the shape
-parameters and share them across users and items. For a large shape,
-coefficients will tend to have similar magnitude, and the
-representations will be dense. In contrast, a small shape will result
-in a sparse representation.  Finally, the choice of the \gam~prior is
-motivated by conjugacy to the \gam~distributions with fixed shape that
-govern the weights. This results in a computationally efficient
-algorithm.
+We also study a sub-class of the HPF where we fix the rate parameter
+$\lambda_u$ for each user, and the rate parameter $\eta_i$ for each
+item. We call this model the Bayesian Poisson Factorization (BPF)
+model.
+
+The HPF model is more powerful than the BPF because it allows for the
+sharing of statistical strength. In the HPF, for example, learning
+about the number of items consumed by one set of users provides weak,
+indirect evidence relevant to other users consumption. This can
+improve predictions, especially for users with little activity. A
+similar argument favors hierarchy over item popularities. In the HPF,
+we fix the shape parameters and share them across users and items. For
+a large shape, the weights will tend to have similar magnitude, and
+the representations will be dense. In contrast, a small shape will
+result in a sparse representation.  Finally, the \gam~prior is
+conjugate to the \gam~distribution with fixed shape governing the
+weights. This results in a computationally efficient algorithm.
 
 %% explain the computational efficiency obtained?
  
 The posterior distribution of the latent variables $p(\theta, \beta,
-b, d \g y)$ embeds users and items in a latent space of
+\lambda, \eta \g y)$ embeds users and items in a latent space of
 $K$-dimensional positive vectors. 
 
 We use Poisson factorization to recommend items to users by predicting
@@ -526,14 +529,14 @@ factorization methods, especially when applied to
 massive data sets, must address the zeros either through
 sub-sampling~\cite{Dror:2012a} or approximation~\cite{Hu:2008p9402}.
 
-Finally, we follow the literature on recommendation systems which
-finds that per-item and per-user bias terms significantly help
-performance. These terms capture universally popular items and
-frequently consuming users.  For simplicity, we present our algorithms
-without these terms, but we include them in our empirical study. The
-corresponding changes to the algorithm are minimal.\footnote{In
-particular, we include these biases with dummy factors that are always
-equal to one for each user and each item.}
+%% Finally, we follow the literature on recommendation systems which
+%% finds that per-item and per-user bias terms significantly help
+%% performance. These terms capture universally popular items and
+%% frequently consuming users.  For simplicity, we present our algorithms
+%% without these terms, but we include them in our empirical study. The
+%% corresponding changes to the algorithm are minimal.\footnote{In
+%% particular, we include these biases with dummy factors that are always
+%% equal to one for each user and each item.}
 
 \subsection{Related work}
 

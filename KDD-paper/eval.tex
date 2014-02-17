@@ -207,26 +207,26 @@ the model that performs best on the validation set for each data set.
 %% \includegraphics[width=\textwidth]{../output/figures/echonest_and_mendeley/mean_coverage_by_method.pdf}\\
 %% \end{figure*}
 
-{\bf Results and analysis.} \myfig{precision_by_M} shows the mean
-precision of the BPF and the MF algorithm as we vary $M$, the number
-of recommendations. As shown in \myfig{precision_by_M}, BPF
-outperforms MF on all data sets by a sizeable margin---as much as 8
-percentage points. Likewise, BPF shows similar gains in recall over
-traditional MF approaches, indicated in \myfig{recall_by_M}. A
-relatively high fraction of items recommended by BPF are found to be
-relevant, and many relevant items are recommended.
+%% {\bf Results and analysis.} \myfig{precision_by_M} shows the mean
+%% precision of the BPF and the MF algorithm as we vary $M$, the number
+%% of recommendations. As shown in \myfig{precision_by_M}, BPF
+%% outperforms MF on all data sets by a sizeable margin---as much as 8
+%% percentage points. Likewise, BPF shows similar gains in recall over
+%% traditional MF approaches, indicated in \myfig{recall_by_M}. A
+%% relatively high fraction of items recommended by BPF are found to be
+%% relevant, and many relevant items are recommended.
 
-We also study precision as a function of user activity to investigate
-for which kinds of users the algorithm performs
-well. \myfig{precision_by_user_activity} highlights the results in
-further detail, showing the precision at 100 recommendations for users
-of varying activity. BPF provides increasingly better performance for
-more active users.  On the Mendeley data set, BPF performs better for
-users with less than 1000 articles (BPF does better over all.)  On all
-other data sets, BPF performs better than MF with all types of users.
+%% We also study precision as a function of user activity to investigate
+%% for which kinds of users the algorithm performs
+%% well. \myfig{precision_by_user_activity} highlights the results in
+%% further detail, showing the precision at 100 recommendations for users
+%% of varying activity. BPF provides increasingly better performance for
+%% more active users.  On the Mendeley data set, BPF performs better for
+%% users with less than 1000 articles (BPF does better over all.)  On all
+%% other data sets, BPF performs better than MF with all types of users.
 
-In all results, MF-POP outperforms MF-UNI, which is indicative of
-problems with the squared loss objective approximated by MF-UNI.
+%% In all results, MF-POP outperforms MF-UNI, which is indicative of
+%% problems with the squared loss objective approximated by MF-UNI.
 
 %% As expected, we see that BPF provides
 %% increasingly better recommendations for more active users, and that

@@ -1,3 +1,19 @@
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=\textwidth]{./figures/meanprecision2.pdf}\\               
+\includegraphics[width=\textwidth]{./figures/meanrecall2.pdf}\\               
+\includegraphics[width=\textwidth]{./figures/useractivity-meanprecision2.pdf}\\
+\includegraphics[width=\textwidth]{./figures/useractivity-meanrecall2.pdf}\\
+\caption{Predictive performance on datasets. The top two plots show
+  normalized mean precision and mean recall at 10 and 100
+  recommendations. The bottom two plots show normalized mean precision
+  and mean recall for the top 10\% and 90\% of users with lowest
+  activity.}
+\label{fig:precision_by_M}
+\end{figure*}
+
+
 \section{Empirical Study}
 We studied the Bayesian Poisson Factorization (BPF) algorithm of
 Figure~\ref{fig:batch} on a variety of large real data sets. We
@@ -33,16 +49,6 @@ The Boy With A Thorn In His Joints & 0.026 & 3\\\hline
 Drowned in a Stream of Prescriptions & 0.025 & 3\\\hline
 \end{tabular} 
 \end{table*}
-
-\begin{figure*}[th]
-\centering
-\includegraphics[width=\textwidth]{./figures/meanprecision2.pdf}\\               
-\includegraphics[width=\textwidth]{./figures/meanrecall2.pdf}\\               
-\includegraphics[width=\textwidth]{./figures/useractivity-meanprecision2.pdf}\\
-\includegraphics[width=\textwidth]{./figures/useractivity-meanrecall2.pdf}\\
-\caption{Predictive performance on datasets.}
-\label{fig:precision_by_M}
-\end{figure*}
 
 {\bf Data Sets.} We study the Bayesian Poisson Factorization algorithm
 in Figure~\ref{fig:batch} on several large data sets:

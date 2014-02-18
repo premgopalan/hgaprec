@@ -34,12 +34,11 @@ precision.by.user <- subset(precision.by.user, !is.na(activity))
 recall.by.user <- subset(recall.by.user, !is.na(activity))
 
 # keep only mfpop, renaming to mf
-# clean up netflix names
+# clean up 
 precision.by.user <- subset(precision.by.user, method != "MFUNIF")
 precision.by.user <- transform(precision.by.user,
                                method=revalue(method, c("MFPOP"="MF")),
                                dataset=revalue(dataset, c("netflix45"="netflix (implicit)", "netflix"="netflix (explicit)")))
-#precision.by.user <- transform(precision.by.user, method=as.factor(gsub('MFPOP','MF',method)))
 recall.by.user <- subset(recall.by.user, method != "MFUNIF")
 recall.by.user <- transform(recall.by.user,
                             method=revalue(method, c("MFPOP"="MF")),
@@ -58,7 +57,7 @@ recall.by.user <- transform(recall.by.user,
 
 
 # make all evaluations for rank 100 and 20 recommendations
-N <- 20
+N <- 10
 rank <- 100
 
 ########################################

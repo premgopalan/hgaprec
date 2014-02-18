@@ -120,3 +120,22 @@ p <- p + theme(strip.text.x = element_text(size = 8, colour = "blue", face="bold
 ggsave(p, filename='../output/figures/useractivity-meanrecall2.pdf', width=10, height=2.5)
 p
 
+
+# plot mean recall by user activity percentile
+N <- 20
+percentiles <- seq(0.05,1,0.05)
+plot.data <- subset(recall.by.user, num.recs==N)
+plot.data <- ddply(plot.data, c("dataset","method"), function(df) {
+  adply(percentiles, 1, function(p) {
+    with(subset(df, activity <= quantile(activity, p)), mean(recall, na.rm=T))
+  })
+})
+plot.data$X1 <- percentiles[plot.data$X1]
+names(plot.data) <- c("dataset","method","percentile","mean.recall")
+p <- ggplot(plot.data, aes(x=percentile, y=mean.recall))
+p <- p + geom_line(aes(color=method))
+p <- p + facet_wrap(~ dataset, nrow=1, scale="free_y")
+p <- p + scale_x_continuous(labels=percent) + scale_y_continuous(labels=percent)
+p <- p + xlab('User percentile by activity') + ylab('Mean recall')
+ggsave(p, filename='../output/figures/mean_recall_by_user_percentile.pdf', width=10, height=2.5)
+p

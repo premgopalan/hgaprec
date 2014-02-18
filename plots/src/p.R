@@ -9,9 +9,8 @@ precision.by.user <- data.frame()
 recall.by.user <- data.frame()
 coverage.by.item <- data.frame()
 for (dataset in c("mendeley", "echonest", "nyt", "netflix", "netflix45")) {
-#for (dataset in c("nyt")) {
   print(dataset)
-  for (method in c("bpf.hier", "bpf", "nmf", "lda")) {
+  for (method in c("bpf.hier", "bpf", "nmf", "lda", "mfpop", "mfunif")) {
       tsv <- sprintf('../output/%s/%s/precision.txt', dataset, method)
       print(tsv)
       if (file.exists(tsv))
@@ -26,8 +25,158 @@ for (dataset in c("mendeley", "echonest", "nyt", "netflix", "netflix45")) {
 }
 
 
+########################################
+# preprocessing
+########################################
+
+# remove users with missing activity from the training file
+precision.by.user <- subset(precision.by.user, !is.na(activity))
+recall.by.user <- subset(recall.by.user, !is.na(activity))
+
+# keep only mfpop, renaming to mf
+precision.by.user <- subset(precision.by.user, method != "MFUNIF")
+precision.by.user <- transform(precision.by.user, method=as.factor(gsub('MFPOP','MF',method)))
+recall.by.user <- subset(recall.by.user, method != "MFUNIF")
+recall.by.user <- transform(recall.by.user, method=as.factor(gsub('MFPOP','MF',method)))
+
+# set order of methods and datasets for all plots
+method.levels <- c("BPF.HIER", "BPF", "LDA", "MF", "NMF")
+dataset.levels <- c("mendeley","nyt","echonest","netflix45","netflix")
+precision.by.user <- transform(precision.by.user,
+                               dataset=factor(as.character(dataset), dataset.levels),
+                               method=factor(as.character(method), method.levels))
+recall.by.user <- transform(recall.by.user,
+                            dataset=factor(as.character(dataset), dataset.levels),
+                            method=factor(as.character(method), method.levels))
+
+
+########################################
+# precision/recall at 10
+########################################
+
+# plot mean precision at 10 recs for methods and datasets
+N <- 10
+rank <- 100
+plot.data <- subset(precision.by.user, num.recs==N & K==rank)
+plot.data <- ddply(plot.data, c("dataset","method","K","num.recs"), summarize, mean.precision=mean(precision))
+p <- ggplot(plot.data, aes(x=dataset, y=mean.precision))
+p <- p + geom_point(aes(color=method), size=1)
+p <- p + geom_hline(aes(yintercept=mean.precision, colour=method, linetype=method), size=1)
+p <- p + facet_wrap(~ dataset, nrow=1, scale="free")
+p <- p + xlab("") + ylab('Normalized mean precision')
+p <- p + scale_y_continuous(labels=percent)
+p <- p + theme(legend.title=element_blank())
+p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
+ggsave(p, filename='../output/figures/mean_precision_at_10.pdf', width=10, height=2.5)
+p
+
+
+# plot mean recall at 10 recs for methods and datasets
+N <- 10
+rank <- 100
+plot.data <- subset(recall.by.user, num.recs==N & K==rank)
+plot.data <- ddply(plot.data, c("dataset","method","K","num.recs"), summarize, mean.recall=mean(recall))
+p <- ggplot(plot.data, aes(x=dataset, y=mean.recall))
+p <- p + geom_point(aes(color=method), size=1)
+p <- p + geom_hline(aes(yintercept=mean.recall, colour=method, linetype=method), size=1)
+p <- p + facet_wrap(~ dataset, nrow=1, scale="free")
+p <- p + xlab("") + ylab('Mean recall')
+p <- p + scale_y_continuous(labels=percent)
+p <- p + theme(legend.title=element_blank())
+p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
+ggsave(p, filename='../output/figures/mean_recall_at_10.pdf', width=10, height=2.5)
+p
+
+
+########################################
+# precision/recall by number of recs
+########################################
+
+# plot mean precision by number of recs for methods and datasets
+rank <- 100
+plot.data <- subset(precision.by.user, K==rank)
+plot.data <- ddply(plot.data, c("dataset","method","K","num.recs"), summarize, mean.precision=mean(precision))
+p <- ggplot(plot.data, aes(x=num.recs, y=mean.precision))
+p <- p + geom_line(aes(linetype=as.factor(method), colour=as.factor(method)))
+p <- p + xlab('Number of recommendations') + ylab('Mean precision')
+p <- p + scale_x_continuous(breaks=c(10,50,100)) + scale_y_continuous(labels=percent)
+p <- p + theme(legend.title=element_blank())
+p <- p + facet_wrap(~ dataset, nrow=1, scale="free_y")
+ggsave(p, filename='../output/figures/mean_precision_by_num_recs.pdf', width=10, height=2.5)
+p
+
+
+# plot mean recall by number of recs for methods and datasets
+rank <- 100
+plot.data <- subset(recall.by.user, K==rank)
+plot.data <- ddply(plot.data, c("dataset","method","K","num.recs"), summarize, mean.recall=mean(recall))
+p <- ggplot(plot.data, aes(x=num.recs, y=mean.recall))
+p <- p + geom_line(aes(linetype=as.factor(method), colour=as.factor(method)))
+p <- p + xlab('Number of recommendations') + ylab('Mean recall')
+p <- p + scale_x_continuous(breaks=c(10,50,100)) + scale_y_continuous(labels=percent)
+p <- p + theme(legend.title=element_blank())
+p <- p + facet_wrap(~ dataset, nrow=1, scale="free_y")
+ggsave(p, filename='../output/figures/mean_recall_by_num_recs.pdf', width=10, height=2.5)
+p
+
+
+########################################
+# precision/recall by user activity
+########################################
+
+# plot mean precision by user activity percentile
+N <- 20
+percentiles <- seq(0.05,1,0.05)
+plot.data <- subset(precision.by.user, num.recs==N)
+plot.data <- ddply(plot.data, c("dataset","method"), function(df) {
+  adply(percentiles, 1, function(p) {
+    with(subset(df, activity <= quantile(activity, p)), mean(precision, na.rm=T))
+  })
+})
+plot.data$X1 <- percentiles[plot.data$X1]
+names(plot.data) <- c("dataset","method","percentile","mean.precision")
+p <- ggplot(plot.data, aes(x=percentile, y=mean.precision))
+p <- p + geom_line(aes(color=method, linetype=method))
+p <- p + facet_wrap(~ dataset, nrow=1, scale="free_y")
+p <- p + scale_x_continuous(labels=percent, breaks=c(0.1, 0.5, 0.9))
+p <- p + scale_y_continuous(labels=percent)
+p <- p + xlab('User percentile by activity') + ylab('Mean precision')
+p <- p + theme(legend.title=element_blank())
+ggsave(p, filename='../output/figures/mean_precision_by_user_percentile.pdf', width=10, height=2.5)
+p
+
+
+# plot mean recall by user activity percentile
+N <- 20
+percentiles <- seq(0.05,1,0.05)
+plot.data <- subset(recall.by.user, num.recs==N)
+plot.data <- ddply(plot.data, c("dataset","method"), function(df) {
+  adply(percentiles, 1, function(p) {
+    with(subset(df, activity <= quantile(activity, p)), mean(recall, na.rm=T))
+  })
+})
+plot.data$X1 <- percentiles[plot.data$X1]
+names(plot.data) <- c("dataset","method","percentile","mean.recall")
+p <- ggplot(plot.data, aes(x=percentile, y=mean.recall))
+p <- p + geom_line(aes(color=method, linetype=method))
+p <- p + facet_wrap(~ dataset, nrow=1, scale="free_y")
+p <- p + scale_x_continuous(labels=percent, breaks=c(0.1, 0.5, 0.9))
+p <- p + scale_y_continuous(labels=percent)
+p <- p + xlab('User percentile by activity') + ylab('Mean recall')
+p <- p + theme(legend.title=element_blank())
+ggsave(p, filename='../output/figures/mean_recall_by_user_percentile.pdf', width=10, height=2.5)
+p
+
+
+
+stop("scratch")
+########################################
+# SCRATCH
+########################################
+
 precision.by.user$dataset <- revalue(precision.by.user$dataset, c("mendeley"="mdy", "echonest"="ecn", "nyt"="nyt","netflix"="nfx", "netflix45"="n45"))
 recall.by.user$dataset <- revalue(recall.by.user$dataset, c("mendeley"="mdy", "echonest"="ecn", "nyt"="nyt","netflix"="nfx", "netflix45"="n45"))
+
 
 plot.data <- ddply(precision.by.user, c("dataset","method","K","num.recs"), summarize, mean.precision=mean(precision))
 plot.data <- subset(plot.data, num.recs %in%  c(10,100))
@@ -55,26 +204,6 @@ p <- p + facet_wrap(dataset ~ num.recs, nrow=1, scale="free")
 p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
 p <- p + theme(strip.text.x = element_text(size = 8, colour = "blue", face="bold"))
 ggsave(p, filename='../output/figures/meanrecall2.pdf', width=10, height=2.5)
-p
-
-
-# plot mean precision by user activity percentile
-N <- 20
-percentiles <- seq(0.05,1,0.05)
-plot.data <- subset(precision.by.user, num.recs==N)
-plot.data <- ddply(plot.data, c("dataset","method"), function(df) {
-  adply(percentiles, 1, function(p) {
-    with(subset(df, activity <= quantile(activity, p)), mean(precision, na.rm=T))
-  })
-})
-plot.data$X1 <- percentiles[plot.data$X1]
-names(plot.data) <- c("dataset","method","percentile","mean.precision")
-p <- ggplot(plot.data, aes(x=percentile, y=mean.precision))
-p <- p + geom_line(aes(color=method))
-p <- p + facet_wrap(~ dataset, nrow=1, scale="free_y")
-p <- p + scale_x_continuous(labels=percent) + scale_y_continuous(labels=percent)
-p <- p + xlab('User percentile by activity') + ylab('Mean precision')
-ggsave(p, filename='../output/figures/mean_precision_by_user_percentile.pdf', width=10, height=2.5)
 p
 
 
@@ -118,24 +247,4 @@ p <- p + facet_wrap(dataset ~ qtl, nrow=1, scale="free")
 p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
 p <- p + theme(strip.text.x = element_text(size = 8, colour = "blue", face="bold"))
 ggsave(p, filename='../output/figures/useractivity-meanrecall2.pdf', width=10, height=2.5)
-p
-
-
-# plot mean recall by user activity percentile
-N <- 20
-percentiles <- seq(0.05,1,0.05)
-plot.data <- subset(recall.by.user, num.recs==N)
-plot.data <- ddply(plot.data, c("dataset","method"), function(df) {
-  adply(percentiles, 1, function(p) {
-    with(subset(df, activity <= quantile(activity, p)), mean(recall, na.rm=T))
-  })
-})
-plot.data$X1 <- percentiles[plot.data$X1]
-names(plot.data) <- c("dataset","method","percentile","mean.recall")
-p <- ggplot(plot.data, aes(x=percentile, y=mean.recall))
-p <- p + geom_line(aes(color=method))
-p <- p + facet_wrap(~ dataset, nrow=1, scale="free_y")
-p <- p + scale_x_continuous(labels=percent) + scale_y_continuous(labels=percent)
-p <- p + xlab('User percentile by activity') + ylab('Mean recall')
-ggsave(p, filename='../output/figures/mean_recall_by_user_percentile.pdf', width=10, height=2.5)
 p

@@ -82,7 +82,7 @@ for (dataset in c("echonest", "nyt", "netflix", "mendeley", "netflix45")) {
   test.users.file <- sprintf('../data/%s/test_user_degree.tsv', dataset)
   test.users <- read.delim(test.users.file, sep='\t', header=F, col.names=c('user','num.test.items'))
 
-  for (method in c("bpf.hier", "bpf", "lda", "nmf")) {
+  for (method in c("bpf.hier", "bpf", "lda", "nmf", "mfpop", "mfunif")) {
     for (K in ranks) {
       ranking.file <- sprintf('../output/%s/%s/ranking.tsv', dataset, method)
       prec.file <- sprintf('../output/%s/%s/precision.txt', dataset, method)

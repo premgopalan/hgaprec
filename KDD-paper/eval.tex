@@ -1,17 +1,28 @@
 
 \begin{figure*}[t!]
 \centering
-\includegraphics[width=\textwidth]{./figures/meanprecision2.pdf}\\               
-\includegraphics[width=\textwidth]{./figures/meanrecall2.pdf}\\               
-\includegraphics[width=\textwidth]{./figures/useractivity-meanprecision2.pdf}\\
-\includegraphics[width=\textwidth]{./figures/useractivity-meanrecall2.pdf}\\
-\caption{Predictive performance on datasets. The top two plots show
-  normalized mean precision and mean recall at 10 and 100
-  recommendations. The bottom two plots show normalized mean precision
-  and mean recall for the bottom 10\% and bottom 90\% of users by
-  activity.}
-\label{fig:precision_by_M}
+\includegraphics[width=\textwidth]{figures/mean_precision_at_10.pdf}\\
+\includegraphics[width=\textwidth]{figures/mean_recall_at_10.pdf}\\
+\caption{Predictive performance on datasets. The top and bottom plots
+  show normalized mean precision and mean recall at 10
+  recommendations, respectively.}
+\label{fig:precision_recall_at_10}
 \end{figure*}
+
+
+%% \begin{figure*}[t!]
+%% \centering
+%% \includegraphics[width=\textwidth]{./figures/meanprecision2.pdf}\\               
+%% \includegraphics[width=\textwidth]{./figures/meanrecall2.pdf}\\               
+%% \includegraphics[width=\textwidth]{./figures/useractivity-meanprecision2.pdf}\\
+%% \includegraphics[width=\textwidth]{./figures/useractivity-meanrecall2.pdf}\\
+%% \caption{Predictive performance on datasets. The top two plots show
+%%   normalized mean precision and mean recall at 10 and 100
+%%   recommendations. The bottom two plots show normalized mean precision
+%%   and mean recall for the bottom 10\% and bottom 90\% of users by
+%%   activity.}
+%% \label{fig:precision_by_M}
+%% \end{figure*}
 
 
 \section{Empirical Study}
@@ -122,6 +133,17 @@ posterior expectations of $\theta_u$ and $\beta_i$, and compute the
 average predictive log likelihood of the validation ratings. The BPF
 algorithm stops when the change in log likelihood is less than
 0.0001\%.
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=\textwidth]{figures/mean_precision_by_user_percentile.pdf}\\
+\includegraphics[width=\textwidth]{figures/mean_recall_by_user_percentile.pdf}\\
+\caption{Predictive performance across users. The top and bottom plots
+  show normalized mean precision and mean recall at 10
+  recommendations, respectively, by user activity.}
+\label{fig:precision_recall_by_user_activity}
+\end{figure*}
+
 
 {\bf Exploratory analysis.} The fitted model can be explored to
 discover latent structure among items and users and to confirm that

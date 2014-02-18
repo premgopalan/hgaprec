@@ -67,7 +67,7 @@ p <- p + xlab("") + ylab('Normalized mean precision')
 p <- p + scale_y_continuous(labels=percent)
 p <- p + theme(legend.title=element_blank())
 p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
-ggsave(p, filename='../output/figures/mean_precision_at_10.pdf', width=10, height=2.5)
+ggsave(p, filename='../../KDD-paper/figures/mean_precision_at_10.pdf', width=10, height=2.5)
 p
 
 
@@ -84,7 +84,7 @@ p <- p + xlab("") + ylab('Mean recall')
 p <- p + scale_y_continuous(labels=percent)
 p <- p + theme(legend.title=element_blank())
 p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
-ggsave(p, filename='../output/figures/mean_recall_at_10.pdf', width=10, height=2.5)
+ggsave(p, filename='../../KDD-paper/figures/mean_recall_at_10.pdf', width=10, height=2.5)
 p
 
 
@@ -102,7 +102,7 @@ p <- p + xlab('Number of recommendations') + ylab('Mean precision')
 p <- p + scale_x_continuous(breaks=c(10,50,100)) + scale_y_continuous(labels=percent)
 p <- p + theme(legend.title=element_blank())
 p <- p + facet_wrap(~ dataset, nrow=1, scale="free_y")
-ggsave(p, filename='../output/figures/mean_precision_by_num_recs.pdf', width=10, height=2.5)
+ggsave(p, filename='../../KDD-paper/figures/mean_precision_by_num_recs.pdf', width=10, height=2.5)
 p
 
 
@@ -116,7 +116,7 @@ p <- p + xlab('Number of recommendations') + ylab('Mean recall')
 p <- p + scale_x_continuous(breaks=c(10,50,100)) + scale_y_continuous(labels=percent)
 p <- p + theme(legend.title=element_blank())
 p <- p + facet_wrap(~ dataset, nrow=1, scale="free_y")
-ggsave(p, filename='../output/figures/mean_recall_by_num_recs.pdf', width=10, height=2.5)
+ggsave(p, filename='../../KDD-paper/figures/mean_recall_by_num_recs.pdf', width=10, height=2.5)
 p
 
 
@@ -125,7 +125,7 @@ p
 ########################################
 
 # plot mean precision by user activity percentile
-N <- 20
+N <- 10
 percentiles <- seq(0.05,1,0.05)
 plot.data <- subset(precision.by.user, num.recs==N)
 plot.data <- ddply(plot.data, c("dataset","method"), function(df) {
@@ -142,12 +142,12 @@ p <- p + scale_x_continuous(labels=percent, breaks=c(0.1, 0.5, 0.9))
 p <- p + scale_y_continuous(labels=percent)
 p <- p + xlab('User percentile by activity') + ylab('Mean precision')
 p <- p + theme(legend.title=element_blank())
-ggsave(p, filename='../output/figures/mean_precision_by_user_percentile.pdf', width=10, height=2.5)
+ggsave(p, filename='../../KDD-paper/figures/mean_precision_by_user_percentile.pdf', width=10, height=2.5)
 p
 
 
 # plot mean recall by user activity percentile
-N <- 20
+N <- 10
 percentiles <- seq(0.05,1,0.05)
 plot.data <- subset(recall.by.user, num.recs==N)
 plot.data <- ddply(plot.data, c("dataset","method"), function(df) {
@@ -164,7 +164,7 @@ p <- p + scale_x_continuous(labels=percent, breaks=c(0.1, 0.5, 0.9))
 p <- p + scale_y_continuous(labels=percent)
 p <- p + xlab('User percentile by activity') + ylab('Mean recall')
 p <- p + theme(legend.title=element_blank())
-ggsave(p, filename='../output/figures/mean_recall_by_user_percentile.pdf', width=10, height=2.5)
+ggsave(p, filename='../../KDD-paper/figures/mean_recall_by_user_percentile.pdf', width=10, height=2.5)
 p
 
 
@@ -189,7 +189,7 @@ p <- p + theme(legend.title=element_blank()) #, legend.position="none") #c(0.8,0
 p <- p + facet_wrap(dataset ~ num.recs, nrow=1, scale="free")
 p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
 p <- p + theme(strip.text.x = element_text(size = 8, colour = "blue", face="bold"))
-ggsave(p, filename='../output/figures/meanprecision2.pdf', width=10, height=2.5)
+ggsave(p, filename='../../KDD-paper/figures/meanprecision2.pdf', width=10, height=2.5)
 p
 
 plot.data <- ddply(recall.by.user, c("dataset","method","K","num.recs"), summarize, mean.recall=mean(recall))
@@ -203,7 +203,7 @@ p <- p + theme(legend.title=element_blank())
 p <- p + facet_wrap(dataset ~ num.recs, nrow=1, scale="free")
 p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
 p <- p + theme(strip.text.x = element_text(size = 8, colour = "blue", face="bold"))
-ggsave(p, filename='../output/figures/meanrecall2.pdf', width=10, height=2.5)
+ggsave(p, filename='../../KDD-paper/figures/meanrecall2.pdf', width=10, height=2.5)
 p
 
 
@@ -225,7 +225,7 @@ p <- p + theme(legend.title=element_blank()) #, legend.position="none") #c(0.8,0
 p <- p + facet_wrap(dataset ~ qtl, nrow=1, scale="free")
 p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
 p <- p + theme(strip.text.x = element_text(size = 8, colour = "blue", face="bold"))
-ggsave(p, filename='../output/figures/useractivity-meanprecision2.pdf', width=10, height=2.5)
+ggsave(p, filename='../../KDD-paper/figures/useractivity-meanprecision2.pdf', width=10, height=2.5)
 p
 
 N <- 20
@@ -246,5 +246,5 @@ p <- p + theme(legend.title=element_blank()) #, legend.position="none") #c(0.8,0
 p <- p + facet_wrap(dataset ~ qtl, nrow=1, scale="free")
 p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
 p <- p + theme(strip.text.x = element_text(size = 8, colour = "blue", face="bold"))
-ggsave(p, filename='../output/figures/useractivity-meanrecall2.pdf', width=10, height=2.5)
+ggsave(p, filename='../../KDD-paper/figures/useractivity-meanrecall2.pdf', width=10, height=2.5)
 p

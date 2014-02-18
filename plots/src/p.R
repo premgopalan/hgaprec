@@ -25,6 +25,7 @@ for (dataset in c("mendeley", "echonest", "nyt", "netflix", "netflix45")) {
     }
 }
 
+
 precision.by.user$dataset <- revalue(precision.by.user$dataset, c("mendeley"="mdy", "echonest"="ecn", "nyt"="nyt","netflix"="nfx", "netflix45"="n45"))
 recall.by.user$dataset <- revalue(recall.by.user$dataset, c("mendeley"="mdy", "echonest"="ecn", "nyt"="nyt","netflix"="nfx", "netflix45"="n45"))
 
@@ -55,6 +56,27 @@ p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.t
 p <- p + theme(strip.text.x = element_text(size = 8, colour = "blue", face="bold"))
 ggsave(p, filename='../output/figures/meanrecall2.pdf', width=10, height=2.5)
 p
+
+
+# plot mean precision by user activity percentile
+N <- 20
+percentiles <- seq(0.05,1,0.05)
+plot.data <- subset(precision.by.user, num.recs==N)
+plot.data <- ddply(plot.data, c("dataset","method"), function(df) {
+  adply(percentiles, 1, function(p) {
+    with(subset(df, activity <= quantile(activity, p)), mean(precision, na.rm=T))
+  })
+})
+plot.data$X1 <- percentiles[plot.data$X1]
+names(plot.data) <- c("dataset","method","percentile","mean.precision")
+p <- ggplot(plot.data, aes(x=percentile, y=mean.precision))
+p <- p + geom_line(aes(color=method))
+p <- p + facet_wrap(~ dataset, nrow=1, scale="free_y")
+p <- p + scale_x_continuous(labels=percent) + scale_y_continuous(labels=percent)
+p <- p + xlab('User percentile by activity') + ylab('Mean precision')
+ggsave(p, filename='../output/figures/mean_precision_by_user_percentile.pdf', width=10, height=2.5)
+p
+
 
 N <- 20
 q <- subset(precision.by.user, num.recs==N)

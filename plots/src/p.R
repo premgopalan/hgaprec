@@ -49,14 +49,14 @@ recall.by.user <- transform(recall.by.user,
                             dataset=factor(as.character(dataset), dataset.levels),
                             method=factor(as.character(method), method.levels))
 
-
-########################################
-# precision/recall at 10
-########################################
-
-# plot mean precision at 10 recs for methods and datasets
-N <- 10
+N <- 20
 rank <- 100
+
+########################################
+# precision/recall at N
+########################################
+
+# plot mean precision at N recs for methods and datasets
 plot.data <- subset(precision.by.user, num.recs==N & K==rank)
 plot.data <- ddply(plot.data, c("dataset","method","K","num.recs"), summarize, mean.precision=mean(precision))
 p <- ggplot(plot.data, aes(x=dataset, y=mean.precision))
@@ -67,13 +67,11 @@ p <- p + xlab("") + ylab('Normalized mean precision')
 p <- p + scale_y_continuous(labels=percent)
 p <- p + theme(legend.title=element_blank())
 p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
-ggsave(p, filename='../../KDD-paper/figures/mean_precision_at_10.pdf', width=10, height=2.5)
+ggsave(p, filename=sprintf('../../KDD-paper/figures/mean_precision_at_%d.pdf', N), width=10, height=2.5)
 p
 
 
-# plot mean recall at 10 recs for methods and datasets
-N <- 10
-rank <- 100
+# plot mean recall at N recs for methods and datasets
 plot.data <- subset(recall.by.user, num.recs==N & K==rank)
 plot.data <- ddply(plot.data, c("dataset","method","K","num.recs"), summarize, mean.recall=mean(recall))
 p <- ggplot(plot.data, aes(x=dataset, y=mean.recall))
@@ -84,7 +82,7 @@ p <- p + xlab("") + ylab('Mean recall')
 p <- p + scale_y_continuous(labels=percent)
 p <- p + theme(legend.title=element_blank())
 p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
-ggsave(p, filename='../../KDD-paper/figures/mean_recall_at_10.pdf', width=10, height=2.5)
+ggsave(p, filename=sprintf('../../KDD-paper/figures/mean_recall_at_%d.pdf', N), width=10, height=2.5)
 p
 
 
@@ -93,7 +91,6 @@ p
 ########################################
 
 # plot mean precision by number of recs for methods and datasets
-rank <- 100
 plot.data <- subset(precision.by.user, K==rank)
 plot.data <- ddply(plot.data, c("dataset","method","K","num.recs"), summarize, mean.precision=mean(precision))
 p <- ggplot(plot.data, aes(x=num.recs, y=mean.precision))
@@ -107,7 +104,6 @@ p
 
 
 # plot mean recall by number of recs for methods and datasets
-rank <- 100
 plot.data <- subset(recall.by.user, K==rank)
 plot.data <- ddply(plot.data, c("dataset","method","K","num.recs"), summarize, mean.recall=mean(recall))
 p <- ggplot(plot.data, aes(x=num.recs, y=mean.recall))
@@ -125,7 +121,6 @@ p
 ########################################
 
 # plot mean precision by user activity percentile
-N <- 10
 percentiles <- seq(0.05,1,0.05)
 plot.data <- subset(precision.by.user, num.recs==N)
 plot.data <- ddply(plot.data, c("dataset","method"), function(df) {
@@ -142,12 +137,11 @@ p <- p + scale_x_continuous(labels=percent, breaks=c(0.1, 0.5, 0.9))
 p <- p + scale_y_continuous(labels=percent)
 p <- p + xlab('User percentile by activity') + ylab('Mean precision')
 p <- p + theme(legend.title=element_blank())
-ggsave(p, filename='../../KDD-paper/figures/mean_precision_by_user_percentile.pdf', width=10, height=2.5)
+ggsave(p, filename=sprintf('../../KDD-paper/figures/mean_precision_at_%d_by_user_percentile.pdf', N), width=10, height=2.5)
 p
 
 
 # plot mean recall by user activity percentile
-N <- 10
 percentiles <- seq(0.05,1,0.05)
 plot.data <- subset(recall.by.user, num.recs==N)
 plot.data <- ddply(plot.data, c("dataset","method"), function(df) {
@@ -164,7 +158,7 @@ p <- p + scale_x_continuous(labels=percent, breaks=c(0.1, 0.5, 0.9))
 p <- p + scale_y_continuous(labels=percent)
 p <- p + xlab('User percentile by activity') + ylab('Mean recall')
 p <- p + theme(legend.title=element_blank())
-ggsave(p, filename='../../KDD-paper/figures/mean_recall_by_user_percentile.pdf', width=10, height=2.5)
+ggsave(p, filename=sprintf('../../KDD-paper/figures/mean_recall_at_%d_by_user_percentile.pdf', N), width=10, height=2.5)
 p
 
 

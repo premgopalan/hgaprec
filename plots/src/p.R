@@ -28,26 +28,26 @@ for (dataset in c("mendeley", "echonest", "nyt", "netflix", "netflix45")) {
 ########################################
 # preprocessing
 ########################################
+method.levels <- c("BPF.HIER", "BPF", "LDA", "MF", "NMF")
+dataset.levels <- c("mendeley"="Mendeley","nyt"="New York Times","echonest"="Echo Nest","netflix45"="Netflix (implicit)","netflix"="Netflix (explicit)")
 
 # remove users with missing activity from the training file
 precision.by.user <- subset(precision.by.user, !is.na(activity))
 recall.by.user <- subset(recall.by.user, !is.na(activity))
 
 # keep only mfpop, renaming to mf
-# clean up 
+# clean up dataset names
 precision.by.user <- subset(precision.by.user, method != "MFUNIF")
 precision.by.user <- transform(precision.by.user,
                                method=revalue(method, c("MFPOP"="MF")),
-                               dataset=revalue(dataset, c("netflix45"="netflix (implicit)", "netflix"="netflix (explicit)")))
+                               dataset=revalue(dataset, dataset.levels))
 recall.by.user <- subset(recall.by.user, method != "MFUNIF")
 recall.by.user <- transform(recall.by.user,
                             method=revalue(method, c("MFPOP"="MF")),
-                            dataset=revalue(dataset, c("netflix45"="netflix (implicit)", "netflix"="netflix (explicit)")))
+                            dataset=revalue(dataset, dataset.levels))
 #recall.by.user <- transform(recall.by.user, method=as.factor(gsub('MFPOP','MF',method)))
 
 # set order of methods and datasets for all plots
-method.levels <- c("BPF.HIER", "BPF", "LDA", "MF", "NMF")
-dataset.levels <- c("mendeley","nyt","echonest","netflix (implicit)","netflix (explicit)")
 precision.by.user <- transform(precision.by.user,
                                dataset=factor(as.character(dataset), dataset.levels),
                                method=factor(as.character(method), method.levels))
@@ -57,7 +57,7 @@ recall.by.user <- transform(recall.by.user,
 
 
 # make all evaluations for rank 100 and 20 recommendations
-N <- 10
+N <- 20
 rank <- 100
 
 ########################################

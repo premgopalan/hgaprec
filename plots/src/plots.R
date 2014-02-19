@@ -52,6 +52,45 @@ ggsave(p, filename='../../KDD-paper/figures/user_activity_cdf.pdf', width=10, he
 p
 
 
+# read bpf simulated user activity by dataset
+sim.users <- adply(names(datasets), 1, function(dataset) {
+  tsv <- sprintf('../marginals/%s/sim_byusers.tsv', dataset)
+  print(tsv)
+  read.table(tsv, header=F, col.names=c("rep", "seq", "user", "activity", "total.ratings"))
+})
+sim.users$X1 <- names(datasets)[sim.users$X1]
+names(sim.users)[1] <- "dataset"
+sim.users <- transform(sim.users, dataset=revalue(dataset, datasets))
+sim.users <- subset(sim.users, dataset != "Netflix (implicit)")
+
+# plot distribution of user activity for bpf simulated activity
+plot.data <- subset(sim.users, rep==0)
+plot.data <- rbind(cbind(users[, c("dataset","user","activity")], variable=rep('Empirical', nrow(users))),
+                   cbind(plot.data[, c("dataset","user","activity")], variable=rep('Simulated', nrow(plot.data))))
+plot.data <- ddply(plot.data, c("variable", "dataset","activity"), summarize, num.users=length(user))
+plot.data <- ddply(plot.data, c("variable","dataset"), transform, frac.users=rev(cumsum(rev(num.users)))/sum(num.users))
+p <- ggplot(data=plot.data, aes(x=activity, y=frac.users))
+p <- p + geom_line(aes(linetype=variable))
+p <- p + scale_x_log10(labels=comma, breaks=10^(0:3))
+p <- p + scale_y_continuous(labels=percent)
+p <- p + facet_wrap(~ dataset, nrow=1)
+p <- p + xlab('Number of user views') + ylab('Fraction of users')
+p <- p + theme(legend.title=theme_blank(), legend.position=c(0.94,0.8), legend.background=theme_blank())
+ggsave(p, filename='../../KDD-paper/figures/user_activity_sim.pdf', width=10, height=2.5)
+p
+
+# plot cdf of user activity for bpf simulated activity
+ plot.data <- ddply(plot.data, c("variable", "dataset","activity"), summarize, num.users=length(user))
+p <- ggplot(data=plot.data, aes(x=activity, y=num.users))
+p <- p + geom_point(aes(shape=variable, color=variable))
+p <- p + scale_x_log10(labels=comma, breaks=10^(0:4)) + scale_y_log10(labels=comma, breaks=10^(0:6))
+p <- p + facet_wrap(~ dataset, nrow=1)
+p <- p + xlab('User activity') + ylab('Number of users')
+p <- p + theme(legend.title=theme_blank(), legend.position=c(0.94,0.8), legend.background=theme_blank())
+ggsave(p, filename='../../KDD-paper/figures/user_activity_sim_cdf.pdf', width=10, height=2.5)
+p
+
+
 #
 # items
 #

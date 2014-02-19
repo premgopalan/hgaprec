@@ -5,12 +5,87 @@ require(scales)
 
 theme_set(theme_bw())
 
+methods <- c("BPF.HIER", "BPF", "LDA", "MF", "NMF")
+datasets <- c("mendeley"="Mendeley","nyt"="New York Times","echonest"="Echo Nest","netflix45"="Netflix (implicit)","netflix"="Netflix (explicit)")
+
+########################################
+# plot simple descriptives
+########################################
+
+#
+# users
+#
+
+# read user activity by dataset
+users <- adply(names(datasets), 1, function(dataset) {
+  tsv <- sprintf('../data/%s/users.tsv', dataset)
+  users <- read.table(tsv, header=F, col.names=c('user', 'activity'))
+})
+users$X1 <- names(datasets)[users$X1]
+names(users)[1] <- "dataset"
+
+# clean up dataset labels and remove netflix implicit
+users <- transform(users, dataset=revalue(dataset, datasets))
+users <- transform(users, dataset=factor(as.character(dataset), datasets))
+users <- subset(users, dataset != "Netflix (implicit)")
+
+# plot cdf of user activity by dataset
+plot.data <- ddply(users, c("dataset","activity"), summarize, num.users=length(user))
+plot.data <- ddply(plot.data, "dataset", transform, frac.users=rev(cumsum(rev(num.users)))/sum(num.users))
+p <- ggplot(data=plot.data, aes(x=activity, y=frac.users))
+p <- p + geom_line()
+p <- p + scale_x_log10(labels=comma, breaks=10^(0:3))
+p <- p + scale_y_continuous(labels=percent)
+p <- p + facet_wrap(~ dataset, nrow=1)
+p <- p + xlab('Number of user views') + ylab('Fraction of users')
+ggsave(p, filename='../../KDD-paper/figures/user_activity_cdf.pdf', width=10, height=2.5)
+p
+
+
+#
+# items
+#
+
+# read item popularity by dataset
+items <- adply(names(datasets), 1, function(dataset) {
+  tsv <- sprintf('../data/%s/items.tsv', dataset)
+  items <- read.table(tsv, header=F, col.names=c('item', 'popularity'))
+})
+items$X1 <- names(datasets)[items$X1]
+names(items)[1] <- "dataset"
+items <- transform(items, dataset=revalue(dataset, datasets))
+items <- transform(items, dataset=factor(as.character(dataset), datasets))
+
+# clean up dataset labels and remove netflix implicit
+items <- transform(items, dataset=revalue(dataset, datasets))
+items <- transform(items, dataset=factor(as.character(dataset), datasets))
+items <- subset(items, dataset != "Netflix (implicit)")
+
+
+# plot cdf of item popularity by dataset
+plot.data <- ddply(items, c("dataset","popularity"), summarize, num.items=length(item))
+plot.data <- ddply(plot.data, "dataset", transform, frac.items=rev(cumsum(rev(num.items)))/sum(num.items))
+p <- ggplot(data=plot.data, aes(x=popularity, y=frac.items))
+p <- p + geom_line()
+p <- p + scale_x_log10(labels=comma, breaks=10^(0:4))
+p <- p + scale_y_continuous(labels=percent)
+p <- p + facet_wrap(~ dataset, nrow=1)
+p <- p + xlab('Number of item views') + ylab('Fraction of items')
+ggsave(p, filename='../../KDD-paper/figures/item_popularity_cdf.pdf', width=10, height=2.5)
+p
+
+
+
+########################################
+# read precision and coverage data frames
+########################################
+
 precision.by.user <- data.frame()
 recall.by.user <- data.frame()
 coverage.by.item <- data.frame()
-for (dataset in c("mendeley", "echonest", "nyt", "netflix", "netflix45")) {
+for (dataset in names(datasets)) {
   print(dataset)
-  for (method in c("bpf.hier", "bpf", "nmf", "lda", "mfpop", "mfunif")) {
+  for (method in tolower(methods)) {
       tsv <- sprintf('../output/%s/%s/precision.txt', dataset, method)
       print(tsv)
       if (file.exists(tsv))
@@ -25,11 +100,9 @@ for (dataset in c("mendeley", "echonest", "nyt", "netflix", "netflix45")) {
 }
 
 
-########################################
+#######################################
 # preprocessing
 ########################################
-method.levels <- c("BPF.HIER", "BPF", "LDA", "MF", "NMF")
-dataset.levels <- c("mendeley"="Mendeley","nyt"="New York Times","echonest"="Echo Nest","netflix45"="Netflix (implicit)","netflix"="Netflix (explicit)")
 
 # remove users with missing activity from the training file
 precision.by.user <- subset(precision.by.user, !is.na(activity))
@@ -40,20 +113,20 @@ recall.by.user <- subset(recall.by.user, !is.na(activity))
 precision.by.user <- subset(precision.by.user, method != "MFUNIF")
 precision.by.user <- transform(precision.by.user,
                                method=revalue(method, c("MFPOP"="MF")),
-                               dataset=revalue(dataset, dataset.levels))
+                               dataset=revalue(dataset, datasets))
 recall.by.user <- subset(recall.by.user, method != "MFUNIF")
 recall.by.user <- transform(recall.by.user,
                             method=revalue(method, c("MFPOP"="MF")),
-                            dataset=revalue(dataset, dataset.levels))
+                            dataset=revalue(dataset, datasets))
 #recall.by.user <- transform(recall.by.user, method=as.factor(gsub('MFPOP','MF',method)))
 
 # set order of methods and datasets for all plots
 precision.by.user <- transform(precision.by.user,
-                               dataset=factor(as.character(dataset), dataset.levels),
-                               method=factor(as.character(method), method.levels))
+                               dataset=factor(as.character(dataset), datasets),
+                               method=factor(as.character(method), methods))
 recall.by.user <- transform(recall.by.user,
-                            dataset=factor(as.character(dataset), dataset.levels),
-                            method=factor(as.character(method), method.levels))
+                            dataset=factor(as.character(dataset), datasets),
+                            method=factor(as.character(method), methods))
 
 
 # make all evaluations for rank 100 and 20 recommendations

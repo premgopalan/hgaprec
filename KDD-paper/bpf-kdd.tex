@@ -327,21 +327,29 @@ data. Our algorithms need only iterate over the non-zero entries of
 the user behavior matrix.  This lets us handle data at a scale that
 basic (non-stochastic) MF algorithms cannot handle.
 
+
+
 \begin{figure*}[t!]
-\includegraphics[width=0.33\textwidth]{figures/marginals/echonest.pdf}
-\includegraphics[width=0.33\textwidth]{figures/marginals/nyt.pdf}
-\includegraphics[width=0.33\textwidth]{figures/marginals/netflix.pdf}
-\caption{Empirical distribution of item popularity on real datasets,
-  with fitted negative binomial and Gaussian distributions. The
-  distributions were fit using maximum likelihood estimation. The
-  negative binomial places significant probability mass on the left
-  tail, i.e., items with few ratings. The colored bars show that such
-  items are the most frequent. In contrast, the Gaussian distribution
-  places negligible mass on the left tail and mainly captures popular
-  items. The mode of the negative binomial distribution is also closer
-  to the empirical mode than the Gaussian distribution.}
+\includegraphics[width=\textwidth]{figures/user_activity_cdf.pdf}
+\caption{Empirical complimentary cumulative distributions of user activity on each dataset. Each curve shows the fraction of users who have consumed at least a given number of items. For instance, slightly less than half of all Netflix users have viewed at least 100 movies.}
 \label{fig:marginals}
 \end{figure*}
+
+%% \begin{figure*}[t!]
+%% \includegraphics[width=0.33\textwidth]{figures/marginals/echonest.pdf}
+%% \includegraphics[width=0.33\textwidth]{figures/marginals/nyt.pdf}
+%% \includegraphics[width=0.33\textwidth]{figures/marginals/netflix.pdf}
+%% \caption{Empirical distribution of item popularity on real datasets,
+%%   with fitted negative binomial and Gaussian distributions. The
+%%   distributions were fit using maximum likelihood estimation. The
+%%   negative binomial places significant probability mass on the left
+%%   tail, i.e., items with few ratings. The colored bars show that such
+%%   items are the most frequent. In contrast, the Gaussian distribution
+%%   places negligible mass on the left tail and mainly captures popular
+%%   items. The mode of the negative binomial distribution is also closer
+%%   to the empirical mode than the Gaussian distribution.}
+%% \label{fig:marginals}
+%% \end{figure*}
 
 % prem: no longer use stochastic 
 

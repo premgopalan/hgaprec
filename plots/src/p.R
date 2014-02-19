@@ -85,7 +85,14 @@ recall.by.user <- data.frame()
 coverage.by.item <- data.frame()
 for (dataset in names(datasets)) {
   print(dataset)
-  for (method in tolower(methods)) {
+
+  # notes:
+  # netflix45 is implicit, where only ratings >= 4 are treated as (binary) observations
+  # netflix is explicit, where all rating values are modeled
+  #  the method here is "mf" instead of "mfpop", as no negative sampling is used,
+  #  so output/netflix/mf is symlinked to output/netflix/mfpop
+  # in both cases the test set involves prediction of ratings >= 4 (items users "like")
+  for (method in c("bpf.hier", "bpf", "lda", "nmf", "mfpop", "mfunif")) {
       tsv <- sprintf('../output/%s/%s/precision.txt', dataset, method)
       print(tsv)
       if (file.exists(tsv))
@@ -118,7 +125,6 @@ recall.by.user <- subset(recall.by.user, method != "MFUNIF")
 recall.by.user <- transform(recall.by.user,
                             method=revalue(method, c("MFPOP"="MF")),
                             dataset=revalue(dataset, datasets))
-#recall.by.user <- transform(recall.by.user, method=as.factor(gsub('MFPOP','MF',method)))
 
 # set order of methods and datasets for all plots
 precision.by.user <- transform(precision.by.user,

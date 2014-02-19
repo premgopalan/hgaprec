@@ -594,6 +594,8 @@ We discuss further differences between our method and previous work on
 matrix factorization in the empirical results below.
 
 % !!! add reference to canny's click data
+% !!! add reference to SIGIR
+XXX \cite{Marlin:2009,Marlin:2012,Elkan:2008}
 
 \section{Variational Inference}
 \label{sec:inference}
@@ -759,6 +761,49 @@ See~\cite{Johnson:2005} (and Appendix A).
 
 \subsection{Variational algorithm}
 
+\begin{figure}
+  \begin{framed}
+    For all users and items, initialize the user parameters
+    $\gamma_u$, $\kappa_u^{\rate}$ and item parameters $\lambda_i$,
+    $\tau_i^{\rate}$ to the prior with a small random offset. Set the
+    user activity and item popularity shape parameters:
+    \begin{align}
+      \kappa_u^{\shape} = a + Ka'; \quad \tau_i^{\shape} = c + Kc'\nonumber
+    \end{align}
+
+    \vspace{0.1in}
+
+    Repeat until convergence:
+    \begin{enumerate}
+    \item For each user/item such that $y_{ui} > 0$, update the multinomial:
+      \begin{equation*}
+        \phi_{ui} \propto \exp\{\Psi(\gamma_{uk}^\shape) - \log
+        \gamma_{uk}^{\rate} + \Psi(\lambda_{ik}^\shape) - \log
+        \lambda_{ik}^\rate\}.
+      \end{equation*}
+    \item For each user, update the user weight and activity parameters:
+      \begin{align}
+        \gamma_{uk}^\shape & = a + \textstyle \sum_{i} y_{ui}
+        \phi_{uik} \nonumber\\
+        \gamma_{uk}^\rate & = \frac{\kappa_u^{\shape}}{\kappa_u^{\rate}} + \textstyle \sum_i \lambda_{ik}^{\shape} / \lambda_{ik}^{\rate}\nonumber\\
+        \kappa_{u}^\rate & = b' + \sum_k \Psi(\gamma_u^{\shape}) - \log(\gamma_u^{\rate})\nonumber
+      \end{align}
+    \item For each item, update the item weight and popularity parameters:
+      \begin{align}
+        \lambda_{ik}^\shape & = c + \textstyle \sum_{u} y_{ui}
+        \phi_{uik}\nonumber\\
+        \lambda_{ik}^\rate & = \frac{\tau_i^{\shape}}{\tau_i^{\rate}} + \textstyle \sum_u
+        \gamma_{uk}^{\shape} / \gamma_{uk}^{\rate}\nonumber\\
+        \tau_{i}^\rate & = d' + \sum_k \Psi(\lambda_i^{\shape}) -
+        \log(\lambda_i^{\rate})\nonumber
+      \end{align}
+    \end{enumerate}
+\end{framed}
+\caption{\label{fig:batch}Batch variational inference for Poisson
+  factorization.  Each iteration only needs to consider the non-zero
+  elements of the user/item matrix.}
+\end{figure}
+
 We now derive variational inference for the HPF. First, we set each
 factor in the mean-field family (\myeq{q}) to be the same type of
 distribution as its complete conditional.  The complete conditionals
@@ -835,49 +880,6 @@ optimization~\cite{Mairal:2010}.
 %% steps 2 and 3 in parallel, updating the variational shape and rate
 %% parameters of all users and items using the multinomial $\phi_{ui}$
 %% parameters.
-
-\begin{figure}
-  \begin{framed}
-    For all users and items, initialize the user parameters
-    $\gamma_u$, $kappa_u^{\rate}$ and item parameters $\lambda_i$,
-    $\tau_i^{\rate}$ to the prior with a small random offset. Set the
-    user activity and item popularity shape parameters:
-    \begin{align}
-      \kappa_u^{\shape} = a + Ka'; \quad \tau_i^{\shape} = c + Kc'\nonumber
-    \end{align}
-
-    \vspace{0.1in}
-
-    Repeat until convergence:
-    \begin{enumerate}
-    \item For each user/item such that $y_{ui} > 0$, update the multinomial:
-      \begin{equation*}
-        \phi_{ui} \propto \exp\{\Psi(\gamma_{uk}^\shape) - \log
-        \gamma_{uk}^{\rate} + \Psi(\lambda_{ik}^\shape) - \log
-        \lambda_{ik}^\rate\}.
-      \end{equation*}
-    \item For each user, update the user weight and activity parameters:
-      \begin{align}
-        \gamma_{uk}^\shape & = a + \textstyle \sum_{i} y_{ui}
-        \phi_{uik} \nonumber\\
-        \gamma_{uk}^\rate & = \frac{\kappa_u^{\shape}}{\kappa_u^{\rate}} + \textstyle \sum_i \lambda_{ik}^{\shape} / \lambda_{ik}^{\rate}\nonumber\\
-        \kappa_{u}^\rate & = b' + \sum_k \Psi(\gamma_u^{\shape}) - \log(\gamma_u^{\rate})\nonumber
-      \end{align}
-    \item For each item, update the item weight and popularity parameters:
-      \begin{align}
-        \lambda_{ik}^\shape & = c + \textstyle \sum_{u} y_{ui}
-        \phi_{uik}\nonumber\\
-        \lambda_{ik}^\rate & = \frac{\tau_i^{\shape}}{\tau_i^{\rate}} + \textstyle \sum_u
-        \gamma_{uk}^{\shape} / \gamma_{uk}^{\rate}\nonumber\\
-        \tau_{i}^\rate & = d' + \sum_k \Psi(\lambda_i^{\shape}) -
-        \log(\lambda_i^{\rate})\nonumber
-      \end{align}
-    \end{enumerate}
-\end{framed}
-\caption{\label{fig:batch}Batch variational inference for Poisson
-  factorization.  Each iteration only needs to consider the non-zero
-  elements of the user/item matrix.}
-\end{figure}
 
 \input{eval.tex}
 

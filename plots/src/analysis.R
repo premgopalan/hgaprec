@@ -82,6 +82,12 @@ for (dataset in c("echonest", "nyt", "netflix", "mendeley", "netflix45")) {
   test.users.file <- sprintf('../data/%s/test_user_degree.tsv', dataset)
   test.users <- read.delim(test.users.file, sep='\t', header=F, col.names=c('user','num.test.items'))
 
+  # notes:
+  # netflix45 is implicit, where only ratings >= 4 are treated as (binary) observations
+  # netflix is explicit, where all rating values are modeled
+  #  the method here is "mf" instead of "mfpop", as no negative sampling is used,
+  #  so output/netflix/mf is symlinked to output/netflix/mfpop
+  # in both cases the test set involves prediction of ratings >= 4 (items users "like")
   for (method in c("bpf.hier", "bpf", "lda", "nmf", "mfpop", "mfunif")) {
     for (K in ranks) {
       ranking.file <- sprintf('../output/%s/%s/ranking.tsv', dataset, method)

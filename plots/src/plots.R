@@ -113,15 +113,22 @@ for (dataset in names(datasets)) {
   # in both cases the test set involves prediction of ratings >= 4 (items users "like")
   for (method in c("bpf.hier", "bpf", "lda", "nmf", "mfpop", "mfunif")) {
       tsv <- sprintf('../output/%s/%s/precision.txt', dataset, method)
-      print(tsv)
-      if (file.exists(tsv))
+      if (file.exists(tsv)) {
+        print(tsv)
         precision.by.user <- rbind(precision.by.user,
                                    read.table(tsv, header=T))
+      } else {
+        print(sprintf("%s not found", tsv))
+      }
+
       tsv <- sprintf('../output/%s/%s/recall.txt', dataset, method)
-      print(tsv)
-      if (file.exists(tsv))
-       recall.by.user <- rbind(recall.by.user,
-                               read.table(tsv, header=T))
+      if (file.exists(tsv)) {
+        print(tsv)
+        recall.by.user <- rbind(recall.by.user,
+                                read.table(tsv, header=T))
+      } else {
+        print(sprintf("%s not found", tsv))
+      }
     }
 }
 
@@ -131,8 +138,8 @@ for (dataset in names(datasets)) {
 ########################################
 
 # remove users with missing activity from the training file
-precision.by.user <- subset(precision.by.user, !is.na(activity))
-recall.by.user <- subset(recall.by.user, !is.na(activity))
+precision.by.user <- subset(precision.by.user, !is.na(activity) & !is.na(num.test.items))
+recall.by.user <- subset(recall.by.user, !is.na(activity) & !is.na(num.test.items))
 
 # keep only mfpop, renaming to mf
 # clean up dataset names

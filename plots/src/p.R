@@ -29,6 +29,16 @@ users <- transform(users, dataset=revalue(dataset, datasets))
 users <- transform(users, dataset=factor(as.character(dataset), datasets))
 users <- subset(users, dataset != "Netflix (implicit)")
 
+# plot distribution of user activity by dataset
+plot.data <- ddply(users, c("dataset","activity"), summarize, num.users=length(user))
+p <- ggplot(data=plot.data, aes(x=activity, y=num.users))
+p <- p + geom_point()
+p <- p + scale_x_log10(labels=comma, breaks=10^(0:4)) + scale_y_log10(labels=comma, breaks=10^(0:6))
+p <- p + facet_wrap(~ dataset, nrow=1)
+p <- p + xlab('User activity') + ylab('Number of users')
+ggsave(p, filename='../../KDD-paper/figures/user_activity.pdf', width=10, height=2.5)
+p
+
 # plot cdf of user activity by dataset
 plot.data <- ddply(users, c("dataset","activity"), summarize, num.users=length(user))
 plot.data <- ddply(plot.data, "dataset", transform, frac.users=rev(cumsum(rev(num.users)))/sum(num.users))
@@ -61,6 +71,15 @@ items <- transform(items, dataset=revalue(dataset, datasets))
 items <- transform(items, dataset=factor(as.character(dataset), datasets))
 items <- subset(items, dataset != "Netflix (implicit)")
 
+# plot distribution of item activity by dataset
+plot.data <- ddply(items, c("dataset","popularity"), summarize, num.items=length(item))
+p <- ggplot(data=plot.data, aes(x=popularity, y=num.items))
+p <- p + geom_point()
+p <- p + scale_x_log10(labels=comma, breaks=10^(0:4)) + scale_y_log10(labels=comma, breaks=10^(0:6))
+p <- p + facet_wrap(~ dataset, nrow=1)
+p <- p + xlab('Item popularity') + ylab('Number of items')
+ggsave(p, filename='../../KDD-paper/figures/item_popularity.pdf', width=10, height=2.5)
+p
 
 # plot cdf of item popularity by dataset
 plot.data <- ddply(items, c("dataset","popularity"), summarize, num.items=length(item))

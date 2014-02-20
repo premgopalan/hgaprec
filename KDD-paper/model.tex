@@ -91,10 +91,7 @@ sharing of statistical strength. In the HPF, for example, learning
 about the number of items consumed by one set of users provides weak,
 indirect evidence relevant to other users consumption. This can
 improve predictions, especially for users with little activity. A
-similar argument favors hierarchy over item popularities. 
-
-Both the HPF and the BPF are conjugate models, resulting in a
-computationally efficient inference algorithm.
+similar argument favors hierarchy over item popularities.
 
 \subsection{The Posterior distribution}
 The posterior distribution of the latent variables $p(\theta, \beta,
@@ -120,9 +117,9 @@ factorization, and form the basis for scalable inference.
 \begin{enumerate}
 \item {\bf Modeling the long-tailed distribution of user activity}.
   Figure 3 shows the distributions of user activity on large,
-  real-world user/item matrices. These distributions are highly
-  skewed, with significant number of users exhibiting much higher
-  activity than most users.
+  real-world user/item matrices. These distributions are long-tailed:
+  they are highly skewed, with significant number of users exhibiting
+  much higher activity than most users.
 
 Under the BPF and the HPF, the marginal distribution of each user's
 ratings, with the item weights held fixed, is a negative binomial.
@@ -140,12 +137,12 @@ distribution of $y_u$ is from an integrated Gamma-Poisson
 distribution, which is a negative binomial~\cite{Gelman:1995}.
 
 The negative binomial is a long-tailed distribution that is known to
-fit user activity well~\cite{Goodhardt:1984,Dunning:1993}.  Figure 3 shows
-that the HPF provide good fits to the distribution of user activity on
-real-world data.  Classical matrix factorization is based on Gaussian
-likelihoods, and the marginal distribution of total user ratings is
-also a Gaussian.  The symmetric Gaussian assumption is a poor choice
-for modeling long-tailed distributions, and places probability mass on
+fit user activity well~\cite{Goodhardt:1984,Dunning:1993}.  Figure 3
+shows that the HPF provides good fits to the distribution of user
+activity on real-world data.  Classical matrix factorization is based
+on Gaussian likelihoods, and the marginal distribution of total user
+ratings is a Gaussian.  The Gaussian is a poor choice for modeling
+long-tailed distributions. Further, it places probability mass on
 negative numbers, a setting that never occurs.
 
 
@@ -210,9 +207,6 @@ inference with sparse matrices.  In contrast, classical matrix
 factorization methods, especially when applied to
 massive data sets, must address the zeros either through
 sub-sampling~\cite{Dror:2012a} or approximation~\cite{Hu:2008p9402}.
-
-\item {\bf }
-
 \end{enumerate}
 
 % dmb: above, maybe add a comment above that this is a heavy-tailed

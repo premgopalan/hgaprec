@@ -1,31 +1,56 @@
 
+\begin{comment}
+  * details of datasets
+    * variety of activities
+    * different balance of user, item, density
+    * different meaning to ratings
+    * implicit vs explicit (be clear about netflix)
+  * preprocessing
+  * baselines
+    * NMF
+    * LDA
+    * MF (sampling schemes)
+    * train/test methology
+  * performance
+    * overall dominance (draw distinction btwn HPF and BPF?)
+    * no need to sample (time savings)
+    * default hyperparameters vs. grid search
+    * failing of bpr
+    * variation by user activity (helping head vs. tail)
+  * exploratory
+\end{comment}
+
 \begin{figure*}[t!]
 \centering
 \includegraphics[width=\textwidth]{figures/mean_precision_at_20.pdf}\\
 \includegraphics[width=\textwidth]{figures/mean_recall_at_20.pdf}\\
-\caption{Predictive performance on datasets. The top and bottom plots
+\caption{Predictive performance on data sets. The top and bottom plots
   show normalized mean precision and mean recall at 20
   recommendations, respectively. While baseline performance varies
-  across datasets, HPF and BPF consistently outperform competiting
+  across data sets, HPF and BPF consistently outperform competing
   methods.}
-\label{fig:precision_recall_at_10}
+\label{fig:precision_recall}
 \end{figure*}
 
 
 \section{Empirical Study}
 We evaluate the performance of the Hierarchical Poisson Factorization
 (HPF) algorithm and its non-hierarchical variant (BPF) on a variety of
-large real data sets. We demonstrate in this section that Poisson
-Factorization definitively outperforms an array of competing methods
-across a variety of datasets.
+large-scale data sets for the purpose of recommending new items to
+users. We first discuss details of each data set and of competing
+recommendation methods. In particular, we note the superior
+performance and computational efficiency of Poisson Factorization in
+comparison to baseline methods. We conclude with an exploratory
+analysis of the preferences and attributes inferred by HPF.
 
 {\bf Data Sets.} We study the HPF algorithm in Figure~\ref{fig:batch}
-on several large data sets:
+on several data sets of user behavior that contain both implicit
+and explicit feedback:
 \begin{itemize}
 \item The {\bf Mendeley} data set~\cite{Jack:2010} of scientific
   articles is a binary matrix of 80,000 users and 260,000 articles,
   where each observation corresponds to the presence of a given
-  article in a particular user's library.
+  article in a particular user's online library.
 \item The {\bf Echo Nest} music data set~\cite{Bertin-Mahieux:2011}
   consists of 1 million users, 385,000 distinct songs and 48 million
   (user, song, play count) triplets. We consider a binarized version
@@ -43,11 +68,22 @@ on several large data sets:
 \end{itemize}
 
 The scale and diversity of these data sets enables a robust evaluation
-of our algorithm. Both the Mendeley and the Echo Nest data sets are
-sparse in comparison to the movie data: only 0.001\% of the matrix of
-ratings is non-zero in Mendeley, while 1\% of the ratings are non-zero
-in Netflix and XX\% in New York Times. Further, the Mendeley data set has
-many more articles than users.
+of our algorithm. The Mendeley, Echo Nest, and New York Times data
+sets are sparse in comparison to the movie data. For example, we
+observe only 0.001\% of all possible user-item ratings in Mendeley,
+while 1\% of the ratings are non-zero in the Netflix data. This is
+partially a reflection of large number of articles relative to number
+users in the Mendeley data. Furthermore, the intent signaled by an
+observed rating varies significantly across these data sets. For
+instance, the Netflix data set gives the most direct measure of stated
+preference for items, as users provide an explicit star rating for
+movies they have watched. In contrast, article click counts in the New
+York Times data are a less clear measure of how much a user likes a
+given article---most articles are read only once, and a click through
+is only a weak indicator of whether the article was fully read, let
+alone liked. Ratings in the Echo Nest data presumably fall somewhere
+in between, as the number of times a user listens to a song likely
+reveals some indirect information about their preferences.
 
 
 {\bf Pre-processing and training.} We now describe how we the
@@ -124,22 +160,38 @@ number of passes over the training data. This results in a reasonably
 expensive grid search, from which we select
 the model that performs best on the validation set for each data set.
 
+{\bf Results and analysis.} During testing, we generate the top $M$
+recommendations for each user as those items with the highest
+predictive score in \myeq{score}. The ranked list of items predicted
+for each user includes items in the test set, as well as items in the
+training set that were zeros. We compute normalized precision-at-$M$,
+which measures the fraction of the top $M$ recommendations present in
+the test set, varying $M$ from 10 to 100 items. Likewise, we compute
+recall-at-$M$, which captures the fraction of items in the test set
+present in the top $M$ recommendations.
 
-{\bf Testing.} During testing, we generate the top $M$ recommendations
-for each user as those items with the highest predictive score in
-\myeq{score}. The ranked list of items predicted for each user
-includes items in the test set, as well as items in the training set
-that were zeros. We compute precision-at-$M$, which measures the
-fraction of the top $M$ recommendations present in the test set,
-varying $M$ from 10 to 100 items. Likewise, we compute recall-at-$M$,
-which captures the fraction of items in the test set present in the
-top $M$ recommendations.
+XXX explain normalized precision
 
-%% In contrast, the Echo Nest and Mendeley data sets contain implicit
-%% feedback on which songs and scientific papers users have consumed.
+\myfig{precision_recall} shows the normalized mean precision at 20
+recommendations for each method and data sets. We see that HPF
+outperforms other methods on all data sets by a sizeable margin---as
+much as 8 percentage points. Likewise, HPF shows similar gains in
+recall over traditional MF approaches, indicated in
+\myfig{recall_by_M}. A relatively high fraction of items recommended
+by HPF are found to be relevant, and many relevant items are
+recommended.
 
-%% !!! prem: assume BPF-binary for now. will try to move to BPF-bias
-%% where the non-binary observations are fit
+We also study precision as a function of user activity to investigate
+for which kinds of users the algorithm performs
+well. \myfig{precision_recall_by_user_activity} highlights the results
+in further detail, showing the normalized mean precision and mean
+recall at 20 recommendations for users of varying activity. HPF
+provides increasingly better performance for more active users.
+
+As expected, we see that HPF provides increasingly better
+recommendations for more active users, and that HPF outperforms MF on
+the Netflix, MovieLens, and Echo Nest data sets by this measure as
+well as mean precision across all users.
 
 
 {\bf Exploratory analysis.} The fitted model can be explored to
@@ -165,36 +217,6 @@ of weights $\theta_u$, inferred by our algorithm, is shown in
 \myfig{movielens-illustration}. In our analysis, $K$ was set to
 100. The $\theta_u$ are not sparse because the user's views span a
 range of movies in the small data set.
-
-%% {\bf Results and analysis.} \myfig{precision_by_M} shows the mean
-%% precision of the HPF and the MF algorithm as we vary $M$, the number
-%% of recommendations. As shown in \myfig{precision_by_M}, HPF
-%% outperforms MF on all data sets by a sizeable margin---as much as 8
-%% percentage points. Likewise, HPF shows similar gains in recall over
-%% traditional MF approaches, indicated in \myfig{recall_by_M}. A
-%% relatively high fraction of items recommended by HPF are found to be
-%% relevant, and many relevant items are recommended.
-
-%% We also study precision as a function of user activity to investigate
-%% for which kinds of users the algorithm performs
-%% well. \myfig{precision_by_user_activity} highlights the results in
-%% further detail, showing the precision at 100 recommendations for users
-%% of varying activity. HPF provides increasingly better performance for
-%% more active users.  On the Mendeley data set, HPF performs better for
-%% users with less than 1000 articles (HPF does better over all.)  On all
-%% other data sets, HPF performs better than MF with all types of users.
-
-%% In all results, MF-POP outperforms MF-UNI, which is indicative of
-%% problems with the squared loss objective approximated by MF-UNI.
-
-%% As expected, we see that HPF provides
-%% increasingly better recommendations for more active users, and that
-%% HPF outperforms MF on the Netflix, MovieLens, and Echo Nest data sets
-%% by this measure as well as mean precision across all users.
-
-%% On the Mendeley data set, HPF performs better for users with less than
-%% 1000 articles in their library, but MF has better precision than HPF for
-%% the small set of users with more than 1000 papers in their library.
 
 \begin{figure*}
 \centering

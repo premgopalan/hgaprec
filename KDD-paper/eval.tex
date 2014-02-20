@@ -3,10 +3,10 @@
 \centering
 \includegraphics[width=\textwidth]{figures/mean_precision_at_20.pdf}\\
 \includegraphics[width=\textwidth]{figures/mean_recall_at_20.pdf}\\
-\caption{Predictive performance on datasets. The top and bottom plots
+\caption{Predictive performance on data sets. The top and bottom plots
   show normalized mean precision and mean recall at 20
   recommendations, respectively. While baseline performance varies
-  across datasets, HPF and BPF consistently outperform competiting
+  across data sets, HPF and BPF consistently outperform competing
   methods.}
 \label{fig:precision_recall_at_10}
 \end{figure*}
@@ -15,12 +15,16 @@
 \section{Empirical Study}
 We evaluate the performance of the Hierarchical Poisson Factorization
 (HPF) algorithm and its non-hierarchical variant (BPF) on a variety of
-large real data sets. We demonstrate in this section that Poisson
-Factorization definitively outperforms an array of competing methods
-across a variety of datasets.
+large recommendation data sets. We first discuss details of each data
+set and of competing recommendation methods. In particular, we note
+the computational efficiency of Poisson Factorization in comparison to
+baseline methods in conjunction with superior performance. We conclude
+with an exploratory analysis of the preferences and attributes
+inferred by HPF.
 
 {\bf Data Sets.} We study the HPF algorithm in Figure~\ref{fig:batch}
-on several large data sets:
+on several large data sets of user behavior that contain both implicit
+and explicit feedback:
 \begin{itemize}
 \item The {\bf Mendeley} data set~\cite{Jack:2010} of scientific
   articles is a binary matrix of 80,000 users and 260,000 articles,

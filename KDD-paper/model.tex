@@ -19,59 +19,32 @@ associated with a $K$-vector of positive weights, $\theta_u$ and
 $\beta_i$ respectively.  (The number $K$ is fixed in advance.)  The
 user/item observation $y_{ui}$ is modeled with a Poisson parameterized
 by the inner product of the user's and item's weights $y_{ui} \sim
-\poisson(\theta_u^\top \beta_i)$.  This is a variant of
-probabilistic matrix factorization~\cite{Salakhutdinov:2008a} but
-where each user and item's weights are positive~\cite{Lee:1999}---we
-place Gamma priors on them--- and where the Poisson likelihood
-replaces the Gaussian likelihood.
+\poisson(\theta_u^\top \beta_i)$.  This is a variant of probabilistic
+matrix factorization~\cite{Salakhutdinov:2008a} but where each user
+and item's weights are positive~\cite{Lee:1999} and where the Poisson
+likelihood replaces the Gaussian likelihood.
+
+A good collaborative filtering model must capture two basic features
+of user and item interactions. The first is that for any given
+observation $y_{ui}$, we expect only a small fraction of the user
+$u$'s factors and the item $i$'s factors are relevant. This favors
+sparsity in the weights. Second, there are systematic patterns in the
+data explained by per-user and per-item bias terms. These terms
+capture universally popular items and frequently consuming users. A
+good model must capture such heterogeneity across users and items.
+For these reasons, we extend the Poisson factorization model with a
+hierarchical prior structure. We first describe our model, and then
+discuss how it captures the above properties.
 
 % dmb: jake cites something below
 % dmb: also cite "The Dirichlet", old marketing paper
-
-This Poisson model has good properties when modeling user/item data.
-It implicitly assumes that each user consumes a negative-binomial number of
-items---a heavy-tailed distribution that is known to fit user activity
-well~\cite{Goodhardt:1984}--and this forces it to down-weight the
-contribution of the items that each user did not consume. The reason
-is that the model has two ways of explaining that a user does not
-consume an item: either she is not interested in it or she would be
-but has already consumed her allotted negative-binomial number.  In
-contrast, a user that consumes an item must be interested in it.
-Thus, the model benefits more from making a consumed user/item pair
-more similar than making an unconsumed user/item pair less similar.
-
-Classical matrix factorization is based on Gaussian likelihoods (i.e.,
-squared loss), which gives equal weight to consumed and unconsumed
-items.  Consequently, when faced with a sparse matrix, matrix
-factorization places more total emphasis on the unconsumed user/item
-pairs.  To address this, researchers have patched the model in complex
-ways, for example, by including per-observation
-confidences~\cite{Koren:2009} or considering all zeroes to be hidden
-variables~\cite{Paquet:2013p9197}.  Poisson factorization more naturally solves this
-problem by capturing each user's rate of consumption.
-
-As an example, consider two similar science fiction movies, ``Star
-Wars'' and ``The Empire Strikes Back'', and consider a user who has
-seen one of them.  The Gaussian model pays an equal penalty for making
-the user similar to these items as it does for making the user
-different from them---with quadratic loss, seeing ``Star Wars'' is
-evidence for liking science fiction, but not seeing ``The Empire
-Strikes Back'' is evidence for disliking it.  The Poisson model,
-however, will prefer to bring the user's latent weights closer to the
-movies' weights because it favors the information from the user
-watching ``Star Wars''. Further, because the movies are similar, this
-increases the Poisson model's predictive score that a user who watches
-``Star Wars'' will also watch ``The Empire Strikes Back''.
-
-
-\subsection{The generative model}
 
 The generative process of the hierarchical Poisson factorization model
 (HPF) is as follows:
 \begin{enumerate}
 \item For each user $u$, choose activity
   \begin{equation*}
-    \xi_u \sim \gam(a', b').
+    \xi_u \sim \gam(a', a'/b').
   \end{equation*}
 \item For each user $u$ and each component $k$, choose weight
   \begin{equation*}
@@ -79,7 +52,7 @@ The generative process of the hierarchical Poisson factorization model
   \end{equation*}
 \item For each item $i$, choose popularity
   \begin{equation*}
-    \eta_i \sim \gam(c', d').
+    \eta_i \sim \gam(c', c'/d').
   \end{equation*}
 \item For each item $i$ and each component $k$, choose weight
   \begin{equation*}
@@ -90,32 +63,40 @@ The generative process of the hierarchical Poisson factorization model
     y_{ui} \sim \poisson(\theta_u^\top \beta_i).
   \end{equation*}
 \end{enumerate}
-The model places a \gam~prior on each of the \gam~rate parameters
-governing user and item weights. The prior on $\xi_u$ captures the
-uncertainty around user $u$'s consumption rate or activity; the prior
-on $\eta_i$ captures the uncertainty around item $i$'s popularity
-among users. 
+To enforce sparse weights, the model places a \gam~prior on the
+independent weight components. The \gam~distribution
+$\gam(x;a,\frac{a}{b})$ parameterized in terms of a shape parameter
+$a$ and an inverse scale parameter $\frac{a}{b}$, has a mean of $b$
+and a variance of $\frac{b^2}{a}$. For a small shape $a$, most of the
+weights will be close to zero, and only a few will be large, resulting
+in a sparse representation.
 
-We also study a sub-class of the HPF where we fix the rate parameter
-$\xi_u$ for each user, and the rate parameter $\eta_i$ for each
-item. We call this model the Bayesian Poisson Factorization (BPF)
-model.
+The \gam~rate parameters capture the magnitude of user $u$'s activity
+and item $i$'s popularity, respectively.  To capture heterogeneity in
+user activity and item popularity, we place a \gam~prior on the rate
+parameter $\xi_u$ governing each user $u$ or $\eta_i$ governing each
+item $i$. The prior on $\xi_u$ captures the uncertainty around user
+$u$'s consumption rate or activity; the prior on $\eta_i$ captures the
+uncertainty around item $i$'s popularity among users. Notice that we
+fix the shape parameters and share them across users and items.
+
+% dmb: jake cites something below
+
+We also study a sub-class of the HPF where we fix the rate parameters
+for all users and items to the same pair of hyperparameters. We call
+this model the Bayesian Poisson Factorization (BPF) model.
 
 The HPF model is more powerful than the BPF because it allows for the
 sharing of statistical strength. In the HPF, for example, learning
 about the number of items consumed by one set of users provides weak,
 indirect evidence relevant to other users consumption. This can
 improve predictions, especially for users with little activity. A
-similar argument favors hierarchy over item popularities. In the HPF,
-we fix the shape parameters and share them across users and items. For
-a large shape, the weights will tend to have similar magnitude, and
-the representations will be dense. In contrast, a small shape will
-result in a sparse representation.  Finally, the \gam~prior is
-conjugate to the \gam~distribution with fixed shape governing the
-weights. This results in a computationally efficient algorithm.
+similar argument favors hierarchy over item popularities. 
 
-%% explain the computational efficiency obtained?
- 
+Both the HPF and the BPF are conjugate models, resulting in a
+computationally efficient inference algorithm.
+
+\subsection{The Posterior distribution}
 The posterior distribution of the latent variables $p(\theta, \beta,
 \xi, \eta \g y)$ embeds users and items in a latent space of
 $K$-dimensional positive vectors. 
@@ -131,30 +112,83 @@ This amounts to asking the model to rank by probability which of the
 presently unconsumed items each user will likely consume in the
 future.
 
-With these details in place, we highlight two statistical properties of the
-model. First, we mentioned above that the marginal distribution of
-each user's ratings is a negative binomial.  Let $y_{u} = \sum_{i}
-y_{ui}$ be the sum of the ratings for user $u$.  Since each of the
-terms in the sum is a Poisson distribution with rate $\theta_u^\top
-\beta_i$, the sum is itself a Poisson random
+\subsection{Statistical properties of the HPF model}
+With the modeling details in place, we highlight statistical
+properties of the model that provide advantages over classical matrix
+factorization, and form the basis for scalable inference.
+
+\begin{enumerate}
+\item {\bf Modeling the long-tailed distribution of user activity}.
+Figure 3 shows the empirical complimentary cumulative distributions of
+user activity on large, real-world user/item matrices. These
+distributions are highly skewed, with significant number of users
+exhibiting much higher activity than most users. 
+
+Under the BPF and the HPF, the marginal distribution of each user's
+ratings, with the item weights held fixed, is a negative binomial.
+Let $y_{u} = \sum_{i} y_{ui}$ be the sum of the ratings for user $u$.
+Since each of the terms in the sum is a Poisson distribution with rate
+$\theta_u^\top \beta_i$, the sum is itself a Poisson random
 variable~\cite{Johnson:2005}.
 \begin{equation}
   y_u \sim \poisson\left(\theta_u^\top (\textstyle \sum_{i} \beta_{i})\right).
 \end{equation}
 Holding the item weights fixed, note that the rate of this Poisson is
-a sum of scaled Gamma random variables $\beta_{ik} \theta_{uk}$, which is
-itself a Gamma variable~\cite{Norman:1994}.  Thus the marginal
+a sum of scaled Gamma random variables $\beta_{ik} \theta_{uk}$, which
+is itself a Gamma variable~\cite{Norman:1994}.  Thus the marginal
 distribution of $y_u$ is from an integrated Gamma-Poisson
 distribution, which is a negative binomial~\cite{Gelman:1995}.
 
-% dmb: above, maybe add a comment above that this is a heavy-tailed
-% realistic distribution for consumer data.  cite goodhardt 1984
-% again.
+The negative binomial is a long-tailed distribution that is known to
+fit user activity well~\cite{Goodhardt:1984,Dunn1983}.  Figure 3 shows
+that the HPF provide good fits to the distribution of user activity on
+real-world data.  Classical matrix factorization is based on Gaussian
+likelihoods, and the marginal distribution of total user ratings is
+also a Gaussian.  The symmetric Gaussian assumption is a poor choice
+for modeling long-tailed distributions, and places probability mass on
+negative numbers, a setting that never occurs.
 
-Second, the likelihood of the observed data depends only on the
-consumed items, that is, the non-zero elements of the user/item matrix
-$y$.  Given the latent variables $\theta_u$ and $\beta_i$, the Poisson
-distribution of $y_{ui}$ is
+
+\item {\bf Down-weighting the effect of zeros.}
+The marginal distribution of $y_u$ is a negative binomial, and this
+forces it to down-weight the contribution of the items that each user
+did not consume. The reason is that the model has two ways of
+explaining that a user does not consume an item: either she is not
+interested in it or she would be but has already consumed her allotted
+negative-binomial number.  In contrast, a user that consumes an item
+must be interested in it.  Thus, the model benefits more from making a
+consumed user/item pair more similar than making an unconsumed
+user/item pair less similar.
+
+Classical matrix factorization is based on Gaussian likelihoods (i.e.,
+squared loss), which gives equal weight to consumed and unconsumed
+items.  Consequently, when faced with a sparse matrix and implicit
+feedback, i.e., binary consumption data, matrix factorization places
+more total emphasis on the unconsumed user/item pairs.  To address
+this, researchers have patched the model in complex ways, for example,
+by including per-observation confidences~\cite{Koren:2009} or
+considering all zeroes to be hidden variables~\cite{Paquet:2013p9197}.
+Poisson factorization more naturally solves this problem by better
+capturing each user's rate of consumption.
+
+As an example, consider two similar science fiction movies, ``Star
+Wars'' and ``The Empire Strikes Back'', and consider a user who has
+seen one of them.  The Gaussian model pays an equal penalty for making
+the user similar to these items as it does for making the user
+different from them---with quadratic loss, seeing ``Star Wars'' is
+evidence for liking science fiction, but not seeing ``The Empire
+Strikes Back'' is evidence for disliking it.  The Poisson model,
+however, will prefer to bring the user's latent weights closer to the
+movies' weights because it favors the information from the user
+watching ``Star Wars''. Further, because the movies are similar, this
+increases the Poisson model's predictive score that a user who watches
+``Star Wars'' will also watch ``The Empire Strikes Back''.
+
+\item {\bf Fast inference with sparse matrices.}
+The likelihood of the observed data under the BPF and the HPF depends
+only on the consumed items, that is, the non-zero elements of the
+user/item matrix $y$.  Given the latent variables $\theta_u$ and
+$\beta_i$, the Poisson distribution of $y_{ui}$ is
 \begin{equation}
   p(y_{ui} \g \theta_u, \beta_i) =
   \left(\theta_u^\top \beta_i\right)^y
@@ -177,11 +211,11 @@ factorization methods, especially when applied to
 massive data sets, must address the zeros either through
 sub-sampling~\cite{Dror:2012a} or approximation~\cite{Hu:2008p9402}.
 
-%% Finally, we follow the literature on recommendation systems which
-%% finds that per-item and per-user bias terms significantly help
-%% performance. These terms capture universally popular items and
-%% frequently consuming users.  For simplicity, we present our algorithms
-%% without these terms, but we include them in our empirical study. The
-%% corresponding changes to the algorithm are minimal.\footnote{In
-%% particular, we include these biases with dummy factors that are always
-%% equal to one for each user and each item.}
+\item {\bf }
+
+\end{enumerate}
+
+% dmb: above, maybe add a comment above that this is a heavy-tailed
+% realistic distribution for consumer data.  cite goodhardt 1984
+% again.
+

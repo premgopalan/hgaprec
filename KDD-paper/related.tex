@@ -2,10 +2,14 @@
 
 The roots of Poisson factorization come from nonnegative matrix
 factorization~\cite{Lee:1999}, where the objective function is
-equivalent to a factorized Poisson likelihood.  Placing a Gamma prior
-on the user weights gives the GaP model~\cite{Canny:2004}, which was
-developed as an alternative text model to latent Dirichlet allocation
-(LDA)~\cite{Blei:2003b}.
+equivalent to a factorized Poisson likelihood.  The original NMF
+update equations have been shown to be an expectation-maximisation
+(EM) algorithm for maximum likelihood estimation of a conditionally
+Poisson model via data augmentation~\cite{Cemgil:2009}.
+
+Placing a Gamma prior on the user weights gives the GaP
+model~\cite{Canny:2004}, which was developed as an alternative text
+model to latent Dirichlet allocation (LDA)~\cite{Blei:2003b}.
 
 A difference between our treatment and GaP is that GaP fits the item
 weights with maximum likelihood via the expectation maximization

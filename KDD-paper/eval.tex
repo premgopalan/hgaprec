@@ -49,8 +49,8 @@ and explicit feedback:
 \begin{itemize}
 \item The {\bf Mendeley} data set~\cite{Jack:2010} of scientific
   articles is a binary matrix of 80,000 users and 260,000 articles,
-  where each observation corresponds to the presence of a given
-  article in a particular user's online library.
+  where each of the 5 million observations corresponds to the presence
+  of an article in a user's online library.
 \item The {\bf Echo Nest} music data set~\cite{Bertin-Mahieux:2011}
   consists of 1 million users, 385,000 distinct songs and 48 million
   (user, song, play count) triplets.
@@ -94,32 +94,65 @@ versions of the Netflix data---the original, explicit ratings, and an
 implicit version in which only 4 and 5 star ratings are retained as
 observations~\cite{Paquet:2013p9197}.
 
-{\bf Pre-processing and training.} We now describe how we the
-pre-process the input data, train the model, and assess the predictive
-accuracy on a held-out set.
 
-Prior to training, we randomly select 20\% of ratings in each data set
-to be used as a held-out test set comprised of items that the user
-has consumed. During training, these test set observations are treated
-as zeros. Additionally, we set aside 1\% of the training ratings as a
-validation set and use it to determine the convergence of our
-algorithm.
+{\bf Baselines.} We compare Poisson Factorization against an array of
+competing methods:
+\begin{itemize}
+  \item {\bf NMF}: Non-negative Matrix
+    Factorization~\cite{Lee:1999}. In NMF, user interests and item
+    attributes are modeled as non-negative vectors in a
+    low-dimensional space. These latent vectors are randomly
+    initialized and modified via an alternating multiplicative update
+    rule to minimize the Kullback-Leibler divergence between the
+    actual and modeled rating matrices.
 
-During training, the input to our algorithm is the count data, for
-example, the movie ratings or the play count of a song. Notice that
-for the Mendeley data set, the input is binary. During training, we
-fix the shape and rate hyperparameters. This gives good performance on
-our validation set. We find that the algorithm is insensitive to small
-changes in the hyper-parameters.
+  \item {\bf LDA}: Latent Dirichlet Allocation~\cite{Blei:2003b}. LDA
+    is a Bayesian probabilistic generative model where user interests
+    are represented by a distribution over different topics, and each
+    topic is a distribution over items. Interest and topic
+    distributions are randomly initialized and updated using
+    stochastic variational inference~\cite{Hoffman:2010a} to
+    approximate these intractable posteriors.
 
-We terminate the training process when the HPF algorithm
-converges. The convergence is measured by computing the prediction
-accuracy on our validation set. We approximate the probability that a
-user consumed an item using the variational approximations to
-posterior expectations of $\theta_u$ and $\beta_i$, and compute the
-average predictive log likelihood of the validation ratings. The HPF
-algorithm stops when the change in log likelihood is less than
-0.0001\%.
+  \item {\bf MF}: Matrix Factorization with user and item biases. We
+    use a variant of matrix factorization popularized through the
+    Netflix Prize~\cite{Koren:2009}, where a linear
+    predictor---comprised of a constant term, user activity and item
+    popularity biases, and a low-rank interaction term---is fit to
+    minimize the mean squared error between the predicted and observed
+    rating values, subject to L2 regularization to avoid
+    overfitting. Weights are randomly initialized and updated via
+    stochastic gradient descent using the Vowpal Wabbit
+    package~\cite{Weinberger:2009}. This corresponds to maximum
+    a-posteriori inference for a Gaussian likelihood model.
+
+\end{itemize}
+
+We note that while HPF, BPF, and LDA take only the non-zero observed
+ratings as input, traditional matrix factorization requires that we
+provide explicit zeros in the ratings matrix as negative examples. In
+practice, this amounts to either treating all missing ratings as zeros
+(as in NMF) and down-weighting to balance the relative importance of
+observed and missing ratings~\cite{Hu:2008p9402}, or generating
+negatives by randomly sampling from missing ratings in the training
+set~\cite{Dror:2012a}.
+
+We take the latter approach for computational convenience, employing a
+popularity-based sampling scheme: we sample users by activity---the
+number of items rated in the training set---and items by
+popularity---the number of training ratings an item received to
+generate negative examples.\footnote{We also compared this to a
+  uniform random sampling of negative examples, but found that the
+  popularity-based sampling performed better.} We note that this
+procedure is relatively expensive for large-scale data sets, and
+results in scaling difficulties for methods such as Bayesian
+Personalized Ranking~\cite{Rendle:2009p9243,Gantner:2012p9364}, which
+iteratively performs such sampling over dozens of iterations. In
+particular, we found this prohibitive when applying the BPR
+implementation in the MyMediaLite library for the data sets considered
+here.
+
+%% expensive grid searches over parameters
 
 \begin{figure*}[t!]
 \centering
@@ -131,54 +164,34 @@ algorithm stops when the change in log likelihood is less than
 \label{fig:precision_recall_by_user_activity}
 \end{figure*}
 
+{\bf Evaluation.} Prior to training any models, we randomly select
+20\% of ratings in each data set to be used as a held-out test set
+comprised of items that the user has consumed. Additionally, we set
+aside 1\% of the training ratings as a validation set and use it to
+determine the convergence of our algorithm and tune free parameters.
+For HPF and BPF we find that the algorithm is insensitive to small
+changes in the hyper-parameters.
 
-{\bf Baselines.} We compare our performance against traditional matrix
-factorization (MF). Ratings are modeled as
-\begin{equation*}
-  y_{ui} = c + a_u + b_i + \theta_u^\top \beta_i,
-\end{equation*}
-where $c$ denotes a global intercept term, $a_u$ captures the relative
-activity of the $u$-th user, and $b_i$ accounts for the popularity of
-the $i$-th item. The final term quantifies interactions between a user
-and item via their K-dimensional latent factors, with $\theta_u$ specifying
-the user's interests and $\beta_i$ describing the item's attributes. The
-model is fit by stochastic gradient descent using the open source
-Vowpal Wabbit package~\cite{Weinberger:2009} to minimize squared error
-between predicted and actual ratings.
+%% We terminate the training process when the HPF algorithm
+%% converges. The convergence is measured by computing the prediction
+%% accuracy on our validation set. We approximate the probability that a
+%% user consumed an item using the variational approximations to
+%% posterior expectations of $\theta_u$ and $\beta_i$, and compute the
+%% average predictive log likelihood of the validation ratings. The HPF
+%% algorithm stops when the change in log likelihood is less than
+%% 0.0001\%.
 
-We note that while HPF takes only the non-zero observed ratings as
-input, traditional matrix factorization requires that we provide
-explicit zeros in the ratings matrix as negative examples. In
-practice, this amounts to either treating all missing ratings as zeros
-and down-weighting to balance the relative importance of observed and
-missing ratings~\cite{Hu:2008p9402}, or generating negatives by
-randomly sampling from missing ratings in the training
-set~\cite{Dror:2012a}.  We take the latter approach for computational
-convenience, employing two popular sampling schemes. In the first,
-denoted MF-UNI, we sample a fixed number of negative examples
-uniformly at random for each user such that there are approximately
-the same number of positive and negative examples. In the second,
-termed MF-POP, we sample users by activity---the number of items rated
-in the training set---and items by popularity---the number of training
-ratings an item received.
-
-For MF, we cross-validate over the gradient update step size, the
-strength of an $L_2$-regularization term across all weights, and the
-number of passes over the training data. This results in a reasonably
-expensive grid search, from which we select
-the model that performs best on the validation set for each data set.
-
-{\bf Results and analysis.} During testing, we generate the top $M$
-recommendations for each user as those items with the highest
-predictive score in \myeq{score}. The ranked list of items predicted
-for each user includes items in the test set, as well as items in the
+During testing, we generate the top $M$ recommendations for each user
+as those items with the highest predictive score under each method
+(e.g., \myeq{score} for HPF). The ranked list of items predicted for
+each user includes items in the test set, as well as items in the
 training set that were zeros. We compute normalized precision-at-$M$,
 which measures the fraction of the top $M$ recommendations present in
 the test set, varying $M$ from 10 to 100 items. Likewise, we compute
 recall-at-$M$, which captures the fraction of items in the test set
 present in the top $M$ recommendations.
 
-XXX explain normalized precision
+XXX explain normalized precision XXX
 
 \myfig{precision_recall} shows the normalized mean precision at 20
 recommendations for each method and data sets. We see that HPF

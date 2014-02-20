@@ -25,16 +25,16 @@ and item's weights are positive~\cite{Lee:1999} and where the Poisson
 likelihood replaces the Gaussian likelihood.
 
 A good collaborative filtering model must capture two basic features
-of user and item interactions. The first is that for any given
-observation $y_{ui}$, we expect that only a small fraction of the user
-$u$'s factors and the item $i$'s factors are relevant. This favors
-sparsity in the weights. Second, there are systematic patterns in the
-data due to universally popular items and frequently consuming users.
-The literature on recommendation systems suggests that a good model
-must capture such heterogeneity across users and
-items~\cite{Koren:2009}. For these reasons, we extend the Poisson
-factorization model with a hierarchical prior structure. We describe
-our model, and then discuss how it captures the above properties.
+of user and item interactions. First, for any given observation
+$y_{ui}$, we expect only a small fraction of the user $u$'s factors
+and the item $i$'s factors to be relevant. This favors sparsity in the
+weights. Second, there are systematic patterns in the data due to
+universally popular items and frequently consuming users. The
+literature on recommendation systems suggests that a good model must
+capture such heterogeneity across users and items~\cite{Koren:2009}. We
+therefore extend the Poisson factorization model with a hierarchical
+prior structure. We describe our model, and then discuss how it
+captures the above properties.
 
 % dmb: jake cites something below
 % dmb: also cite "The Dirichlet", old marketing paper
@@ -64,12 +64,12 @@ The generative process of the hierarchical Poisson factorization model
   \end{equation*}
 \end{enumerate}
 To enforce sparse weights, the model places a \gam~prior on the
-independent weight components. The \gam~distribution
-$\gam(x;a,\frac{a}{b})$ parameterized in terms of a shape parameter
-$a$ and an inverse scale parameter $\frac{a}{b}$, has a mean of $b$
-and a variance of $\frac{b^2}{a}$. For a small shape $a$, most of the
-weights will be close to zero, and only a few will be large, resulting
-in a sparse representation.
+independent weight components. $\gam(x;a,\frac{a}{b})$, parameterized
+in terms of a shape parameter $a$ and an inverse scale parameter
+$\frac{a}{b}$, has a mean of $b$ and a variance of
+$\frac{b^2}{a}$. For a small shape $a$, most of the weights will be
+close to zero, and only a few will be large, resulting in a sparse
+representation.
 
 The \gam~rate parameters capture the magnitude of user $u$'s activity
 and item $i$'s popularity, respectively.  To capture heterogeneity in
@@ -119,10 +119,10 @@ factorization, and form the basis for scalable inference.
 
 \begin{enumerate}
 \item {\bf Modeling the long-tailed distribution of user activity}.
-Figure 3 shows the empirical complimentary cumulative distributions of
-user activity on large, real-world user/item matrices. These
-distributions are highly skewed, with significant number of users
-exhibiting much higher activity than most users. 
+  Figure 3 shows the distributions of user activity on large,
+  real-world user/item matrices. These distributions are highly
+  skewed, with significant number of users exhibiting much higher
+  activity than most users.
 
 Under the BPF and the HPF, the marginal distribution of each user's
 ratings, with the item weights held fixed, is a negative binomial.

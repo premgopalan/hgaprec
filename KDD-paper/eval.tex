@@ -53,17 +53,14 @@ and explicit feedback:
   article in a particular user's online library.
 \item The {\bf Echo Nest} music data set~\cite{Bertin-Mahieux:2011}
   consists of 1 million users, 385,000 distinct songs and 48 million
-  (user, song, play count) triplets. We consider a binarized version
-  of this matrix which indicates which songs a user has played.
+  (user, song, play count) triplets.
 \item The {\bf New York Times} data set with 1,615,675 users, 103,390
   articles, and 80 million (user, article, view count)
-  observations. As with the Echo Nest data, we binarize view counts.
+  observations.
 \item The {\bf Netflix} data set~\cite{Koren:2009} consists of 480,000
   users, 17,770 movies and 100 million ratings, where each observation
   is an explicit rating (from 1 to 5 stars) that a user provided for
-  the given movie. We consider both these explicit ratings and an
-  implicit version in which 4 and 5 star ratings corresponding to
-  ``liked'' movies are retained as observations, and the rest are
+  the given movie.
   discarded~\cite{Paquet:2013p9197}.
 \end{itemize}
 
@@ -73,18 +70,29 @@ sets are sparse in comparison to the movie data. For example, we
 observe only 0.001\% of all possible user-item ratings in Mendeley,
 while 1\% of the ratings are non-zero in the Netflix data. This is
 partially a reflection of large number of articles relative to number
-users in the Mendeley data. Furthermore, the intent signaled by an
-observed rating varies significantly across these data sets. For
-instance, the Netflix data set gives the most direct measure of stated
-preference for items, as users provide an explicit star rating for
-movies they have watched. In contrast, article click counts in the New
-York Times data are a less clear measure of how much a user likes a
-given article---most articles are read only once, and a click through
-is only a weak indicator of whether the article was fully read, let
-alone liked. Ratings in the Echo Nest data presumably fall somewhere
-in between, as the number of times a user listens to a song likely
-reveals some indirect information about their preferences.
+users in the Mendeley data.
 
+Furthermore, the intent signaled by an observed rating varies
+significantly across these data sets. For instance, the Netflix data
+set gives the most direct measure of stated preferences for items, as
+users provide an explicit star rating for movies they have watched. In
+contrast, article click counts in the New York Times data are a less
+clear measure of how much a user likes a given article---most articles
+are read only once, and a click through is only a weak indicator of
+whether the article was fully read, let alone liked. Ratings in the
+Echo Nest data presumably fall somewhere in between, as the number of
+times a user listens to a song likely reveals some indirect
+information about their preferences.
+
+As such, we treat each data set as a source of implicit feedback,
+where an observed positive rating indicates that a user likes a
+particular item, but the rating value is ignored. The Mendeley data
+are already of this simple binary form. For the Echo Nest and New York
+Times data, we consider any song play or article click as a positive
+rating, regardless of the play or click count. We also consider two
+versions of the Netflix data---the original, explicit ratings, and an
+implicit version in which only 4 and 5 star ratings are retained as
+observations~\cite{Paquet:2013p9197}.
 
 {\bf Pre-processing and training.} We now describe how we the
 pre-process the input data, train the model, and assess the predictive

@@ -32,7 +32,7 @@ sparsity in the weights. Second, there are systematic patterns in the
 data due to universally popular items and frequently consuming users.
 The literature on recommendation systems suggests that a good model
 must capture such heterogeneity across users and
-items~\cite{Koren2009}. For these reasons, we extend the Poisson
+items~\cite{Koren:2009}. For these reasons, we extend the Poisson
 factorization model with a hierarchical prior structure. We describe
 our model, and then discuss how it captures the above properties.
 
@@ -140,7 +140,7 @@ distribution of $y_u$ is from an integrated Gamma-Poisson
 distribution, which is a negative binomial~\cite{Gelman:1995}.
 
 The negative binomial is a long-tailed distribution that is known to
-fit user activity well~\cite{Goodhardt:1984,Dunn1983}.  Figure 3 shows
+fit user activity well~\cite{Goodhardt:1984,Dunning:1993}.  Figure 3 shows
 that the HPF provide good fits to the distribution of user activity on
 real-world data.  Classical matrix factorization is based on Gaussian
 likelihoods, and the marginal distribution of total user ratings is

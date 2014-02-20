@@ -5,31 +5,22 @@
 \includegraphics[width=\textwidth]{figures/mean_recall_at_20.pdf}\\
 \caption{Predictive performance on datasets. The top and bottom plots
   show normalized mean precision and mean recall at 20
-  recommendations, respectively.}
+  recommendations, respectively. While baseline performance varies
+  across datasets, HPF and BPF consistently outperform competiting
+  methods.}
 \label{fig:precision_recall_at_10}
 \end{figure*}
 
 
 \section{Empirical Study}
-We studied the Bayesian Poisson Factorization (BPF) algorithm of
-Figure~\ref{fig:batch} on a variety of large real data sets. We
-demonstrate in this section that BPF definitively outperforms matrix
-factorization (MF) in predictive performance on all data sets.
+We evaluate the performance of the Hierarchical Poisson Factorization
+(HPF) algorithm and its non-hierarchical variant (BPF) on a variety of
+large real data sets. We demonstrate in this section that Poisson
+Factorization definitively outperforms an array of competing methods
+across a variety of datasets.
 
-%% \begin{figure*}[th]
-%% \centering
-%% \subfigure[]{
-%%   \includegraphics[width=0.45\textwidth]{./figures/nyt/itemsrate.pdf}
-%% }
-%% \subfigure[]{
-%%   \includegraphics[width=0.45\textwidth]{./figures/nyt/userrate.pdf}
-%% }
-%% \caption{Popularity of articles on the NYT dataset.}
-%% \label{fig:nyt-expl}
-%% \end{figure*}
-
-{\bf Data Sets.} We study the Bayesian Poisson Factorization algorithm
-in Figure~\ref{fig:batch} on several large data sets:
+{\bf Data Sets.} We study the HPF algorithm in Figure~\ref{fig:batch}
+on several large data sets:
 \begin{itemize}
 \item The {\bf Mendeley} data set~\cite{Jack:2010} of scientific
   articles is a binary matrix of 80,000 users and 260,000 articles,
@@ -45,28 +36,19 @@ in Figure~\ref{fig:batch} on several large data sets:
 \item The {\bf Netflix} data set~\cite{Koren:2009} consists of 480,000
   users, 17,770 movies and 100 million ratings, where each observation
   is an explicit rating (from 1 to 5 stars) that a user provided for
-  the given movie.
+  the given movie. We consider both these explicit ratings and an
+  implicit version in which 4 and 5 star ratings corresponding to
+  ``liked'' movies are retained as observations, and the rest are
+  discarded~\cite{Paquet:2013p9197}.
 \end{itemize}
 
 The scale and diversity of these data sets enables a robust evaluation
 of our algorithm. Both the Mendeley and the Echo Nest data sets are
 sparse in comparison to the movie data: only 0.001\% of the matrix of
 ratings is non-zero in Mendeley, while 1\% of the ratings are non-zero
-in Netflix and 4\% in MovieLens. Further, the Mendeley data set has
+in Netflix and XX\% in New York Times. Further, the Mendeley data set has
 many more articles than users.
 
-
-%% users watching movies on MovieLens~\cite{Koren:2009} and
-%% Netflix~\cite{Herlocker:1999}, individuals listening to songs in the
-%% Echo Nest data set~\cite{Bertin-Mahieux:2011}, and academics reading
-%% scientific articles via Mendeley~\cite{Jack:2010}.
-
-
-%% The MovieLens data set consists of 1 million ratings
-%% from 6040 users on 4000 movies. Each movie is associated with a title
-%% and a category. The Netflix data set is similar to---but significantly
-%% larger than---the MovieLens data set, consisting of 100M ratings from
-%% 480,000 users on 17770 movies.
 
 {\bf Pre-processing and training.} We now describe how we the
 pre-process the input data, train the model, and assess the predictive
@@ -86,18 +68,12 @@ fix the shape and rate hyperparameters. This gives good performance on
 our validation set. We find that the algorithm is insensitive to small
 changes in the hyper-parameters.
 
-%% corresponding to ratings or the play count of a song. Optionally, the
-%% algorithm can transform the input count data to binary before training
-%% the model.  For example, the observation $y_{ui}$ is set to one only
-%% if the $u$-th user explicitly rated the $i$-th movie. (We denote the
-%% algorithm that fits the transformed data, BPF-binary or BPF-BIN.)
-
-We terminate the training process when the BPF algorithm
+We terminate the training process when the HPF algorithm
 converges. The convergence is measured by computing the prediction
 accuracy on our validation set. We approximate the probability that a
 user consumed an item using the variational approximations to
 posterior expectations of $\theta_u$ and $\beta_i$, and compute the
-average predictive log likelihood of the validation ratings. The BPF
+average predictive log likelihood of the validation ratings. The HPF
 algorithm stops when the change in log likelihood is less than
 0.0001\%.
 
@@ -112,29 +88,42 @@ algorithm stops when the change in log likelihood is less than
 \end{figure*}
 
 
-{\bf Exploratory analysis.} The fitted model can be explored to
-discover latent structure among items and users and to confirm that
-the model is capturing the components in the data in a reasonable
-way. For example, in \myfig{components} we illustrate the components
-discovered by our algorithm on the MovieLens and the Netflix movie
-ratings and the Mendeley data of users and scientific articles. For
-each data set, the illustration shows the top 10 items---items sorted
-in decreasing order of their expected weight $\beta_i$---from three of
-the 100 components discovered by our algorithm. These components
-naturally organize the movies and articles, and enable recommendation
-of new items to the user.
+{\bf Baselines.} We compare our performance against traditional matrix
+factorization (MF). Ratings are modeled as
+\begin{equation*}
+  y_{ui} = c + a_u + b_i + \theta_u^\top \beta_i,
+\end{equation*}
+where $c$ denotes a global intercept term, $a_u$ captures the relative
+activity of the $u$-th user, and $b_i$ accounts for the popularity of
+the $i$-th item. The final term quantifies interactions between a user
+and item via their K-dimensional latent factors, with $\theta_u$ specifying
+the user's interests and $\beta_i$ describing the item's attributes. The
+model is fit by stochastic gradient descent using the open source
+Vowpal Wabbit package~\cite{Weinberger:2009} to minimize squared error
+between predicted and actual ratings.
 
-In \myfig{movielens-illustration} we show a subset of the highly rated
-movies of a user from the MovieLens data
-set~\cite{Herlocker:1999}. The top 15 movies recommended to this user
-using the trained BPF model, are also shown. The user's ratings are
-for primarily drama movies. We movies BPF recommends closely resemble
-the types of drama movies she is interested in, for example,
-``Children's drama'' or ``War drama''. The expected user's $K$-vector
-of weights $\theta_u$, inferred by our algorithm, is shown in
-\myfig{movielens-illustration}. In our analysis, $K$ was set to
-100. The $\theta_u$ are not sparse because the user's views span a
-range of movies in the small data set.
+We note that while HPF takes only the non-zero observed ratings as
+input, traditional matrix factorization requires that we provide
+explicit zeros in the ratings matrix as negative examples. In
+practice, this amounts to either treating all missing ratings as zeros
+and down-weighting to balance the relative importance of observed and
+missing ratings~\cite{Hu:2008p9402}, or generating negatives by
+randomly sampling from missing ratings in the training
+set~\cite{Dror:2012a}.  We take the latter approach for computational
+convenience, employing two popular sampling schemes. In the first,
+denoted MF-UNI, we sample a fixed number of negative examples
+uniformly at random for each user such that there are approximately
+the same number of positive and negative examples. In the second,
+termed MF-POP, we sample users by activity---the number of items rated
+in the training set---and items by popularity---the number of training
+ratings an item received.
+
+For MF, we cross-validate over the gradient update step size, the
+strength of an $L_2$-regularization term across all weights, and the
+number of passes over the training data. This results in a reasonably
+expensive grid search, from which we select
+the model that performs best on the validation set for each data set.
+
 
 {\bf Testing.} During testing, we generate the top $M$ recommendations
 for each user as those items with the highest predictive score in
@@ -152,88 +141,60 @@ top $M$ recommendations.
 %% !!! prem: assume BPF-binary for now. will try to move to BPF-bias
 %% where the non-binary observations are fit
 
-{\bf Baselines.} We compare our performance against traditional matrix
-factorization (MF). Ratings are modeled as
-\begin{equation*}
-  y_{ui} = c + a_u + b_i + \theta_u^\top \beta_i,
-\end{equation*}
-where $c$ denotes a global intercept term, $a_u$ captures the relative
-activity of the $u$-th user, and $b_i$ accounts for the popularity of
-the $i$-th item. The final term quantifies interactions between a user
-and item via their K-dimensional latent factors, with $\theta_u$ specifying
-the user's interests and $\beta_i$ describing the item's attributes. The
-model is fit by stochastic gradient descent using the open source
-Vowpal Wabbit package~\cite{Weinberger:2009} to minimize squared error
-between predicted and actual ratings.
 
-We note that while BPF takes only the non-zero observed ratings as
-input, traditional matrix factorization requires that we provide
-explicit zeros in the ratings matrix as negative examples. In
-practice, this amounts to either treating all missing ratings as zeros
-and down-weighting to balance the relative importance of observed and
-missing ratings~\cite{Hu:2008p9402}, or generating negatives by
-randomly sampling from missing ratings in the training
-set~\cite{Dror:2012a}.  We take the latter approach for computational
-convenience, employing two popular sampling schemes. In the first,
-denoted MF-UNI, we sample a fixed number of negative examples
-uniformly at random for each user such that there are approximately
-the same number of positive and negative examples. In the second,
-termed MF-POP, we sample users by activity---the number of items rated
-in the training set---and items by popularity---the number of training
-ratings an item received. 
+{\bf Exploratory analysis.} The fitted model can be explored to
+discover latent structure among items and users and to confirm that
+the model is capturing the components in the data in a reasonable
+way. For example, in \myfig{components} we illustrate the components
+discovered by our algorithm on the scientific articles in Mendeley,
+movies in Neflix and articles in the New York Times. For each data
+set, the illustration shows the top 10 items---items sorted in
+decreasing order of their expected weight $\beta_i$---from three of
+the 100 components discovered by our algorithm. These components
+naturally organize the movies and articles, and enable recommendation
+of new items to the user.
 
-For MF, we cross-validate over the gradient update step size, the
-strength of an $L_2$-regularization term across all weights, and the
-number of passes over the training data. This results in a reasonably
-expensive grid search, from which we select
-the model that performs best on the validation set for each data set.
-
-%% \begin{figure*}[t]
-%% \centering
-%% \includegraphics[width=\textwidth]{./figures/precision_by_user_activity_and_method.pdf}\\
-%% \label{fig:precision_by_user_activity}
-%% \caption{Precision at 100 recommendations by user activity across data sets and methods.}
-%% \end{figure*}
-
-%% \begin{figure*}
-%% \centering
-%% \includegraphics[width=\textwidth]{../output/figures/echonest_and_mendeley/mean_precision_by_method.pdf}\\
-%% \includegraphics[width=\textwidth]{../output/figures/echonest_and_mendeley/precision_by_user_activity_and_method.pdf}\\
-%% \includegraphics[width=\textwidth]{../output/figures/echonest_and_mendeley/mean_coverage_by_method.pdf}\\
-%% \end{figure*}
+In \myfig{movielens-illustration} we show a subset of the highly rated
+movies of a user from the MovieLens data
+set~\cite{Herlocker:1999}. The top 15 movies recommended to this user
+using the trained HPF model, are also shown. The user's ratings are
+for primarily drama movies. We movies HPF recommends closely resemble
+the types of drama movies she is interested in, for example,
+``Children's drama'' or ``War drama''. The expected user's $K$-vector
+of weights $\theta_u$, inferred by our algorithm, is shown in
+\myfig{movielens-illustration}. In our analysis, $K$ was set to
+100. The $\theta_u$ are not sparse because the user's views span a
+range of movies in the small data set.
 
 %% {\bf Results and analysis.} \myfig{precision_by_M} shows the mean
-%% precision of the BPF and the MF algorithm as we vary $M$, the number
-%% of recommendations. As shown in \myfig{precision_by_M}, BPF
+%% precision of the HPF and the MF algorithm as we vary $M$, the number
+%% of recommendations. As shown in \myfig{precision_by_M}, HPF
 %% outperforms MF on all data sets by a sizeable margin---as much as 8
-%% percentage points. Likewise, BPF shows similar gains in recall over
+%% percentage points. Likewise, HPF shows similar gains in recall over
 %% traditional MF approaches, indicated in \myfig{recall_by_M}. A
-%% relatively high fraction of items recommended by BPF are found to be
+%% relatively high fraction of items recommended by HPF are found to be
 %% relevant, and many relevant items are recommended.
 
 %% We also study precision as a function of user activity to investigate
 %% for which kinds of users the algorithm performs
 %% well. \myfig{precision_by_user_activity} highlights the results in
 %% further detail, showing the precision at 100 recommendations for users
-%% of varying activity. BPF provides increasingly better performance for
-%% more active users.  On the Mendeley data set, BPF performs better for
-%% users with less than 1000 articles (BPF does better over all.)  On all
-%% other data sets, BPF performs better than MF with all types of users.
+%% of varying activity. HPF provides increasingly better performance for
+%% more active users.  On the Mendeley data set, HPF performs better for
+%% users with less than 1000 articles (HPF does better over all.)  On all
+%% other data sets, HPF performs better than MF with all types of users.
 
 %% In all results, MF-POP outperforms MF-UNI, which is indicative of
 %% problems with the squared loss objective approximated by MF-UNI.
 
-%% As expected, we see that BPF provides
+%% As expected, we see that HPF provides
 %% increasingly better recommendations for more active users, and that
-%% BPF outperforms MF on the Netflix, MovieLens, and Echo Nest data sets
+%% HPF outperforms MF on the Netflix, MovieLens, and Echo Nest data sets
 %% by this measure as well as mean precision across all users.
 
-%% On the Mendeley data set, BPF performs better for users with less than
-%% 1000 articles in their library, but MF has better precision than BPF for
-%% the small set of users with more than 1000 papers in their library. 
-
-%% !!! prem: need to confirm by looking at actual values; investigate
-%\newpage
+%% On the Mendeley data set, HPF performs better for users with less than
+%% 1000 articles in their library, but MF has better precision than HPF for
+%% the small set of users with more than 1000 papers in their library.
 
 \begin{figure*}
 \centering

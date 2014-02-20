@@ -1,23 +1,35 @@
 \section{Related work}
-
 The roots of Poisson factorization come from nonnegative matrix
 factorization~\cite{Lee:1999}, where the objective function is
 equivalent to a factorized Poisson likelihood.  The original NMF
 update equations have been shown to be an expectation-maximisation
-(EM) algorithm for maximum likelihood estimation of a conditionally
-Poisson model via data augmentation~\cite{Cemgil:2009}.
+(EM) algorithm for maximum likelihood estimation of a Poisson model
+via data augmentation~\cite{Cemgil:2009}.
 
 Placing a Gamma prior on the user weights gives the GaP
 model~\cite{Canny:2004}, which was developed as an alternative text
-model to latent Dirichlet allocation (LDA)~\cite{Blei:2003b}.
+model to latent Dirichlet allocation (LDA)~\cite{Blei:2003b}. Placing
+a Gamma prior on both the user and item weights gives the
+Probabilistic Factor Model (PFM)~\cite{Ma:2011}.
 
 A difference between our treatment and GaP is that GaP fits the item
 weights with maximum likelihood via the expectation maximization
-algorithm.  Our model places Gamma priors on these weights (step 2,
-above) and we approximate the full posterior with variational
-inference.  Placing priors on both sets of weights further regularizes
-the model and lets us use the same inferential machinery in both
-user-space and item-space.  
+algorithm. We approximate the full posterior with variational
+inference. Further, our model places a hierarchical prior structure
+using Gamma priors on weights, and Gamma priors on user and item rate
+parameters.  Placing priors on both sets of weights further
+regularizes the model and lets us use the same inferential machinery
+in both user-space and item-space. 
+
+Although the PFM~\cite{Ma:2011} is the same as the BPF, the PFM was
+aimed at a particular application---that of recommending
+web-sites---while we demonstrate improved performance on a variety of
+recommendation tasks and study why Poisson factorization based models
+outperform others. We also extended the BPF by placing priors on rate
+parameters to capture the skew in user activity and item
+popularity. Capturing these biases is important for predictive
+performance~\cite{Koren:2009}. Again, we approximate the full
+posterior with variational inference, while PFM uses MAP inference.
 
 % prem: removed reference to stochastic inference
 %       we should add this in future work/discussion

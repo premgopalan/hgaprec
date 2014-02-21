@@ -1,5 +1,17 @@
 \section{Variational Inference}
 \label{sec:inference}
+In the above section we discussed the process for and properties of
+generating ratings from the HPF model assuming known model
+parameters. In practice, however, we are faced with the opposite
+scenario: we are given a set of observed ratings and would like to
+infer parameters that explain these ratings, for the purpose of
+recommending new content to users. In principle this amounts to a
+simple application of Bayes' rule to compute the posterior over the
+latent factors given the observed ratings. In this section we discuss
+the details and practical challenges of posterior inference for HPF,
+and present a mean-field variational inference algorithm as a
+practical and scalable alternative that accommodates data sets with
+millions of users and hundreds of thousands of items on a single CPU.
 
 The key computation for the HPF is the posterior distribution of the
 user weights $\theta_{uk}$, item weights $\beta_{ik}$, user activity
@@ -11,9 +23,6 @@ of user behavior $y$,
   {\int_{\theta} \int_{\xi} \int_{\eta} \int_{\beta} p(\theta |
     \xi) p(\xi) p(\beta) p(\beta | \eta) p(y \g \theta, \beta, \xi, \eta)}.
 \end{equation*}
-We need the posterior to form recommendations with the posterior
-expectations in \myeq{score}.
-
 As for many Bayesian models of interest, however, the posterior is
 intractable to compute exactly.  The problem is with the denominator,
 which is the marginal probability of the observed matrix and involves
@@ -33,15 +42,6 @@ optimization problem.  Variational algorithms tend to scale better
 than alternative sampling-based approaches, like Monte Carlo Markov
 chain sampling, and have been deployed to solve many applied problems
 with complex models, including large-scale recommendation~\cite{Paquet:2013p9197}.
-
-We develop mean-field variational inference algorithm for the HPF.  We
-first describe the mean-field variational family and the corresponding
-variational objective.  We then derive a batch algorithm that fits the
-variational distribution by repeatedly cycling through the non-zero
-data and updating its estimates of the latent representations. The
-simple structure of the algorithm lets us scale our approach to data
-with millions of users and hundreds of thousands of items on a single
-CPU.
 
 % prem: remove stochastic
 %% Finally, we develop a scalable stochastic variational inference

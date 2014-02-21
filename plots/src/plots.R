@@ -5,7 +5,7 @@ require(scales)
 
 theme_set(theme_bw())
 
-methods <- c("BPF.HIER", "BPF", "LDA", "MF", "NMF")
+methods <- c("HPF", "BPF", "LDA", "MF", "NMF")
 datasets <- c("mendeley"="Mendeley","nyt"="New York Times","echonest"="Echo Nest","netflix45"="Netflix (implicit)","netflix"="Netflix (explicit)")
 
 ########################################
@@ -28,6 +28,7 @@ names(users)[1] <- "dataset"
 users <- transform(users, dataset=revalue(dataset, datasets))
 users <- transform(users, dataset=factor(as.character(dataset), datasets))
 users <- subset(users, dataset != "Netflix (implicit)")
+users <- transform(users, dataset=revalue(dataset, c("Netflix (explicit)"="Netflix")))
 
 # plot distribution of user activity by dataset
 plot.data <- ddply(users, c("dataset","activity"), summarize, num.users=length(user))
@@ -62,6 +63,7 @@ sim.users$X1 <- names(datasets)[sim.users$X1]
 names(sim.users)[1] <- "dataset"
 sim.users <- transform(sim.users, dataset=revalue(dataset, datasets))
 sim.users <- subset(sim.users, dataset != "Netflix (implicit)")
+sim.users <- transform(sim.users, dataset=revalue(dataset, c("Netflix (explicit)"="Netflix")))
 
 # plot distribution of user activity for bpf simulated activity
 plot.data <- subset(sim.users, rep==0)
@@ -75,7 +77,7 @@ p <- p + scale_x_log10(labels=comma, breaks=10^(0:3))
 p <- p + scale_y_continuous(labels=percent)
 p <- p + facet_wrap(~ dataset, nrow=1)
 p <- p + xlab('Number of user views') + ylab('Fraction of users')
-p <- p + theme(legend.title=theme_blank(), legend.position=c(0.94,0.8), legend.background=theme_blank())
+p <- p + theme(legend.title=element_blank(), legend.position=c(0.94,0.8), legend.background=element_blank())
 ggsave(p, filename='../../KDD-paper/figures/user_activity_sim.pdf', width=10, height=2.5)
 p
 
@@ -86,7 +88,7 @@ p <- p + geom_point(aes(shape=variable, color=variable))
 p <- p + scale_x_log10(labels=comma, breaks=10^(0:4)) + scale_y_log10(labels=comma, breaks=10^(0:6))
 p <- p + facet_wrap(~ dataset, nrow=1)
 p <- p + xlab('User activity') + ylab('Number of users')
-p <- p + theme(legend.title=theme_blank(), legend.position=c(0.94,0.8), legend.background=theme_blank())
+p <- p + theme(legend.title=element_blank(), legend.position=c(0.94,0.8), legend.background=element_blank())
 ggsave(p, filename='../../KDD-paper/figures/user_activity_sim_cdf.pdf', width=10, height=2.5)
 p
 
@@ -109,6 +111,7 @@ items <- transform(items, dataset=factor(as.character(dataset), datasets))
 items <- transform(items, dataset=revalue(dataset, datasets))
 items <- transform(items, dataset=factor(as.character(dataset), datasets))
 items <- subset(items, dataset != "Netflix (implicit)")
+items <- transform(items, dataset=revalue(dataset, c("Netflix (explicit)"="Netflix")))
 
 # plot distribution of item activity by dataset
 plot.data <- ddply(items, c("dataset","popularity"), summarize, num.items=length(item))
@@ -184,11 +187,11 @@ recall.by.user <- subset(recall.by.user, !is.na(activity) & !is.na(num.test.item
 # clean up dataset names
 precision.by.user <- subset(precision.by.user, method != "MFUNIF")
 precision.by.user <- transform(precision.by.user,
-                               method=revalue(method, c("MFPOP"="MF")),
+                               method=revalue(method, c("BPF.HIER"="HPF", "MFPOP"="MF")),
                                dataset=revalue(dataset, datasets))
 recall.by.user <- subset(recall.by.user, method != "MFUNIF")
 recall.by.user <- transform(recall.by.user,
-                            method=revalue(method, c("MFPOP"="MF")),
+                            method=revalue(method, c("BPF.HIER"="HPF", "MFPOP"="MF")),
                             dataset=revalue(dataset, datasets))
 
 # set order of methods and datasets for all plots
@@ -212,10 +215,10 @@ rank <- 100
 plot.data <- subset(precision.by.user, num.recs==N & K==rank)
 plot.data <- ddply(plot.data, c("dataset","method","K","num.recs"), summarize, mean.precision=mean(precision))
 p <- ggplot(plot.data, aes(x=dataset, y=mean.precision))
-p <- p + geom_point(aes(color=method), size=1)
-p <- p + geom_hline(aes(yintercept=mean.precision, colour=method, linetype=method), size=1)
+p <- p + geom_point(aes(color=method), size=1, show_guide=F)
+p <- p + geom_hline(aes(yintercept=mean.precision, colour=method, linetype=method), size=1, show_guide=T)
 p <- p + facet_wrap(~ dataset, nrow=1, scale="free")
-p <- p + xlab("") + ylab('Normalized mean precision')
+p <- p + xlab("") + ylab('Mean normalized precision')
 p <- p + scale_y_continuous(labels=percent)
 p <- p + theme(legend.title=element_blank())
 p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
@@ -227,8 +230,8 @@ p
 plot.data <- subset(recall.by.user, num.recs==N & K==rank)
 plot.data <- ddply(plot.data, c("dataset","method","K","num.recs"), summarize, mean.recall=mean(recall))
 p <- ggplot(plot.data, aes(x=dataset, y=mean.recall))
-p <- p + geom_point(aes(color=method), size=1)
-p <- p + geom_hline(aes(yintercept=mean.recall, colour=method, linetype=method), size=1)
+p <- p + geom_point(aes(color=method), size=1, show_guide=F)
+p <- p + geom_hline(aes(yintercept=mean.recall, colour=method, linetype=method), size=1, show_guide=T)
 p <- p + facet_wrap(~ dataset, nrow=1, scale="free")
 p <- p + xlab("") + ylab('Mean recall')
 p <- p + scale_y_continuous(labels=percent)
@@ -247,7 +250,7 @@ plot.data <- subset(precision.by.user, K==rank)
 plot.data <- ddply(plot.data, c("dataset","method","K","num.recs"), summarize, mean.precision=mean(precision))
 p <- ggplot(plot.data, aes(x=num.recs, y=mean.precision))
 p <- p + geom_line(aes(linetype=as.factor(method), colour=as.factor(method)))
-p <- p + xlab('Number of recommendations') + ylab('Normalized mean precision')
+p <- p + xlab('Number of recommendations') + ylab('Mean normalized precision')
 p <- p + scale_x_continuous(breaks=c(10,50,100)) + scale_y_continuous(labels=percent)
 p <- p + theme(legend.title=element_blank())
 p <- p + facet_wrap(~ dataset, nrow=1, scale="free_y")
@@ -287,7 +290,7 @@ p <- p + geom_line(aes(color=method, linetype=method))
 p <- p + facet_wrap(~ dataset, nrow=1, scale="free_y")
 p <- p + scale_x_continuous(labels=percent, breaks=c(0.1, 0.5, 0.9))
 p <- p + scale_y_continuous(labels=percent)
-p <- p + xlab('User percentile by activity') + ylab('Normalized mean precision')
+p <- p + xlab('User percentile by activity') + ylab('Mean normalized precision')
 p <- p + theme(legend.title=element_blank())
 ggsave(p, filename=sprintf('../../KDD-paper/figures/mean_precision_at_%d_by_user_percentile.pdf', N), width=10, height=2.5)
 p
@@ -313,84 +316,3 @@ p <- p + theme(legend.title=element_blank())
 ggsave(p, filename=sprintf('../../KDD-paper/figures/mean_recall_at_%d_by_user_percentile.pdf', N), width=10, height=2.5)
 p
 
-
-
-stop("scratch")
-########################################
-# SCRATCH
-########################################
-
-precision.by.user$dataset <- revalue(precision.by.user$dataset, c("mendeley"="mdy", "echonest"="ecn", "nyt"="nyt","netflix"="nfx", "netflix45"="n45"))
-recall.by.user$dataset <- revalue(recall.by.user$dataset, c("mendeley"="mdy", "echonest"="ecn", "nyt"="nyt","netflix"="nfx", "netflix45"="n45"))
-
-
-plot.data <- ddply(precision.by.user, c("dataset","method","K","num.recs"), summarize, mean.precision=mean(precision))
-plot.data <- subset(plot.data, num.recs %in%  c(10,100))
-p <- ggplot(plot.data, aes(x=as.factor(num.recs), y=mean.precision))
-p <- p + geom_point(aes(color=as.factor(method)), size=3)
-p <- p + geom_hline(aes(yintercept=mean.precision, colour=as.factor(method)), size=3)
-p <- p + xlab("") + ylab('Normalized mean precision')
-p <- p + scale_y_continuous(labels=percent)
-p <- p + theme(legend.title=element_blank()) #, legend.position="none") #c(0.8,0.75))
-p <- p + facet_wrap(dataset ~ num.recs, nrow=1, scale="free")
-p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
-p <- p + theme(strip.text.x = element_text(size = 8, colour = "blue", face="bold"))
-ggsave(p, filename='../../KDD-paper/figures/meanprecision2.pdf', width=10, height=2.5)
-p
-
-plot.data <- ddply(recall.by.user, c("dataset","method","K","num.recs"), summarize, mean.recall=mean(recall))
-plot.data <- subset(plot.data, num.recs %in%  c(10,100))
-p <- ggplot(plot.data, aes(x=as.factor(num.recs), y=mean.recall))
-p <- p + geom_point(aes(color=as.factor(method)), size=3)
-p <- p + geom_hline(aes(yintercept=mean.recall, colour=as.factor(method)), size=3)
-p <- p + xlab("") + ylab('Mean recall')
-p <- p + scale_y_continuous(labels=percent)
-p <- p + theme(legend.title=element_blank())
-p <- p + facet_wrap(dataset ~ num.recs, nrow=1, scale="free")
-p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
-p <- p + theme(strip.text.x = element_text(size = 8, colour = "blue", face="bold"))
-ggsave(p, filename='../../KDD-paper/figures/meanrecall2.pdf', width=10, height=2.5)
-p
-
-
-N <- 20
-q <- subset(precision.by.user, num.recs==N)
-plot.data1 <- ddply(q, .(), subset, activity < quantile(activity, 0.1))
-plot.data1 <- ddply(plot.data1, c("dataset", "method", "K"), summarize, mean.precision=mean(precision), stdev=sqrt(var(precision)), freq=length(K))
-plot.data1 <- transform(plot.data1, qtl=10)
-plot.data2 <- ddply(q, .(), subset, activity < quantile(activity, 0.9))
-plot.data2 <- ddply(plot.data2, c("dataset", "method", "K"), summarize, mean.precision=mean(precision), stdev=sqrt(var(precision)), freq=length(K))
-plot.data2 <- transform(plot.data2, qtl=90)
-plot.data <- rbind(plot.data1, plot.data2)
-p <- ggplot(plot.data, aes(x=as.factor(qtl), y=mean.precision))
-p <- p + geom_point(aes(color=as.factor(method)), size=3)
-p <- p + geom_hline(aes(yintercept=mean.precision, colour=as.factor(method)), size=3)
-p <- p + xlab("User activity") + ylab('Normalized mean precision')
-p <- p + scale_y_continuous(labels=percent)
-p <- p + theme(legend.title=element_blank()) #, legend.position="none") #c(0.8,0.75))
-p <- p + facet_wrap(dataset ~ qtl, nrow=1, scale="free")
-p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
-p <- p + theme(strip.text.x = element_text(size = 8, colour = "blue", face="bold"))
-ggsave(p, filename='../../KDD-paper/figures/useractivity-meanprecision2.pdf', width=10, height=2.5)
-p
-
-N <- 20
-q <- subset(recall.by.user, num.recs==N)
-plot.data1 <- ddply(q, .(), subset, activity < quantile(activity, 0.1))
-plot.data1 <- ddply(plot.data1, c("dataset", "method", "K"), summarize, mean.recall=mean(recall), stdev=sqrt(var(recall)), freq=length(K))
-plot.data1 <- transform(plot.data1, qtl=10)
-plot.data2 <- ddply(q, .(), subset, activity < quantile(activity, 0.9))
-plot.data2 <- ddply(plot.data2, c("dataset", "method", "K"), summarize, mean.recall=mean(recall), stdev=sqrt(var(recall)), freq=length(K))
-plot.data2 <- transform(plot.data2, qtl=90)
-plot.data <- rbind(plot.data1, plot.data2)
-p <- ggplot(plot.data, aes(x=as.factor(qtl), y=mean.recall))
-p <- p + geom_point(aes(color=as.factor(method)), size=3)
-p <- p + geom_hline(aes(yintercept=mean.recall, colour=as.factor(method)), size=3)
-p <- p + xlab("User activity") + ylab('Mean recall')
-p <- p + scale_y_continuous(labels=percent)
-p <- p + theme(legend.title=element_blank()) #, legend.position="none") #c(0.8,0.75))
-p <- p + facet_wrap(dataset ~ qtl, nrow=1, scale="free")
-p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
-p <- p + theme(strip.text.x = element_text(size = 8, colour = "blue", face="bold"))
-ggsave(p, filename='../../KDD-paper/figures/useractivity-meanrecall2.pdf', width=10, height=2.5)
-p

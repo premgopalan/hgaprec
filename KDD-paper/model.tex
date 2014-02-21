@@ -5,39 +5,49 @@
 % !!! make n_u and n_i the sums
 % !!! somewhere we need to make clear how our notation works
 
-We are given data about users and items.  Each user has consumed and
-possibly rated a set of items.  The observation $y_{ui}$ is the rating
-that user $i$ gave to item $j$, or zero if no rating was given.  (In
-simple consumer data, $y_{ui}$ equals one if user $u$ consumed item
-$i$ and zero otherwise.)  User behavior data, such as purchases,
-ratings, clicks, ``likes'', or ``check ins'', are typically sparse.
-Most of the values of the matrix $y$ are zero.
+In this section we describe the Poisson factorization model for
+recommendation, and discuss its statistical properties.
 
-We model this data with factorized Poisson
-distributions~\cite{Canny:2004}. Each user $u$ and each item $i$ is
-associated with a $K$-vector of positive weights, $\theta_u$ and
-$\beta_i$ respectively.  (The number $K$ is fixed in advance.)  The
-user/item observation $y_{ui}$ is modeled with a Poisson parameterized
-by the inner product of the user's and item's weights $y_{ui} \sim
-\poisson(\theta_u^\top \beta_i)$. The key task here is to infer
-appropriate settings for the latent factors $\theta_u$ and $\beta_i$
-so that the model's predictions match the observed ratings.
+We are given data about users and items, where each user has consumed
+and possibly rated a set of items.  The observation $y_{ui}$ is the
+rating that user $u$ gave to item $i$, or zero if no rating was given.
+(In so-called ``implicit'' consumer data, $y_{ui}$ equals one if user
+$u$ consumed item $i$ and zero otherwise.)  User behavior data, such
+as purchases, ratings, clicks, or views, are typically sparse.  Most
+of the values of the matrix $y$ are zero.
+
+We model the data with factorized Poisson
+distributions~\cite{Canny:2004}.  We represent each item $i$ as a
+vector of $K$ latent attributes $\beta_i$ and represent each user $u$
+as a vector of $K$ latent preferences $\beta_u$.  These vectors are
+sparse and non-negative.  The observations $y_{ui}$ are modeled with a
+Poisson, parameterized by the inner product of the user preferences
+and item attributes, $y_{ui} \sim \poisson(\theta_u^\top \beta_i)$.
 This is a variant of probabilistic matrix
 factorization~\cite{Salakhutdinov:2008a} but where each user and
 item's weights are positive~\cite{Lee:1999} and where the Poisson
-likelihood replaces the Gaussian likelihood.
+replaces the Gaussian.  Furthermore, we place Gamma priors on the
+latent attributes and latent preferences, which encourage the model
+towards sparse representations.
+
+The key computational problem is posterior inference.  For $N$ users
+and $M$ items we must estimate the conditional distribution
+$p(\theta_{1:N} \beta_{1:M} \g y)$.  From this we estimate the
+posterior distribution of each user's preferences and each items
+attributes, and subsequently form predictions about which unconsumed
+items each user will like.
 
 A good collaborative filtering model must capture two basic features
 of user and item interactions. First, for any given observation
 $y_{ui}$, we expect only a small fraction of the user $u$'s factors
 and the item $i$'s factors to be relevant. This favors sparsity in the
 weights. Second, there are systematic patterns in the data due to
-universally popular items and highly active users. The
-literature on recommendation systems suggests that a good model must
-capture such heterogeneity across users and items~\cite{Koren:2009}. We
-therefore extend the Poisson factorization model with a hierarchical
-prior structure. We describe our model, and then discuss how it
-captures the above properties.
+universally popular items and highly active users. The literature on
+recommendation systems suggests that a good model must capture such
+heterogeneity across users and items~\cite{Koren:2009}. We therefore
+extend the Poisson factorization model with a hierarchical prior
+structure. We describe our model, and then discuss how it captures the
+above properties.
 
 % dmb: also cite "The Dirichlet", old marketing paper
 

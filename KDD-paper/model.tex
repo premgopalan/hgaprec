@@ -26,64 +26,56 @@ and item attributes, $y_{ui} \sim \poisson(\theta_u^\top \beta_i)$.
 This is a variant of probabilistic matrix
 factorization~\cite{Salakhutdinov:2008a} but where each user and
 item's weights are positive~\cite{Lee:1999} and where the Poisson
-replaces the Gaussian.  Furthermore, we place Gamma priors on the
-latent attributes and latent preferences, which encourage the model
-towards sparse representations.
+replaces the Gaussian.
 
-The key computational problem is posterior inference.  For $N$ users
-and $M$ items we must estimate the conditional distribution
-$p(\theta_{1:N} \beta_{1:M} \g y)$.  From this we estimate the
-posterior distribution of each user's preferences and each items
-attributes, and subsequently form predictions about which unconsumed
-items each user will like.
+Beyond the basic data generating distribution, we place Gamma priors
+on the latent attributes and latent preferences, which encourage the
+model towards sparse representations.  Furthermore, we place
+additional priors on the user and item-specific scale parameter of
+those Gammas, which controls the average size of the representation.
+This hierarchical structure allows us to capture the diversity of
+users, some tending to consume more than others, and the diversity of
+items, some being more popular than others.
 
-A good collaborative filtering model must capture two basic features
-of user and item interactions. First, for any given observation
-$y_{ui}$, we expect only a small fraction of the user $u$'s factors
-and the item $i$'s factors to be relevant. This favors sparsity in the
-weights. Second, there are systematic patterns in the data due to
-universally popular items and highly active users. The literature on
-recommendation systems suggests that a good model must capture such
-heterogeneity across users and items~\cite{Koren:2009}. We therefore
-extend the Poisson factorization model with a hierarchical prior
-structure. We describe our model, and then discuss how it captures the
-above properties.
-
-% dmb: also cite "The Dirichlet", old marketing paper
-
-\subsection{Generative model}
-The generative process of the hierarchical Poisson factorization model
-(HPF) is as follows:
-\begin{enumerate}
+Putting this together, the generative process of the hierarchical
+Poisson factorization model (HPF) is as follows:
+\begin{enumerate*}
 \item For each user $u$:
-  \begin{enumerate}
-    \item Sample a rate for the user's activity:
-      \begin{equation*}
-        \xi_u \sim \gam(a', a'/b').
-      \end{equation*}
-    \item For each component $k$, sample user factors:
-      \begin{equation*}
-        \theta_{uk} \sim \gam(a, \xi_u).
-      \end{equation*}
-  \end{enumerate}
+  \begin{enumerate*}
+  \item Sample activity $\xi_u \sim \gam(a', a'/b')$.
+  \item For each component $k$, sample preference $$\theta_{uk} \sim
+    \gam(a, \xi_u).$$
+  \end{enumerate*}
 
 \item For each item $i$:
-  \begin{enumerate}
-    \item Sample a rate for the item's popularity:
-      \begin{equation*}
-        \eta_i \sim \gam(c', c'/d').
-      \end{equation*}
-    \item For each component $k$, sample item factors:
-      \begin{equation*}
-        \beta_{ik} \sim \gam(c, \eta_i).
-      \end{equation*}
-  \end{enumerate}
+  \begin{enumerate*}
+    \item Sample popularity $\eta_i \sim \gam(c', c'/d')$.
+    \item For each component $k$, sample attribute
+      $$\beta_{ik} \sim \gam(c, \eta_i).$$
+  \end{enumerate*}
 
-\item For each user $u$ and item $i$, choose rating
-  \begin{equation*}
-    y_{ui} \sim \poisson(\theta_u^\top \beta_i).
-  \end{equation*}
-\end{enumerate}
+\item For each user $u$ and item $i$, sample rating
+  $$y_{ui} \sim
+  \poisson(\theta_u^\top \beta_i).$$
+\end{enumerate*}
+This process describes the statistical assumptions behind the model.
+Note that we also study a sub-class of the HPF where we fix the rate
+parameters for all users and items to the same pair of
+hyperparameters. We call this model Bayesian Poisson Factorization
+(BPF).
+
+The key computational problem is posterior inference, which is akin to
+``reversing'' the generative process.  Given a user behavior matrix,
+we want to estimate the conditional distribution of the latent
+per-user and per-item structure, $p(\theta_{1:N} \beta_{1:M} \g y)$.
+The posterior is the key to recommendation.  We estimate the posterior
+expectation of each user's preferences, each items attributes and,
+subsequently, form predictions about which unconsumed items each user
+will like.  We discuss our posterior inference algorithm in detail in
+\mysec{inference}.  Figure 1 illustrates posterior estimates of
+$\beta$ and $\theta$ on Netflix data.
+
+% !!! I AM HERE
 
 % jmh: the below seemed out of place, and is repeated in the algorithm
 % section just before empirical results, which seems like a better
@@ -105,9 +97,17 @@ The generative process of the hierarchical Poisson factorization model
 %% presently unconsumed items each user will likely consume in the
 %% future.
 
-We also study a sub-class of the HPF where we fix the rate parameters
-for all users and items to the same pair of hyperparameters. We call
-this model the Bayesian Poisson Factorization (BPF) model.
+A good collaborative filtering model must capture two basic features
+of user and item interactions. First, for any given observation
+$y_{ui}$, we expect only a small fraction of the user $u$'s factors
+and the item $i$'s factors to be relevant. This favors sparsity in the
+weights. Second, there are systematic patterns in the data due to
+universally popular items and highly active users. The literature on
+recommendation systems suggests that a good model must capture such
+heterogeneity across users and items~\cite{Koren:2009}. We therefore
+extend the Poisson factorization model with a hierarchical prior
+structure. We describe our model, and then discuss how it captures the
+above properties.
 
 The HPF model is more powerful than the BPF because it allows for the
 sharing of statistical strength. In the HPF, for example, learning
@@ -115,7 +115,6 @@ about the number of items consumed by one set of users provides weak,
 indirect evidence relevant to other users consumption. This can
 improve predictions, especially for users with little activity. A
 similar argument favors hierarchy over item popularities.
-
 
 \subsection{Statistical properties of the HPF model}
 With the modeling details in place, we highlight statistical

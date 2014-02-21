@@ -19,9 +19,12 @@ associated with a $K$-vector of positive weights, $\theta_u$ and
 $\beta_i$ respectively.  (The number $K$ is fixed in advance.)  The
 user/item observation $y_{ui}$ is modeled with a Poisson parameterized
 by the inner product of the user's and item's weights $y_{ui} \sim
-\poisson(\theta_u^\top \beta_i)$.  This is a variant of probabilistic
-matrix factorization~\cite{Salakhutdinov:2008a} but where each user
-and item's weights are positive~\cite{Lee:1999} and where the Poisson
+\poisson(\theta_u^\top \beta_i)$. The key task here is to infer
+appropriate settings for the latent factors $\theta_u$ and $\beta_i$
+so that the model's predictions match the observed ratings.
+This is a variant of probabilistic matrix
+factorization~\cite{Salakhutdinov:2008a} but where each user and
+item's weights are positive~\cite{Lee:1999} and where the Poisson
 likelihood replaces the Gaussian likelihood.
 
 A good collaborative filtering model must capture two basic features
@@ -38,6 +41,7 @@ captures the above properties.
 
 % dmb: also cite "The Dirichlet", old marketing paper
 
+\subsection{Generative model}
 The generative process of the hierarchical Poisson factorization model
 (HPF) is as follows:
 \begin{enumerate}
@@ -105,7 +109,7 @@ similar argument favors hierarchy over item popularities.
 
 \subsection{Statistical properties of the HPF model}
 With the modeling details in place, we highlight statistical
-properties of the model that provide advantages over classical matrix
+properties of HPF that provide advantages over classical matrix
 factorization, and form the basis for scalable inference.
 
 {\bf Sparse factors}.

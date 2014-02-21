@@ -48,24 +48,27 @@ integers---whose parameter is a linear combination of the
 corresponding user preferences and item attributes.  The main
 computational problem is posterior inference: given an observed matrix
 of user behavior, we discover the latent attributes that describe the
-items and the latent preferences of the users in terms of those
-attributes.  For example, the components in Figure 1 (left) illustrate
-the top items for specific attribute dimensions and the plot in Figure
-1 (middle) illustrates the estimated preference vector for the given
-user.  A spike in the preference vector means that the user likes
-items with that latent attribute.
+items and the latent preferences of the users.  For example, the
+components in Figure 1 (left) illustrate the top items for specific
+attribute dimensions and the plot in Figure 1 (middle) illustrates the
+estimated preference vector for the given user.  A spike in the
+preference vector means that the user tends to like items with the
+corresponding latent attribute.
 
 To readers familiar with recommendation systems, this procedure is
-reminiscent of many variants of matrix factorization. As we show in
-\mysec{eval}, however, there are significant quantitative advantages
-of PF over classical methods for a wide variety of data sets,
-including those with implicit feedback (a binary matrix indicating
-which items users consumed) and those with explicit feedback (a matrix
-of integer ratings). PF (and its hierarchical variant HPF) performs
-significantly better than state-of-the art methods---including the
-industry standard classical matrix factorization with user and item
-biases (MF)---for data sets of users watching movies, listening to
-music, and reading scientific and newspaper articles.
+reminiscent of many variants of matrix factorization.  We found,
+however, that PF enjoys significant quantitative advantages over
+classical methods and for a wide variety of data sets, including those
+with implicit feedback (a binary matrix indicating which items users
+consumed) and those with explicit feedback (a matrix of integer
+ratings).  \myfig{results} shows that PF, and its hierarchical variant
+HPF, perform significantly better than state-of-the art
+methods---including the industry standard of matrix factorization with
+user and item biases (MF)---for large data sets of Netflix users
+watching movies, Last.FM users listening to music, scientists reading
+papers, and \textit{New York Times} readers clicking on articles.
+
+% dmb: above, add a cite for the industry standard.
 
 There are two main advantages of Poisson factorization over
 traditional methods, both of which contribute to its superior
@@ -75,33 +78,36 @@ which to view items.  To see this, we can rewrite the model as a two
 stage process where a user first decides on a budget of movies to
 watch and then spends this budget watching movies that she is
 interested in.  If the model accurately captures the distribution of
-budgets, then watched items carry more weight than unwatched items
+budgets then watched items carry more weight than unwatched items,
 because unwatched items can be partially explained by a lack of
-resources. We show that classical matrix factorization fails to
-properly capture skew in user budgets, and we confirm this
-hypothesis using posterior predictive checks~\cite{Gelman:1996}, which
-explains why practitioners require complex methods for downweighting
-the zeros in the user behavior
-matrix~\cite{Hu:2008p9402,Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.
-(We used one such method when comparing to MF in Figure 1 and in the
-full study.)  Poisson factorization does not need to be patched in
-this way.
+resources. We conjecture that classical matrix factorization
+systematically overestimates the users' budgets, and we confirm this
+hypothesis in \mysec{eval} using a posterior predictive
+check~\cite{Gelman:1996}.  This misfit leads to an overweighting of
+the zeros, which explains why practitioners require complex methods
+for downweighting
+them~\cite{Hu:2008p9402,Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.
+(We used one such method in the study of \myfig{eval}.)  Poisson
+factorization does not need to be patched in this way.
 
 The second advantage of PF algorithms is that they need only iterate
 over the viewed items in the observed matrix of user behavior, i.e.,
-the non-zero elements, even for implicit or ``positive only'' data
-sets.  (This follows from the mathematical form of the Poisson
-distribution.)  Thus, Poisson factorization takes advantage of the
-natural sparsity of user behavior data and can easily analyze massive
-real-world data.  In contrast, classical matrix factorization, which
-is based on the Gaussian distribution~\cite{Salakhutdinov:2008} (i.e.,
-squared loss), iterates over the entire matrix (especially with
-implicit data).  It does not take advantage of sparse data, and this
-makes computation difficult for even modestly sized problems.  For
-example, one cannot fit to the full Netflix data set (as in Figure 1)
-without appealing to stochastic optimization~\cite{Mairal:2010}.  We
-note that our algorithms are also amenable to stochastic optimization,
-which we can use for for data sets even larger than those we analyzed.
+the non-zero elements, and this is true even for implicit or
+``positive only'' data sets.  (This follows from the mathematical form
+of the Poisson distribution.)  Thus, Poisson factorization takes
+advantage of the natural sparsity of user behavior data and can easily
+analyze massive real-world data. In contrast, classical matrix
+factorization is based on the Gaussian
+distribution~\cite{Salakhutdinov:2008} and must iterate over the
+entire matrix (especially with implicit data).  Thus it cannot take
+advantage of data sparsity, which makes computation difficult for even
+modestly sized problems.  For example, one cannot fit to the full
+Netflix data set (as we did in Figure 1) without appealing to
+stochastic optimization~\cite{Mairal:2010}.  We note that our
+algorithms are also amenable to stochastic optimization, which we can
+use to analyze data sets even larger than those we studied.
+
+% dmb: add paper organization
 
 We reviewed related work below before discussing details of the
 Poisson factorization model, including its statistical properties and
@@ -197,7 +203,7 @@ Back to the Future Part II\\
 
 \begin{figure}[t!]
   \centering
-%%  \includegraphics[width=0.4\textwidth]{figures/user_activity_sim_netflix.pdf}
+  \includegraphics[width=0.4\textwidth]{figures/user_activity_sim_netflix.pdf}
   \caption{The distribution of total ratings for the Netflix dataset.
     The pink curve shows the empirical count of the number of users
     who have rated a given number of items, while the green and blue

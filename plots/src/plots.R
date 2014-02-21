@@ -109,8 +109,8 @@ netflix.sim.users <- adply(c("netflix45"), 1, function(dataset) {
   users <- read.table(tsv, header=F, col.names=c('id', 'tratings'))
   users$method <- "Empirical"
 
-  tsv <- sprintf('../marginals/%s/gauss_sim_byusers.tsv', dataset)
-  mf.sim.users <- read.table(tsv, header=T)
+  tsv <- sprintf('../marginals/%s/gauss_sim_byusers2.tsv', dataset)
+  mf.sim.users <- read.table(tsv, header=T, col.names=c("rep","seq","id","count","tratings","tratings_mean"))
   mf.sim.users$method <- "MF"
 
   tsv <- sprintf('../marginals/%s/sim_byusers.tsv', dataset)
@@ -125,6 +125,7 @@ netflix.sim.users$X1 <- "Netflix"
 names(netflix.sim.users) <- c("dataset", "user", "activity", "method")
 netflix.sim.users <- transform(netflix.sim.users, dataset=revalue(dataset, datasets))
 
+
 # plot cdf of user activity for bpf and mf simulated activity
 plot.data <- ddply(netflix.sim.users, c("method", "dataset","activity"), summarize, num.users=length(user))
 plot.data <- ddply(plot.data, c("method","dataset"), transform, frac.users=rev(cumsum(rev(num.users)))/sum(num.users))
@@ -138,10 +139,13 @@ p <- p + theme(legend.title=element_blank(), legend.position=c(0.2,0.3), legend.
 ggsave(p, filename='../../KDD-paper/figures/user_activity_sim_cdf_netflix.pdf', width=4, height=3)
 p
 
+
 # plot distribution of user activity for bpf and mf simulated activity
-plot.data <- ddply(netflix.sim.users, c("method", "dataset","activity"), summarize, num.users=length(user))
-p <- ggplot(data=plot.data, aes(x=activity, y=num.users))
-p <- p + geom_point(aes(shape=method, color=method))
+plot.data <- transform(netflix.sim.users, bin=10^(round(log10(activity)*15)/15))
+plot.data <- ddply(plot.data, c("method", "dataset","bin"), summarize, num.users=length(user))
+p <- ggplot(data=subset(plot.data, method != "Empirical"), aes(x=bin, y=num.users))
+p <- p + geom_point(data=subset(plot.data, method == "Empirical"), size=1, shape=0)
+p <- p + geom_line(aes(linetype=method, color=method))
 p <- p + scale_x_log10(labels=comma, breaks=10^(0:4)) + scale_y_log10(labels=comma, breaks=10^(0:6))
 p <- p + facet_wrap(~ dataset, nrow=1)
 p <- p + xlab('User activity') + ylab('Number of users')

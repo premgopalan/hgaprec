@@ -59,6 +59,10 @@ Poisson factorization model (HPF) is as follows:
   \poisson(\theta_u^\top \beta_i).$$
 \end{enumerate*}
 This process describes the statistical assumptions behind the model.
+Note that we also study a sub-class of the HPF where we fix the rate
+parameters for all users and items to the same pair of
+hyperparameters. We call this model Bayesian Poisson Factorization
+(BPF).
 
 The key computational problem is posterior inference, which is akin to
 ``reversing'' the generative process.  Given a user behavior matrix,
@@ -91,7 +95,6 @@ $\beta$ and $\theta$ on Netflix data.
 %% presently unconsumed items each user will likely consume in the
 %% future.
 
-
 A good collaborative filtering model must capture two basic features
 of user and item interactions. First, for any given observation
 $y_{ui}$, we expect only a small fraction of the user $u$'s factors
@@ -103,10 +106,6 @@ heterogeneity across users and items~\cite{Koren:2009}. We therefore
 extend the Poisson factorization model with a hierarchical prior
 structure. We describe our model, and then discuss how it captures the
 above properties.
-
-We also study a sub-class of the HPF where we fix the rate parameters
-for all users and items to the same pair of hyperparameters. We call
-this model the Bayesian Poisson Factorization (BPF) model.
 
 The HPF model is more powerful than the BPF because it allows for the
 sharing of statistical strength. In the HPF, for example, learning

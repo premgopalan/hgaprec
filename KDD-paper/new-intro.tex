@@ -4,7 +4,6 @@ Recommendation systems are a vital component of the modern Web.  They
 help readers effectively navigate otherwise unwieldy archives of
 information and help websites direct users to items---movies,
 articles, songs, products---that they will like.
-
 A recommendation system is built from user behavior data, historical
 data about which items each user has consumed, be it clicked, viewed,
 rated, or purchased. First, we uncover the behavioral patterns that
@@ -50,10 +49,10 @@ method of most deployed systems.  In our full evaluation, we studied
 PF and HPF on many types of large user-behavior data sets: users
 watching movies, users reading newspaper articles, users reading
 scientific articles, and users listening to music (see \mysec{eval}).
-We found significant gains in performance across all the data we
-studied, both for data with implicit feedback (a binary data of user
-behavior) and data with explicit feedback (a matrix of integer
-ratings).
+We found significant gains in performance across all the data sets we
+studied, both for those with implicit feedback (a binary matrix
+indicating which items users consumed) and those with explicit
+feedback (a matrix of integer ratings).
 
 In more detail, Poisson factorization is a probabilistic model of
 users and items.  It associates each user with a latent vector of
@@ -164,7 +163,7 @@ Gandhi\\
 
 \begin{figure}
 \centering
-\includegraphics[width=0.8\columnwidth]{figures/movielens-user2.pdf}\\
+\includegraphics[width=0.5\columnwidth]{figures/movielens-user2.pdf}\\
 \caption{An illustration showing a subset of the highly rated movies
   of a selected user $U$ in the MovieLens data set~\cite{Herlocker:1999},
   and a subset of the movies in the top 15 recommended to the user by
@@ -264,12 +263,40 @@ Gandhi\\
 % algorithms cannot handle.
 
 
+%% \begin{figure*}[t!]
+%% \includegraphics[width=\textwidth]{figures/user_activity_cdf.pdf}
+%% \caption{Empirical complimentary cumulative distributions of user
+%%   activity on each data set. Each curve shows the fraction of users
+%%   who have consumed at least a given number of items. For instance,
+%%   slightly less than half of all Netflix users have rated at least
+%%   100 movies.}
+%% \label{fig:marginals}
+%% \end{figure*}
 
-\begin{figure*}[t!]
-  \includegraphics[width=\textwidth]{figures/user_activity_cdf.pdf}
-\caption{Empirical complimentary cumulative distributions of user activity on each dataset. Each curve shows the fraction of users who have consumed at least a given number of items. For instance, slightly less than half of all Netflix users have viewed at least 100 movies.}
+
+%% \begin{figure*}[t!]
+%%   \includegraphics[width=\textwidth]{figures/user_activity.pdf}
+%%   \caption{Empirical distributions of user activity on each
+%%     dataset. Each plot shows the number of users who have rated a given
+%%     number of items. For instance, slightly less than half of all
+%%     Netflix users have rated at least 100 movies.}
+%% \label{fig:marginals}
+%% \end{figure*}
+
+
+\begin{figure}[t!]
+  \centering
+  \includegraphics[width=0.4\textwidth]{figures/user_activity_sim_netflix.pdf}
+  \caption{The distribution of total ratings for the Netflix dataset.
+    The pink curve shows the empirical count of the number of users
+    who have rated a given number of items, while the green and blue
+    curves show the simulated totals from fitted Poisson and
+    traditional matrix factorization models, respectively. The Poisson
+    marginal closely matches the empirical, whereas traditional matrix
+    factorization fits a large mean to account for skew in the
+    distribution.}
 \label{fig:marginals}
-\end{figure*}
+\end{figure}
 
 %% \begin{figure*}[t!]
 %% \includegraphics[width=0.33\textwidth]{figures/marginals/echonest.pdf}

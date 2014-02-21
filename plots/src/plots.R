@@ -52,7 +52,10 @@ p <- p + xlab('Number of user views') + ylab('Fraction of users')
 ggsave(p, filename='../../KDD-paper/figures/user_activity_cdf.pdf', width=10, height=2.5)
 p
 
-
+###
+### broken due to change in format for sim_byuser.tsv in netflix ###
+###
+if (F) {
 # read bpf simulated user activity by dataset
 sim.users <- adply(names(datasets), 1, function(dataset) {
   tsv <- sprintf('../marginals/%s/sim_byusers.tsv', dataset)
@@ -64,6 +67,7 @@ names(sim.users)[1] <- "dataset"
 sim.users <- transform(sim.users, dataset=revalue(dataset, datasets))
 sim.users <- subset(sim.users, dataset != "Netflix (implicit)")
 sim.users <- transform(sim.users, dataset=revalue(dataset, c("Netflix (explicit)"="Netflix")))
+
 
 # plot distribution of user activity for bpf simulated activity
 plot.data <- subset(sim.users, rep==0)
@@ -90,6 +94,59 @@ p <- p + facet_wrap(~ dataset, nrow=1)
 p <- p + xlab('User activity') + ylab('Number of users')
 p <- p + theme(legend.title=element_blank(), legend.position=c(0.94,0.8), legend.background=element_blank())
 ggsave(p, filename='../../KDD-paper/figures/user_activity_sim_cdf.pdf', width=10, height=2.5)
+p
+}
+###
+### end broken ###
+###
+
+#
+# netflix implict: empirical, mf, and hpf marginals
+#
+
+netflix.sim.users <- adply(c("netflix45"), 1, function(dataset) {
+  tsv <- sprintf('../data/%s/users.tsv', dataset)
+  users <- read.table(tsv, header=F, col.names=c('id', 'tratings'))
+  users$method <- "Empirical"
+
+  tsv <- sprintf('../marginals/%s/gauss_sim_byusers.tsv', dataset)
+  mf.sim.users <- read.table(tsv, header=T)
+  mf.sim.users$method <- "MF"
+
+  tsv <- sprintf('../marginals/%s/sim_byusers.tsv', dataset)
+  hpf.sim.users <- read.table(tsv, header=T)
+  hpf.sim.users$method <- "HPF"
+
+  sim.users <- rbind(users,
+                     mf.sim.users[, c("id", "tratings", "method")],
+                     hpf.sim.users[, c("id", "tratings", "method")])
+})
+netflix.sim.users$X1 <- "Netflix"
+names(netflix.sim.users) <- c("dataset", "user", "activity", "method")
+netflix.sim.users <- transform(netflix.sim.users, dataset=revalue(dataset, datasets))
+
+# plot cdf of user activity for bpf and mf simulated activity
+plot.data <- ddply(netflix.sim.users, c("method", "dataset","activity"), summarize, num.users=length(user))
+plot.data <- ddply(plot.data, c("method","dataset"), transform, frac.users=rev(cumsum(rev(num.users)))/sum(num.users))
+p <- ggplot(data=plot.data, aes(x=activity, y=frac.users))
+p <- p + geom_line(aes(color=method, linetype=method))
+p <- p + scale_x_log10(labels=comma, breaks=10^(0:3))
+p <- p + scale_y_continuous(labels=percent)
+p <- p + facet_wrap(~ dataset, nrow=1)
+p <- p + xlab('Number of user views') + ylab('Fraction of users')
+p <- p + theme(legend.title=element_blank(), legend.position=c(0.2,0.3), legend.background=element_blank())
+ggsave(p, filename='../../KDD-paper/figures/user_activity_sim_cdf_netflix.pdf', width=4, height=3)
+p
+
+# plot distribution of user activity for bpf and mf simulated activity
+plot.data <- ddply(netflix.sim.users, c("method", "dataset","activity"), summarize, num.users=length(user))
+p <- ggplot(data=plot.data, aes(x=activity, y=num.users))
+p <- p + geom_point(aes(shape=method, color=method))
+p <- p + scale_x_log10(labels=comma, breaks=10^(0:4)) + scale_y_log10(labels=comma, breaks=10^(0:6))
+p <- p + facet_wrap(~ dataset, nrow=1)
+p <- p + xlab('User activity') + ylab('Number of users')
+p <- p + theme(legend.title=element_blank(), legend.position=c(0.2,0.3), legend.background=element_blank())
+ggsave(p, filename='../../KDD-paper/figures/user_activity_sim_netflix.pdf', width=4, height=3)
 p
 
 

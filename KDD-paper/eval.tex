@@ -34,12 +34,12 @@
 
 
 \section{Empirical Study}
-We evaluate the performance of the Hierarchical Poisson Factorization
+We evaluate the performance of the Hierarchical Poisson factorization
 (HPF) algorithm and its non-hierarchical variant (BPF) on a variety of
 large-scale data sets for the purpose of recommending new items to
 users. We first discuss details of each data set and of competing
 recommendation methods. In particular, we note the superior
-performance and computational efficiency of Poisson Factorization in
+performance and computational efficiency of Poisson factorization in
 comparison to baseline methods. We conclude with an exploratory
 analysis of the preferences and attributes inferred by HPF.
 
@@ -95,7 +95,7 @@ implicit version in which only 4 and 5 star ratings are retained as
 observations~\cite{Paquet:2013p9197}.
 
 
-{\bf Baselines.} We compare Poisson Factorization against an array of
+{\bf Baselines.} We compare Poisson factorization against an array of
 competing methods:
 \begin{itemize}
   \item {\bf NMF}: Non-negative Matrix
@@ -171,15 +171,6 @@ aside 1\% of the training ratings as a validation set and use it to
 determine the convergence of our algorithm and tune free parameters.
 For HPF and BPF we find that the algorithm is insensitive to small
 changes in the hyper-parameters.
-
-%% We terminate the training process when the HPF algorithm
-%% converges. The convergence is measured by computing the prediction
-%% accuracy on our validation set. We approximate the probability that a
-%% user consumed an item using the variational approximations to
-%% posterior expectations of $\theta_u$ and $\beta_i$, and compute the
-%% average predictive log likelihood of the validation ratings. The HPF
-%% algorithm stops when the change in log likelihood is less than
-%% 0.0001\%.
 
 During testing, we generate the top $M$ recommendations for each user
 as those items with the highest predictive score under each method

@@ -29,71 +29,58 @@ develop a new algorithm for building recommendation systems that is
 both more efficient and performs better than the existing
 state-of-the-art.
 
-\begin{figure*}[th]
-\centering
-\caption{The top 5 movies in each of the top 4 components of the user
-  $U$ illustrated in Fig~\ref{fig:movielens-illustration}.}
-\vspace{0.1cm}
-\small
-\begin{tabular}{c}
-\toprule
-\bf{``Drama, Romance''}\\
-\midrule
-Breakfast at Tiffany's\\
-Casablanca\\
-The Graduate\\
-Shakespeare in Love\\
-The African Queen\\
-\bottomrule
-\end{tabular}
-\begin{tabular}{c}
-\toprule
-\bf{``Drama''}\\
-\midrule
-Jean de Florette\\
-Manon of the Spring\\
-Diva\\
-The Return of Martin Guerre\\
-Blue Velvet\\
-\bottomrule
-\end{tabular}
-\begin{tabular}{c}
-\toprule
-\bf{``Children's Drama''}\\
-\midrule
-The Secret Garden\\
-The Secret of Roan Inish\\
-A Little Princess\\
-Fly Away Home\\
-Black Beauty\\
-\bottomrule
-\end{tabular}
-\begin{tabular}{c}
-\toprule
-\bf{``Drama, War''}\\
-\midrule
-The Bridge on the River Kwai\\
-The Right Stuff\\
-Patton\\
-The Killing Fields\\
-Gandhi\\
-\bottomrule
-\end{tabular}
+%% \begin{figure*}[th]
+%% \centering
+%% \caption{The top 5 movies in each of the top 4 components of the user
+%%   $U$ illustrated in Fig~\ref{fig:movielens-illustration}.}
+%% \vspace{0.1cm}
+%% \small
+%% \begin{tabular}{c}
+%% \toprule
+%% \bf{``Drama, Romance''}\\
+%% \midrule
+%% Breakfast at Tiffany's\\
+%% Casablanca\\
+%% The Graduate\\
+%% Shakespeare in Love\\
+%% The African Queen\\
+%% \bottomrule
+%% \end{tabular}
+%% \begin{tabular}{c}
+%% \toprule
+%% \bf{``Drama''}\\
+%% \midrule
+%% Jean de Florette\\
+%% Manon of the Spring\\
+%% Diva\\
+%% The Return of Martin Guerre\\
+%% Blue Velvet\\
+%% \bottomrule
+%% \end{tabular}
+%% \begin{tabular}{c}
+%% \toprule
+%% \bf{``Children's Drama''}\\
+%% \midrule
+%% The Secret Garden\\
+%% The Secret of Roan Inish\\
+%% A Little Princess\\
+%% Fly Away Home\\
+%% Black Beauty\\
+%% \bottomrule
+%% \end{tabular}
+%% \begin{tabular}{c}
+%% \toprule
+%% \bf{``Drama, War''}\\
+%% \midrule
+%% The Bridge on the River Kwai\\
+%% The Right Stuff\\
+%% Patton\\
+%% The Killing Fields\\
+%% Gandhi\\
+%% \bottomrule
+%% \end{tabular}
 
-\end{figure*}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.8\columnwidth]{figures/movielens-user2.pdf}\\
-\caption{An illustration showing a subset of the highly rated movies
-  of a selected user $U$ in the MovieLens data set~\cite{Herlocker:1999},
-  and a subset of the movies in the top 15 recommended to the user by
-  our algorithm. The expected user's $K$-vector of weights $\theta_u$,
-  inferred by our algorithm is shown. In our analysis, $K$ was set to
-  100.}
-\label{fig:movielens-illustration}
-\end{figure}
-
+%% \end{figure*}
 
 %%
 %%\begin{figure}
@@ -122,6 +109,18 @@ corresponds to a Gaussian model of the
 data~\cite{Salakhutdinov:2008}.)  MF has been extended in many ways to
 implement modern recommendation
 systems~\cite{Dror:2012,Koren:2008,Rendle:2009,Stern:2009p9238}.
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.5\columnwidth]{figures/movielens-user2.pdf}\\
+\caption{An illustration showing a subset of the highly rated movies
+  of a selected user $U$ in the MovieLens data set~\cite{Herlocker:1999},
+  and a subset of the movies in the top 15 recommended to the user by
+  our algorithm. The expected user's $K$-vector of weights $\theta_u$,
+  inferred by our algorithm is shown. In our analysis, $K$ was set to
+  100.}
+\label{fig:movielens-illustration}
+\end{figure}
 
 However, the assumptions behind traditional MF are fundamentally
 flawed when analyzing real-world user behavior data.  In real-world

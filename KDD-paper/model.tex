@@ -29,58 +29,67 @@ of user and item interactions. First, for any given observation
 $y_{ui}$, we expect only a small fraction of the user $u$'s factors
 and the item $i$'s factors to be relevant. This favors sparsity in the
 weights. Second, there are systematic patterns in the data due to
-universally popular items and frequently consuming users. The
+universally popular items and highly active users. The
 literature on recommendation systems suggests that a good model must
 capture such heterogeneity across users and items~\cite{Koren:2009}. We
 therefore extend the Poisson factorization model with a hierarchical
 prior structure. We describe our model, and then discuss how it
 captures the above properties.
 
-% dmb: jake cites something below
 % dmb: also cite "The Dirichlet", old marketing paper
 
 The generative process of the hierarchical Poisson factorization model
 (HPF) is as follows:
 \begin{enumerate}
-\item For each user $u$, choose activity
-  \begin{equation*}
-    \xi_u \sim \gam(a', a'/b').
-  \end{equation*}
-\item For each user $u$ and each component $k$, choose weight
-  \begin{equation*}
-    \theta_{uk} \sim \gam(a, \xi_u).
-  \end{equation*}
-\item For each item $i$, choose popularity
-  \begin{equation*}
-    \eta_i \sim \gam(c', c'/d').
-  \end{equation*}
-\item For each item $i$ and each component $k$, choose weight
-  \begin{equation*}
-    \beta_{ik} \sim \gam(c, \eta_i).
-  \end{equation*}
+\item For each user $u$:
+  \begin{enumerate}
+    \item Sample a rate for the user's activity:
+      \begin{equation*}
+        \xi_u \sim \gam(a', a'/b').
+      \end{equation*}
+    \item For each component $k$, sample user factors:
+      \begin{equation*}
+        \theta_{uk} \sim \gam(a, \xi_u).
+      \end{equation*}
+  \end{enumerate}
+
+\item For each item $i$:
+  \begin{enumerate}
+    \item Sample a rate for the item's popularity:
+      \begin{equation*}
+        \eta_i \sim \gam(c', c'/d').
+      \end{equation*}
+    \item For each component $k$, sample item factors:
+      \begin{equation*}
+        \beta_{ik} \sim \gam(c, \eta_i).
+      \end{equation*}
+  \end{enumerate}
+
 \item For each user $u$ and item $i$, choose rating
   \begin{equation*}
     y_{ui} \sim \poisson(\theta_u^\top \beta_i).
   \end{equation*}
 \end{enumerate}
-To enforce sparse weights, the model places a \gam~prior on the
-independent weight components. $\gam(x;a,\frac{a}{b})$, parameterized
-in terms of a shape parameter $a$ and an inverse scale parameter
-$\frac{a}{b}$, has a mean of $b$ and a variance of
-$\frac{b^2}{a}$. For a small shape $a$, most of the weights will be
-close to zero, and only a few will be large, resulting in a sparse
-representation.
 
-The \gam~rate parameters capture the magnitude of user $u$'s activity
-and item $i$'s popularity, respectively.  To capture heterogeneity in
-user activity and item popularity, we place a \gam~prior on the rate
-parameter $\xi_u$ governing each user $u$ or $\eta_i$ governing each
-item $i$. The prior on $\xi_u$ captures the uncertainty around user
-$u$'s consumption rate or activity; the prior on $\eta_i$ captures the
-uncertainty around item $i$'s popularity among users. Notice that we
-fix the shape parameters and share them across users and items.
+% jmh: the below seemed out of place, and is repeated in the algorithm
+% section just before empirical results, which seems like a better
+% spot
 
-% dmb: jake cites something below
+%% \subsection{The Posterior distribution}
+%% The posterior distribution of the latent variables $p(\theta, \beta,
+%% \xi, \eta \g y)$ embeds users and items in a latent space of
+%% $K$-dimensional positive vectors. 
+
+%% We use the HPF to recommend items to users by predicting which of the
+%% unconsumed items each will like.  We rank each user's unconsumed items
+%% by their posterior expected Poisson parameters,
+%% \begin{equation}
+%%   \label{eq:score}
+%%   \textrm{score}_{ui} = \E[\theta_u^\top \beta_i \g y].
+%% \end{equation}
+%% This amounts to asking the model to rank by probability which of the
+%% presently unconsumed items each user will likely consume in the
+%% future.
 
 We also study a sub-class of the HPF where we fix the rate parameters
 for all users and items to the same pair of hyperparameters. We call
@@ -93,40 +102,41 @@ indirect evidence relevant to other users consumption. This can
 improve predictions, especially for users with little activity. A
 similar argument favors hierarchy over item popularities.
 
-\subsection{The Posterior distribution}
-The posterior distribution of the latent variables $p(\theta, \beta,
-\xi, \eta \g y)$ embeds users and items in a latent space of
-$K$-dimensional positive vectors. 
-
-We use the HPF to recommend items to users by predicting which of the
-unconsumed items each will like.  We rank each user's unconsumed items
-by their posterior expected Poisson parameters,
-\begin{equation}
-  \label{eq:score}
-  \textrm{score}_{ui} = \E[\theta_u^\top \beta_i \g y].
-\end{equation}
-This amounts to asking the model to rank by probability which of the
-presently unconsumed items each user will likely consume in the
-future.
 
 \subsection{Statistical properties of the HPF model}
 With the modeling details in place, we highlight statistical
 properties of the model that provide advantages over classical matrix
 factorization, and form the basis for scalable inference.
 
-\begin{enumerate}
-\item {\bf Modeling the long-tailed distribution of user activity}.
-  Figure 3 shows the distributions of user activity on large,
-  real-world user/item matrices. These distributions are long-tailed:
-  they are highly skewed, with significant number of users exhibiting
-  much higher activity than most users.
+{\bf Sparse factors}.
+To enforce sparse user and item factors, the model places a \gam~prior
+on the independent weight components. The \gam~rate parameters capture
+the magnitude of user $u$'s activity and item $i$'s popularity,
+respectively. The \gam~prior on the rate parameter $\xi_u$ governing
+each user $u$ or $\eta_i$ governing each item $i$ accommodates
+heterogeneity in user activity and item popularity. The prior on
+$\xi_u$ captures the uncertainty around user $u$'s consumption rate or
+activity; the prior on $\eta_i$ captures the uncertainty around item
+$i$'s popularity among users. Notice that we fix the shape parameters
+and share them across users and items.
 
-Under the BPF and the HPF, the marginal distribution of each user's
-ratings, with the item weights held fixed, is a negative binomial.
-Let $y_{u} = \sum_{i} y_{ui}$ be the sum of the ratings for user $u$.
-Since each of the terms in the sum is a Poisson distribution with rate
-$\theta_u^\top \beta_i$, the sum is itself a Poisson random
-variable~\cite{Johnson:2005}.
+Parameterized in terms of a shape parameter $a$ and an inverse scale
+parameter $\frac{a}{b}$, the Gamma distribution has a mean of $b$ and
+a variance of $\frac{b^2}{a}$. For a small shape $a$, most of the
+weights will be close to zero, and only a few will be large, resulting
+in a sparse representation.
+
+
+{\bf Modeling the long-tail}.
+Figure 3 shows the distributions of user activity on large, real-world
+ratings data sets. These distributions are long-tailed: while most
+users consume a handful few items, a few ``tail users'' consume
+thousands of items. Under the BPF and the HPF, the marginal
+distribution of each user's ratings, with the item weights held fixed,
+is a negative binomial.  Let $y_{u} = \sum_{i} y_{ui}$ be the sum of
+the ratings for user $u$.  Since each of the terms in the sum is a
+Poisson distribution with rate $\theta_u^\top \beta_i$, the sum is
+itself a Poisson random variable~\cite{Johnson:2005}.
 \begin{equation}
   y_u \sim \poisson\left(\theta_u^\top (\textstyle \sum_{i} \beta_{i})\right).
 \end{equation}
@@ -143,19 +153,21 @@ activity on real-world data.  Classical matrix factorization is based
 on Gaussian likelihoods, and the marginal distribution of total user
 ratings is a Gaussian.  The Gaussian is a poor choice for modeling
 long-tailed distributions. Further, it places probability mass on
-negative numbers, a setting that never occurs.
+negative numbers, a setting that never occurs. While we have focused
+on user activity here, the same is true for the marginal distribution
+of item popularities under Poisson factorization.
 
-
-\item {\bf Down-weighting the effect of zeros.}
-The marginal distribution of $y_u$ is a negative binomial, and this
-forces it to down-weight the contribution of the items that each user
-did not consume. The reason is that the model has two ways of
-explaining that a user does not consume an item: either she is not
-interested in it or she would be but has already consumed her allotted
-negative-binomial number.  In contrast, a user that consumes an item
-must be interested in it.  Thus, the model benefits more from making a
-consumed user/item pair more similar than making an unconsumed
-user/item pair less similar.
+{\bf Down-weighting the effect of zeros.}
+An added benefit of appropriately modeling the skew in user activity
+and item popularity is that the model implicitly down-weights the
+contribution of the items that each user did not consume. The reason
+is that the model has two ways of explaining the observation that a
+user has not consumed an item: either she is not interested in it or
+she would be but has already consumed her allotted negative-binomial
+number.  In contrast, a user that consumes an item must be interested
+in it.  Thus, the model benefits more from making a consumed user/item
+pair more similar than making an unconsumed user/item pair less
+similar.
 
 Classical matrix factorization is based on Gaussian likelihoods (i.e.,
 squared loss), which gives equal weight to consumed and unconsumed
@@ -181,7 +193,7 @@ watching ``Star Wars''. Further, because the movies are similar, this
 increases the Poisson model's predictive score that a user who watches
 ``Star Wars'' will also watch ``The Empire Strikes Back''.
 
-\item {\bf Fast inference with sparse matrices.}
+{\bf Fast inference with sparse matrices.}
 The likelihood of the observed data under the BPF and the HPF depends
 only on the consumed items, that is, the non-zero elements of the
 user/item matrix $y$.  Given the latent variables $\theta_u$ and
@@ -207,7 +219,6 @@ inference with sparse matrices.  In contrast, classical matrix
 factorization methods, especially when applied to
 massive data sets, must address the zeros either through
 sub-sampling~\cite{Dror:2012a} or approximation~\cite{Hu:2008p9402}.
-\end{enumerate}
 
 % dmb: above, maybe add a comment above that this is a heavy-tailed
 % realistic distribution for consumer data.  cite goodhardt 1984

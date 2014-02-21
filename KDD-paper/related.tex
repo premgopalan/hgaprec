@@ -21,15 +21,16 @@ parameters.  Placing priors on both sets of weights further
 regularizes the model and lets us use the same inferential machinery
 in both user-space and item-space. 
 
-Although the PFM~\cite{Ma:2011} is the same as the BPF, the PFM was
-aimed at a particular application---that of recommending
+Although the PFM~\cite{Ma:2011} model is the same as the BPF, the PFM
+was aimed at a particular application---that of recommending
 web-sites---while we demonstrate improved performance on a variety of
-recommendation tasks and study why Poisson factorization based models
-outperform others. We also extended the BPF by placing priors on rate
-parameters to capture the skew in user activity and item
-popularity. Capturing these biases is important for predictive
-performance~\cite{Koren:2009}. Again, we approximate the full
-posterior with variational inference, while PFM uses MAP inference.
+recommendation tasks. Further, we study why Poisson factorization
+based models outperform others in recommendation. We also extended the
+BPF with a hierarchical prior structure to capture the skew in user
+activity and item popularity. Capturing these biases is important for
+predictive performance~\cite{Koren:2009}. Again, we approximate the
+full posterior with variational inference, while PFM uses Maximum a
+posteriori estimation
 
 % prem: removed reference to stochastic inference
 %       we should add this in future work/discussion
@@ -54,9 +55,13 @@ auxiliary variables) is more direct.  As future work, the methods
 developed here could lead to improved methods for massive simultaneous
 analysis of audio spectrograms. In the context of network data, a
 Poisson model of overlapping communities was described by the authors
-of ~\cite{Ball:2011}. As with GaP, this model is unregularized and the
-authors fit the model with maximum likelihood via expectation
-maximization.
+of ~\cite{Ball:2011}.  As with GaP, this model is unregularized and
+the authors fit the model with maximum likelihood via expectation
+maximization. 
+
+%% The Poisson community model has been demonstrated to
+%% outperform leading methods in recovering overlapping communities in
+%% network data~\cite{Gopalan:2013}.
 
 We discuss further differences between our method and previous work on
 matrix factorization in the empirical results below.

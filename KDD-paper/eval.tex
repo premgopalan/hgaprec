@@ -184,6 +184,11 @@ present in the top $M$ recommendations.
 
 XXX explain normalized precision XXX
 
+\begin{equation*}
+  \textrm{NormPrec}@M = \frac{|~\textrm{relevant items at $M$ recommendations}~|}
+         {\mathrm{min}(M, |~\textrm{relevant items}~|)}
+\end{equation*}
+
 \myfig{precision_recall} shows the normalized mean precision at 20
 recommendations for each method and data sets. We see that HPF
 outperforms other methods on all data sets by a sizeable margin---as

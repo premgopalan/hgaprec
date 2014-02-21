@@ -3,84 +3,175 @@
 Recommendation systems are a vital component of the modern Web.  They
 help readers effectively navigate otherwise unwieldy archives of
 information and help websites direct users to items---movies,
-articles, songs, apps---that they will like.  A recommendation system
-is built from user behavior data, historical data about which items
-each user has consumed.  First, a statistical machine learning
-algorithm is used to uncover behavioral patterns that reveal the
-various types of users and the items they tend to like.  Then, the
-system exploits these discovered patterns to recommend future items to
-its users.
+articles, songs, products---that they will like.
+A recommendation system is built from user behavior data, historical
+data about which items each user has consumed, be it clicked, viewed,
+rated, or purchased. First, we uncover the behavioral patterns that
+characterize various types of users and the kinds of items they tend
+to like.  Then, we exploit these discovered patterns to recommend
+future items to its users.
 
-As an example, Figure 1 illustrates movie recommendation for a user
-$U$ from the MovieLens data set~\cite{Herlocker:1999}.  This data set
-is a large sparse matrix where rows are people and columns are movies.
-Each entry of the matrix (indexed by a user and a movie) contains the
-rating that the user gave to the movie, or a zero if she has not seen
-it. The list of movies at the top of the
-\myfig{movielens-illustration} shows that user $U$ enjoys various
-types of drama movies (such as the war drama ``Breaker Morant'' and
-the romantic drama ``Leaving Las Vegas''). Of course, she has only
-seen a handful of the available movies, and the goal of a
-recommendation system is to suggest other movies.  The list of movies
-at the bottom of the figure was suggested by our algorithm. It
-includes other war drama movies (such as "Apocalypse Now") and other
-romantic drama (such as "Breakfast at Tiffany's").  In this paper, we
-develop a new algorithm for building recommendation systems that is
-both more efficient and performs better than the existing
-state-of-the-art.
+In this paper, we develop Poisson factorization (PF) algorithms for
+recommendation.  Our algorithms easily scale to massive data and
+significantly outperform the existing state of the art.  We show that
+Poisson factorization for recommendation is tailored to real-world
+properties of user behavior data: the heterogenous interests of users,
+the varied types of items, and a realistic distribution of the finite
+resources that users have to consume items.
 
-%% \begin{figure*}[th]
+Figure 1 illustrates Poisson factorization on data from Netflix.  The
+Netflix data contains the ratings of 480,000 users on 17,000 movies,
+organized in a matrix of 8.16B cells (and containing 250M ratings).
+From these data, we extract the patterns of users' interests and the
+movies that are associated with those interests.  The left panel
+ilustrates some of those patterns---the algorithm has uncovered genres
+of comedies, classic movies, and 1980s stoner movies.
+
+The right panel illustrates how we can use these patterns to form
+recommendations for an (imaginary) user.  This user enjoys various
+types of movies, including war movies (like ``Breaker Morant'') and
+romantic dramas (like ``Leaving Las Vegas'').  Of course, she has only
+seen a handful of the available movies.  PF first uses the movies she
+has seen to infer what kinds of movies she is interested in, and then
+uses these inferred interests to suggest movies she has not yet seen.
+The list of movies at the bottom of the figure was suggested by our
+algorithm. It includes other war dramas (such as ``Apocalypse Now'')
+and other romantic movies (such as ``Breakfast at Tiffany's'').
+
+In more detail, Poisson factorization is a probabilistic model of
+users and items.  It associates each user with a latent vector of
+preferences, each item with a latent vector of attributes, and
+constrains both sets of vectors to be sparse and non-negative.  Each
+cell of the observed behavior matrix is assumed drawn from a Poisson
+distribution---an exponential family distribution over non-negative
+integers---whose parameter is a linear combination of the
+corresponding user preferences and item attributes.  The main
+computational problem is posterior inference: given an observed matrix
+of user behavior, we discover the latent attributes that describe the
+items and the latent preferences of the users in terms of those
+attributes.  For example, the components in Figure 1 (left) illustrate
+the top items for specific attribute dimensions and the plot in Figure
+1 (middle) illustrates the estimated preference vector for the given
+user.  A spike in the preference vector means that the user likes
+items with that latent attribute.
+
+To readers familiar with recommendation systems, this procedure is
+reminiscent of many variants of matrix factorization. As we show in
+\mysec{eval}, however, there are significant quantitative advantages
+of PF over classical methods for a wide variety of data sets,
+including those with implicit feedback (a binary matrix indicating
+which items users consumed) and those with explicit feedback (a matrix
+of integer ratings). PF (and its hierarchical variant HPF) performs
+significantly better than state-of-the art methods---including the
+industry standard classical matrix factorization with user and item
+biases (MF)---for data sets of users watching movies, listening to
+music, and reading scientific and newspaper articles.
+
+There are two main advantages of Poisson factorization over
+traditional methods, both of which contribute to its superior
+empirical performance.  First, it better captures real consumption
+data, specifically that users have finite (and varied) resources with
+which to view items.  To see this, we can rewrite the model as a two
+stage process where a user first decides on a budget of movies to
+watch and then spends this budget watching movies that she is
+interested in.  If the model accurately captures the distribution of
+budgets, then watched items carry more weight than unwatched items
+because unwatched items can be partially explained by a lack of
+resources. We show that classical matrix factorization fails to
+properly capture skew in user budgets, and we confirm this
+hypothesis using posterior predictive checks~\cite{Gelman:1996}, which
+explains why practitioners require complex methods for downweighting
+the zeros in the user behavior
+matrix~\cite{Hu:2008p9402,Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.
+(We used one such method when comparing to MF in Figure 1 and in the
+full study.)  Poisson factorization does not need to be patched in
+this way.
+
+The second advantage of PF algorithms is that they need only iterate
+over the viewed items in the observed matrix of user behavior, i.e.,
+the non-zero elements, even for implicit or ``positive only'' data
+sets.  (This follows from the mathematical form of the Poisson
+distribution.)  Thus, Poisson factorization takes advantage of the
+natural sparsity of user behavior data and can easily analyze massive
+real-world data.  In contrast, classical matrix factorization, which
+is based on the Gaussian distribution~\cite{Salakhutdinov:2008} (i.e.,
+squared loss), iterates over the entire matrix (especially with
+implicit data).  It does not take advantage of sparse data, and this
+makes computation difficult for even modestly sized problems.  For
+example, one cannot fit to the full Netflix data set (as in Figure 1)
+without appealing to stochastic optimization~\cite{Mairal:2010}.  We
+note that our algorithms are also amenable to stochastic optimization,
+which we can use for for data sets even larger than those we analyzed.
+
+We reviewed related work below before discussing details of the
+Poisson factorization model, including its statistical properties
+and methods for scalable inference on large data sets.
+
+\begin{figure*}[th]
+\centering
+\caption{The top 5 movies in each of the top 4 components of the user
+  $U$ illustrated in Fig~\ref{fig:movielens-illustration}.}
+\vspace{0.1cm}
+\small
+\begin{tabular}{c}
+\toprule
+\bf{``Drama, Romance''}\\
+\midrule
+Breakfast at Tiffany's\\
+Casablanca\\
+The Graduate\\
+Shakespeare in Love\\
+The African Queen\\
+\bottomrule
+\end{tabular}
+\begin{tabular}{c}
+\toprule
+\bf{``Drama''}\\
+\midrule
+Jean de Florette\\
+Manon of the Spring\\
+Diva\\
+The Return of Martin Guerre\\
+Blue Velvet\\
+\bottomrule
+\end{tabular}
+\begin{tabular}{c}
+\toprule
+\bf{``Children's Drama''}\\
+\midrule
+The Secret Garden\\
+The Secret of Roan Inish\\
+A Little Princess\\
+Fly Away Home\\
+Black Beauty\\
+\bottomrule
+\end{tabular}
+\begin{tabular}{c}
+\toprule
+\bf{``Drama, War''}\\
+\midrule
+The Bridge on the River Kwai\\
+The Right Stuff\\
+Patton\\
+The Killing Fields\\
+Gandhi\\
+\bottomrule
+\end{tabular}
+
+\end{figure*}
+
+%% \begin{figure}
 %% \centering
-%% \caption{The top 5 movies in each of the top 4 components of the user
-%%   $U$ illustrated in Fig~\ref{fig:movielens-illustration}.}
-%% \vspace{0.1cm}
-%% \small
-%% \begin{tabular}{c}
-%% \toprule
-%% \bf{``Drama, Romance''}\\
-%% \midrule
-%% Breakfast at Tiffany's\\
-%% Casablanca\\
-%% The Graduate\\
-%% Shakespeare in Love\\
-%% The African Queen\\
-%% \bottomrule
-%% \end{tabular}
-%% \begin{tabular}{c}
-%% \toprule
-%% \bf{``Drama''}\\
-%% \midrule
-%% Jean de Florette\\
-%% Manon of the Spring\\
-%% Diva\\
-%% The Return of Martin Guerre\\
-%% Blue Velvet\\
-%% \bottomrule
-%% \end{tabular}
-%% \begin{tabular}{c}
-%% \toprule
-%% \bf{``Children's Drama''}\\
-%% \midrule
-%% The Secret Garden\\
-%% The Secret of Roan Inish\\
-%% A Little Princess\\
-%% Fly Away Home\\
-%% Black Beauty\\
-%% \bottomrule
-%% \end{tabular}
-%% \begin{tabular}{c}
-%% \toprule
-%% \bf{``Drama, War''}\\
-%% \midrule
-%% The Bridge on the River Kwai\\
-%% The Right Stuff\\
-%% Patton\\
-%% The Killing Fields\\
-%% Gandhi\\
-%% \bottomrule
-%% \end{tabular}
+%% \includegraphics[width=0.5\columnwidth]{figures/movielens-user2.pdf}\\
+%% \caption{An illustration showing a subset of the highly rated movies
+%%   of a selected user $U$ in the MovieLens data set~\cite{Herlocker:1999},
+%%   and a subset of the movies in the top 15 recommended to the user by
+%%   our algorithm. The expected user's $K$-vector of weights $\theta_u$,
+%%   inferred by our algorithm is shown. In our analysis, $K$ was set to
+%%   100.}
+%% \label{fig:movielens-illustration}
+%% \end{figure}
 
-%% \end{figure*}
 
 %%
 %%\begin{figure}
@@ -98,92 +189,41 @@ state-of-the-art.
 %%\end{figure}
 
 
-Currently, the workhorse method for recommendation systems is matrix
-factorization (MF). MF represents users and items with low dimensional
-vectors and computes the affinity between a user and item (that is,
-whether the user will like it) with the dot product of their
-respective representations.  MF is typically fit with squared loss,
-where the algorithm finds representations that minimize the squared
-difference between the predicted value and the observed rating.  (This
-corresponds to a Gaussian model of the
-data~\cite{Salakhutdinov:2008}.)  MF has been extended in many ways to
-implement modern recommendation
-systems~\cite{Dror:2012,Koren:2008,Rendle:2009,Stern:2009p9238}.
+
+%% \begin{figure*}[t!]
+%% \includegraphics[width=\textwidth]{figures/user_activity_cdf.pdf}
+%% \caption{Empirical complimentary cumulative distributions of user
+%%   activity on each data set. Each curve shows the fraction of users
+%%   who have consumed at least a given number of items. For instance,
+%%   slightly less than half of all Netflix users have rated at least
+%%   100 movies.}
+%% \label{fig:marginals}
+%% \end{figure*}
+
+
+%% \begin{figure*}[t!]
+%%   \includegraphics[width=\textwidth]{figures/user_activity.pdf}
+%%   \caption{Empirical distributions of user activity on each
+%%     dataset. Each plot shows the number of users who have rated a given
+%%     number of items. For instance, slightly less than half of all
+%%     Netflix users have rated at least 100 movies.}
+%% \label{fig:marginals}
+%% \end{figure*}
+
 
 \begin{figure}[t!]
-\centering
-\includegraphics[width=0.5\columnwidth]{figures/movielens-user2.pdf}\\
-\caption{An illustration showing a subset of the highly rated movies
-  of a selected user $U$ in the MovieLens data set~\cite{Herlocker:1999},
-  and a subset of the movies in the top 15 recommended to the user by
-  our algorithm. The expected user's $K$-vector of weights $\theta_u$,
-  inferred by our algorithm is shown. In our analysis, $K$ was set to
-  100.}
-\label{fig:movielens-illustration}
-\end{figure}
-
-However, the assumptions behind traditional MF are fundamentally
-flawed when analyzing real-world user behavior data.  In real-world
-data, each user has only rated a small subset of the large population
-of available items. An item a user did \textit{not} rate can arise in
-two ways: either she considered it and chose not to rate it or she did
-not consider it at all.  Each user has a limited budget (of money,
-attention, or time) and therefore most of the unrated items in the
-matrix arise from users not considering (as opposed to actively disliking) them.
-
-The issue with traditional MF is that it treats all the missing cells
-as observations, as though every user has enough attention to consider
-every available item and decide whether to rate it.  Thus, the missing
-cells are seen as evidence for users not liking the items, and this
-significantly biases the learned representations.  To address the
-problem, researchers have patched MF in a variety of ways, for example
-by artificially down-weighting the contribution of the unrated items~\cite{Hu:2008p9402},
-by sub-sampling from the unrated items to give equal weight to the
-rated items~\cite{Gantner:2012p9364,Dror:2012a}, or by explicitly modeling the unrated
-items as missing data~\cite{Paquet:2013p9197}.
-
-This issue is particularly critical when analyzing binary data, such
-as product purchases or webpage clicks.  Binary behavior data records
-whether each user consumed an item but does provide a rating.
-Building recommendation systems from such matrices is known as
-one-class collaborative filtering or recommendation with implicit
-feedback~\cite{Hu:2008p9402,Paquet:2013p9197}.
-
-In this paper, we develop a Bayesian Poisson factorization model as an
-alternative to traditional MF for building recommendation systems.
-Our model implicitly assumes that each user has a limited budget with
-which to consume items~\cite{Goodhardt:1984}, and thus an item that a
-user has consumed provides a stronger signal about her preferences
-than an item that a user has not consumed.  With several kinds of data
-sets---users rating movies~\cite{Herlocker:1999,Koren:2009}, users
-listening to songs~\cite{Bertin-Mahieux:2011}, and users reading
-scientific papers~\cite{Jack:2010}---we demonstrate that Poisson
-factorization leads to better recommendations than both traditional
-matrix factorization and its variants that adjust for sparse data.
-
-Furthermore, Poisson factorization is computationally more efficient
-than traditional MF.  Most algorithms for fitting MF must iterate over
-all user/item pairs, which is expensive for even modestly-sized user
-behavior matrices and cannot take advantage of the sparsity of the
-data~\cite{Hu:2008p9402}.  (To address this issue, practical applications of matrix
-factorization rely on stochastic optimization~\cite{Mairal:2010}.)  In
-this paper, we derive efficient variational inference algorithms for
-Poisson factorization that take advantage of the sparsity of the
-data. Our algorithms need only iterate over the non-zero entries of
-the user behavior matrix.  This lets us handle data at a scale that
-basic (non-stochastic) MF algorithms cannot handle.
-
-
-
-\begin{figure*}[t!]
-\includegraphics[width=\textwidth]{figures/user_activity_cdf.pdf}
-\caption{Empirical complimentary cumulative distributions of user
-  activity on each data set. Each curve shows the fraction of users
-  who have consumed at least a given number of items. For instance,
-  slightly less than half of all Netflix users have viewed at least
-  100 movies.}
+  \centering
+  \includegraphics[width=0.4\textwidth]{figures/user_activity_sim_netflix.pdf}
+  \caption{The distribution of total ratings for the Netflix dataset.
+    The pink curve shows the empirical count of the number of users
+    who have rated a given number of items, while the green and blue
+    curves show the simulated totals from fitted Poisson and
+    traditional matrix factorization models, respectively. The Poisson
+    marginal closely matches the empirical, whereas traditional matrix
+    factorization fits a large mean to account for skew in the
+    distribution.}
 \label{fig:marginals}
-\end{figure*}
+\end{figure}
 
 %% \begin{figure*}[t!]
 %% \includegraphics[width=0.33\textwidth]{figures/marginals/echonest.pdf}
@@ -200,8 +240,6 @@ basic (non-stochastic) MF algorithms cannot handle.
 %%   to the empirical mode than the Gaussian distribution.}
 %% \label{fig:marginals}
 %% \end{figure*}
-
-% prem: no longer use stochastic 
 
 %% Further speed-ups using stochastic variational
 %% inference~\cite{Hoffman:2013} let us fit Poisson factorization models

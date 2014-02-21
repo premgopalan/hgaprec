@@ -115,68 +115,52 @@ methods for scalable inference on large data sets.
 
 \begin{figure*}[th]
 \centering
-\caption{The top 5 movies in each of the top 4 components of the user
-  $U$ illustrated in Fig~\ref{fig:movielens-illustration}.}
+\caption{The top movies in 3 components of the user $U$ illustrated in
+  Fig~\ref{fig:movielens-illustration}.}
 \vspace{0.1cm}
 \small
 \begin{tabular}{c}
 \toprule
-\bf{``Drama, Romance''}\\
+\bf{``Action''}\\
 \midrule
-Breakfast at Tiffany's\\
-Casablanca\\
-The Graduate\\
-Shakespeare in Love\\
-The African Queen\\
+The Matrix\\
+The Matrix: Reloaded\\
+Spider-Man\\
+X2: X-Men United\\
 \bottomrule
 \end{tabular}
 \begin{tabular}{c}
 \toprule
-\bf{``Drama''}\\
+\bf{``Comedy, Romance''}\\
 \midrule
-Jean de Florette\\
-Manon of the Spring\\
-Diva\\
-The Return of Martin Guerre\\
-Blue Velvet\\
+Grosse Pointe Blank\\
+Four Weddings and a Funeral\\
+High Fidelity\\
+Much Ado About Nothing\\
 \bottomrule
 \end{tabular}
 \begin{tabular}{c}
 \toprule
-\bf{``Children's Drama''}\\
+\bf{``Science Fiction''}\\
 \midrule
-The Secret Garden\\
-The Secret of Roan Inish\\
-A Little Princess\\
-Fly Away Home\\
-Black Beauty\\
+Star Wars: Episode IV: A New Hope\\
+Star Wars: Episode VI: Return of the Jedi\\
+Star Wars: Episode V: The Empire Strikes Back\\
+Back to the Future Part II\\
 \bottomrule
 \end{tabular}
-\begin{tabular}{c}
-\toprule
-\bf{``Drama, War''}\\
-\midrule
-The Bridge on the River Kwai\\
-The Right Stuff\\
-Patton\\
-The Killing Fields\\
-Gandhi\\
-\bottomrule
-\end{tabular}
-
 \end{figure*}
 
-%% \begin{figure}
-%% \centering
-%% \includegraphics[width=0.5\columnwidth]{figures/movielens-user2.pdf}\\
-%% \caption{An illustration showing a subset of the highly rated movies
-%%   of a selected user $U$ in the MovieLens data set~\cite{Herlocker:1999},
-%%   and a subset of the movies in the top 15 recommended to the user by
-%%   our algorithm. The expected user's $K$-vector of weights $\theta_u$,
-%%   inferred by our algorithm is shown. In our analysis, $K$ was set to
-%%   100.}
-%% \label{fig:movielens-illustration}
-%% \end{figure}
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth]{figures/netflix-exploratory.pdf}\\
+\caption{An illustration showing a subset of the highly rated movies
+  of a selected user in the Netflix data set~\cite{Koren:2009}, and
+  some of the top movies recommended to the user by our algorithm. The
+  expected user's $K$-vector of weights $\theta_u$, inferred by our
+  algorithm is shown. In our analysis, $K$ was set to 100.}
+\label{fig:netflix-illustration}
+\end{figure*}
 
 
 %%
@@ -219,7 +203,7 @@ Gandhi\\
 
 \begin{figure}[t!]
   \centering
-  \includegraphics[width=0.4\textwidth]{figures/user_activity_sim_netflix.pdf}
+%%  \includegraphics[width=0.4\textwidth]{figures/user_activity_sim_netflix.pdf}
   \caption{The distribution of total ratings for the Netflix dataset.
     The pink curve shows the empirical count of the number of users
     who have rated a given number of items, while the green and blue

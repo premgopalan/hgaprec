@@ -70,8 +70,24 @@ their model. Both BPF and HPF does not immediately fall out of their
 framework, and placing Bayesian nonparametric priors on our models is
 an ongoing research effort.
 
+Probabilistic Matrix Factorization~\cite{Salakhutdinov:2008a} (PMF)
+places spherical Gaussian priors on the latent user preferences and
+latent item attributes, and is aimed at factorizing explicit feedback.
+PMF uses gradient descent for inference, while the fully Bayesian
+treatment uses an Monte Carlo Markov Chain (MCMC) algorithm
+~\cite{Salakhutdinov:2008}.  In \mysec{eval}, we show significantly
+improved performance compared to gradient descent algorithm while the
+MCMC algorithm scales poorly to our datasets.
+
+With implicit feedback, researchers have proposed treating the data as
+indication of positive and negative preference associated with varying
+confidence levels~\cite{Hu:2008p9402}.
+
+
 We discuss further differences between our method and previous work on
 matrix factorization in the empirical results below.
+
+
 
 % !!! add reference to canny's click data
 % !!! add reference to SIGIR

@@ -115,9 +115,9 @@ competing methods:
     stochastic variational inference~\cite{Hoffman:2010a} to
     approximate these intractable posteriors.
 
-  \item {\bf MF}: Matrix Factorization with user and item biases. We
-    use a variant of matrix factorization popularized through the
-    Netflix Prize~\cite{Koren:2009}, where a linear
+  \item {\bf PMF}: Probabilistic Matrix Factorization with user and
+    item biases. We use a variant of matrix factorization popularized
+    through the Netflix Prize~\cite{Koren:2009}, where a linear
     predictor---comprised of a constant term, user activity and item
     popularity biases, and a low-rank interaction term---is fit to
     minimize the mean squared error between the predicted and observed
@@ -125,8 +125,8 @@ competing methods:
     overfitting. Weights are randomly initialized and updated via
     stochastic gradient descent using the Vowpal Wabbit
     package~\cite{Weinberger:2009}. This corresponds to maximum
-    a-posteriori inference for a Gaussian likelihood model.
-
+    a-posteriori inference under Probabilistic Matrix
+    Factorization~\cite{Salakhutdinov:2008a}.
 \end{itemize}
 
 We note that while HPF, BPF, and LDA take only the non-zero observed
@@ -144,14 +144,30 @@ number of items rated in the training set---and items by
 popularity---the number of training ratings an item received to
 generate negative examples.\footnote{We also compared this to a
   uniform random sampling of negative examples, but found that the
-  popularity-based sampling performed better.} We note that this
-procedure is relatively expensive for large-scale data sets, and
-results in scaling difficulties for methods such as Bayesian
-Personalized Ranking~\cite{Rendle:2009p9243,Gantner:2012p9364}, which
-iteratively performs such sampling over dozens of iterations. In
-particular, we found this prohibitive when applying the BPR
-implementation in the MyMediaLite library for the data sets considered
-here.
+  popularity-based sampling performed better.} 
+
+
+Finally, we note a couple of candidate algorithms that failed to scale
+to our data sets within a budget of 3 days.  
+
+\begin{itemize}
+\item {\bf PMF (MCMC)} The fully Bayesian treatment of the
+  Probabilistic Matrix Factorization~\cite{Salakhutdinov:2008}, uses a
+  MCMC algorithm for inference. The authors~\cite{Salakhutdinov:2008}
+  report that a single Gibbs iteration on the Netflix data set with 60
+  latent factors, requires ~30 minutes, and that they throw away the
+  first 800 samples. This implies at least 16 days of training, while
+  the HPF variational inference algorithm converges in ~13 hours on
+  the Netflix data.
+
+\item {\bf BPF} Bayesian Personalized
+  Ranking~\cite{Rendle:2009p9243,Gantner:2012p9364} optimizes a
+  ranking-based criteria using stochastic gradient descent. The
+  algorithm iteratively performs an expensive bootstrap sampling step.
+  In particular, we found this prohibitive when applying the BPR
+  implementation in the MyMediaLite library for the data sets
+  considered here.
+\end{itemize}
 
 %% expensive grid searches over parameters
 
@@ -194,10 +210,9 @@ XXX explain normalized precision XXX
 recommendations for each method and data sets. We see that HPF
 outperforms other methods on all data sets by a sizeable margin---as
 much as 8 percentage points. Likewise, HPF shows similar gains in
-recall over traditional MF approaches, indicated in
-\myfig{recall_by_M}. A relatively high fraction of items recommended
-by HPF are found to be relevant, and many relevant items are
-recommended.
+recall over PMF, indicated in \myfig{recall_by_M}. A relatively high
+fraction of items recommended by HPF are found to be relevant, and
+many relevant items are recommended.
 
 We also study precision as a function of user activity to investigate
 for which kinds of users the algorithm performs
@@ -207,10 +222,9 @@ recall at 20 recommendations for users of varying activity. HPF
 provides increasingly better performance for more active users.
 
 As expected, we see that HPF provides increasingly better
-recommendations for more active users, and that HPF outperforms MF on
+recommendations for more active users, and that HPF outperforms PMF on
 the Netflix, MovieLens, and Echo Nest data sets by this measure as
 well as mean precision across all users.
-
 
 {\bf Exploratory analysis.} The fitted model can be explored to
 discover latent structure among items and users and to confirm that

@@ -32,10 +32,10 @@ Beyond the basic data generating distribution, we place Gamma priors
 on the latent attributes and latent preferences, which encourage the
 model towards sparse representations of the users and items.
 Furthermore, we place additional priors on the user and item-specific
-scale parameter of those Gammas, which controls the average size of
-the representation.  This hierarchical structure allows us to capture
-the diversity of users, some tending to consume more than others, and
-the diversity of items, some being more popular than others.  The
+rate parameter of those Gammas, which controls the average size of the
+representation.  This hierarchical structure allows us to capture the
+diversity of users, some tending to consume more than others, and the
+diversity of items, some being more popular than others.  The
 literature on recommendation systems suggests that a good model must
 capture such heterogeneity across users and items~\cite{Koren:2009}.
 

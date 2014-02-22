@@ -30,12 +30,14 @@ replaces the Gaussian.
 
 Beyond the basic data generating distribution, we place Gamma priors
 on the latent attributes and latent preferences, which encourage the
-model towards sparse representations.  Furthermore, we place
-additional priors on the user and item-specific scale parameter of
-those Gammas, which controls the average size of the representation.
-This hierarchical structure allows us to capture the diversity of
-users, some tending to consume more than others, and the diversity of
-items, some being more popular than others.
+model towards sparse representations of the users and items.
+Furthermore, we place additional priors on the user and item-specific
+scale parameter of those Gammas, which controls the average size of
+the representation.  This hierarchical structure allows us to capture
+the diversity of users, some tending to consume more than others, and
+the diversity of items, some being more popular than others.  The
+literature on recommendation systems suggests that a good model must
+capture such heterogeneity across users and items~\cite{Koren:2009}.
 
 Putting this together, the generative process of the hierarchical
 Poisson factorization model (HPF) is as follows:
@@ -64,9 +66,9 @@ parameters for all users and items to the same pair of
 hyperparameters. We call this model Bayesian Poisson Factorization
 (BPF).
 
-The key computational problem is posterior inference, which is akin to
-``reversing'' the generative process.  Given a user behavior matrix,
-we want to estimate the conditional distribution of the latent
+The central computational problem is posterior inference, which is
+akin to ``reversing'' the generative process.  Given a user behavior
+matrix, we want to estimate the conditional distribution of the latent
 per-user and per-item structure, $p(\theta_{1:N} \beta_{1:M} \g y)$.
 The posterior is the key to recommendation.  We estimate the posterior
 expectation of each user's preferences, each items attributes and,
@@ -74,8 +76,6 @@ subsequently, form predictions about which unconsumed items each user
 will like.  We discuss our posterior inference algorithm in detail in
 \mysec{inference}.  Figure 1 illustrates posterior estimates of
 $\beta$ and $\theta$ on Netflix data.
-
-% !!! I AM HERE
 
 % jmh: the below seemed out of place, and is repeated in the algorithm
 % section just before empirical results, which seems like a better
@@ -97,101 +97,112 @@ $\beta$ and $\theta$ on Netflix data.
 %% presently unconsumed items each user will likely consume in the
 %% future.
 
-A good collaborative filtering model must capture two basic features
-of user and item interactions. First, for any given observation
-$y_{ui}$, we expect only a small fraction of the user $u$'s factors
-and the item $i$'s factors to be relevant. This favors sparsity in the
-weights. Second, there are systematic patterns in the data due to
-universally popular items and highly active users. The literature on
-recommendation systems suggests that a good model must capture such
-heterogeneity across users and items~\cite{Koren:2009}. We therefore
-extend the Poisson factorization model with a hierarchical prior
-structure. We describe our model, and then discuss how it captures the
-above properties.
+\subsection{Properties of HPF}
 
-The HPF model is more powerful than the BPF because it allows for the
-sharing of statistical strength. In the HPF, for example, learning
-about the number of items consumed by one set of users provides weak,
-indirect evidence relevant to other users consumption. This can
-improve predictions, especially for users with little activity. A
-similar argument favors hierarchy over item popularities.
+With the modeling details in place, we highlight several statistical
+properties of hierarchical Poisson factorization.  These properties
+provide advantages over classical (Gaussian) factorization, and
+form the basis for scalable algorithms.
 
-\subsection{Statistical properties of the HPF model}
-With the modeling details in place, we highlight statistical
-properties of HPF that provide advantages over classical matrix
-factorization, and form the basis for scalable inference.
+{\bf HPF captures sparse factors}.  As we mentioned above, the
+  Gamma priors on preferences and attributes encourages sparse
+  representations of users and items.  Specifically, by setting the
+  shape parameter $a$ to be small, most of the weights will be close
+  to zero and only a few will be large.
 
-{\bf Sparse factors}.
-To enforce sparse user and item factors, the model places a \gam~prior
-on the independent weight components. The \gam~rate parameters capture
-the magnitude of user $u$'s activity and item $i$'s popularity,
-respectively. The \gam~prior on the rate parameter $\xi_u$ governing
-each user $u$ or $\eta_i$ governing each item $i$ accommodates
-heterogeneity in user activity and item popularity. The prior on
-$\xi_u$ captures the uncertainty around user $u$'s consumption rate or
-activity; the prior on $\eta_i$ captures the uncertainty around item
-$i$'s popularity among users. Notice that we fix the shape parameters
-and share them across users and items.
+% dmb: !!! above, cite something for this property.  without even
+% looking at it, citing johnson and kotz (continuous multivariate
+% distributions) is probably safe.
 
-Parameterized in terms of a shape parameter $a$ and an inverse scale
-parameter $\frac{a}{b}$, the Gamma distribution has a mean of $b$ and
-a variance of $\frac{b^2}{a}$. For a small shape $a$, most of the
-weights will be close to zero, and only a few will be large, resulting
-in a sparse representation.
+{\bf HPF models the long-tail of users and items}.  One statistical
+characteristic of real-world user behavior data is the distribution of
+user activity (i.e., how many items a user consumed) and item
+popularity (i.e., how many users consumed an item).  These
+distributions tend to be long-tailed: while most users consume a
+handful few items, a few ``tail users'' consume thousands of items.  A
+question we can ask of a statistical model of user behavior data is
+how well it captures these distributions.  We found that HPF captures
+them very well, while classical matrix factorization does not.
 
+To check this, we implemented a visual \textit{posterior predictive
+  check}~\cite{Rubin:1984,Gelman:1996} (PPC), a technique for model
+assessment from the Bayesian statistics literature.  The idea behind a
+PPC is to simulate a complete data set from the posterior predictive
+distribution, the distribution over data that the posterior induces,
+and then compare the generated data set to the true observations in
+relevant ways.  A good model will produce data that captures the
+important characteristics of the observed data.
 
-{\bf Modeling the long-tail}.
-Figure 3 shows the distributions of user activity on large, real-world
-ratings data sets. These distributions are long-tailed: while most
-users consume a handful few items, a few ``tail users'' consume
-thousands of items. Under the BPF and the HPF, the marginal
-distribution of each user's ratings, with the item weights held fixed,
-is a negative binomial.  Let $y_{u} = \sum_{i} y_{ui}$ be the sum of
-the ratings for user $u$.  Since each of the terms in the sum is a
-Poisson distribution with rate $\theta_u^\top \beta_i$, the sum is
-itself a Poisson random variable~\cite{Johnson:2005}.
-\begin{equation}
-  y_u \sim \poisson\left(\theta_u^\top (\textstyle \sum_{i} \beta_{i})\right).
-\end{equation}
-Holding the item weights fixed, note that the rate of this Poisson is
-a sum of scaled Gamma random variables $\beta_{ik} \theta_{uk}$, which
-is itself a Gamma variable~\cite{Norman:1994}.  Thus the marginal
-distribution of $y_u$ is from an integrated Gamma-Poisson
-distribution, which is a negative binomial~\cite{Gelman:1995}.
+We developed a PPC for matrix factorization algorithms on user
+behavior data.  First, we formed posterior estimates of user
+preferences and item attributes for both classical MF and HPF.  Then,
+from these estimates, we generated a new user behavior matrix by
+drawing values for each user and item.  (For classical matrix
+factorization, we truncated these values at zero and rounded to one in
+order to generate a plausible matrix.)  Finally, we visually compared
+the matrix generated by the posterior predictive distribution to the
+true observations.
 
-The negative binomial is a long-tailed distribution that is known to
-fit user activity well~\cite{Goodhardt:1984,Dunning:1993}.  Figure 3
-shows that the HPF provides good fits to the distribution of user
-activity on real-world data.  Classical matrix factorization is based
-on Gaussian likelihoods, and the marginal distribution of total user
-ratings is a Gaussian.  The Gaussian is a poor choice for modeling
-long-tailed distributions. Further, it places probability mass on
-negative numbers, a setting that never occurs. While we have focused
-on user activity here, the same is true for the marginal distribution
-of item popularities under Poisson factorization.
+Figure 3 illustrates our PPC for the Netflix data.  In this figure, we
+illustrate three distributions over user activity: the observed
+distribution (squares), the distribution from a data set replicated by
+HPF (red line), and a distribution from a data set replicated by
+classical MF (blue line).  HPF captures the truth much more closely
+than classical MF, which badly overestimates the distribution of user
+activity.  (We note that this is true for the item popularities as
+well, and for the other data sets.)  This indicates that HPF gives
+better fit to real data when measured by its ability to capture
+distributions of user activity and item popularity.
 
-{\bf Down-weighting the effect of zeros.}
-An added benefit of appropriately modeling the skew in user activity
-and item popularity is that the model implicitly down-weights the
-contribution of the items that each user did not consume. The reason
-is that the model has two ways of explaining the observation that a
-user has not consumed an item: either she is not interested in it or
-she would be but has already consumed her allotted negative-binomial
-number.  In contrast, a user that consumes an item must be interested
-in it.  Thus, the model benefits more from making a consumed user/item
-pair more similar than making an unconsumed user/item pair less
-similar.
+% Figure 3 shows the distributions of user activity on large,
+% real-world ratings data sets. Under the BPF and the HPF, the
+% marginal distribution of each user's ratings, with the item weights
+% held fixed, is a negative binomial.  Let $y_{u} = \sum_{i} y_{ui}$
+% be the sum of the ratings for user $u$.  Since each of the terms in
+% the sum is a Poisson distribution with rate $\theta_u^\top \beta_i$,
+% the sum is itself a Poisson random variable~\cite{Johnson:2005}.
+% \begin{equation}
+%   y_u \sim \poisson\left(\theta_u^\top (\textstyle \sum_{i} \beta_{i})\right).
+% \end{equation}
+% Holding the item weights fixed, note that the rate of this Poisson
+% is a sum of scaled Gamma random variables $\beta_{ik} \theta_{uk}$,
+% which is itself a Gamma variable~\cite{Norman:1994}.  Thus the
+% marginal distribution of $y_u$ is from an integrated Gamma-Poisson
+% distribution, which is a negative binomial~\cite{Gelman:1995}.
 
-Classical matrix factorization is based on Gaussian likelihoods (i.e.,
-squared loss), which gives equal weight to consumed and unconsumed
-items.  Consequently, when faced with a sparse matrix and implicit
-feedback, i.e., binary consumption data, matrix factorization places
-more total emphasis on the unconsumed user/item pairs.  To address
-this, researchers have patched the model in complex ways, for example,
-by including per-observation confidences~\cite{Koren:2009} or
-considering all zeroes to be hidden variables~\cite{Paquet:2013p9197}.
-Poisson factorization more naturally solves this problem by better
-capturing each user's rate of consumption.
+% The negative binomial is a long-tailed distribution that is known to
+% fit user activity well~\cite{Goodhardt:1984,Dunning:1993}.  Figure 3
+% shows that the HPF provides good fits to the distribution of user
+% activity on real-world data.  Classical matrix factorization is
+% based on Gaussian likelihoods, and the marginal distribution of
+% total user ratings is a Gaussian.  The Gaussian is a poor choice for
+% modeling long-tailed distributions. Further, it places probability
+% mass on negative numbers, a setting that never occurs. While we have
+% focused on user activity here, the same is true for the marginal
+% distribution of item popularities under Poisson factorization.
+
+{\bf HPF downweights the effect of zeros.}  Another advantage of HPF
+is that it implicitly down-weights the contribution of the items that
+each user did not consume.  With an appropriate fit to user activity,
+the model has two ways of explaining an unconsumed item: either the
+user is not interested in it or she would be interested in it but is
+likely to not be further active. In contrast, a user that consumes an
+item must be interested in it.  Thus, the model benefits more from
+making a consumed user/item pair more similar than making an
+unconsumed user/item pair less similar.
+
+Classical MF is based on Gaussian likelihoods (i.e., squared loss),
+which gives equal weight to consumed and unconsumed items.
+Consequently, when faced with a sparse matrix and implicit feedback,
+i.e., binary consumption data, matrix factorization places more total
+emphasis on the unconsumed user/item pairs.  (This too can be seen to
+stem from classical MF's overestimation of the distribution of user
+activity.)  To address this, researchers have patched the model in
+complex ways, for example, by including per-observation
+confidences~\cite{Koren:2009} or considering all zeroes to be hidden
+variables~\cite{Paquet:2013p9197}.  Poisson factorization more
+naturally solves this problem by better capturing each user's rate of
+consumption.
 
 As an example, consider two similar science fiction movies, ``Star
 Wars'' and ``The Empire Strikes Back'', and consider a user who has
@@ -206,11 +217,15 @@ watching ``Star Wars''. Further, because the movies are similar, this
 increases the Poisson model's predictive score that a user who watches
 ``Star Wars'' will also watch ``The Empire Strikes Back''.
 
-{\bf Fast inference with sparse matrices.}
-The likelihood of the observed data under the BPF and the HPF depends
-only on the consumed items, that is, the non-zero elements of the
-user/item matrix $y$.  Given the latent variables $\theta_u$ and
-$\beta_i$, the Poisson distribution of $y_{ui}$ is
+{\bf Fast inference with sparse matrices.}  Finally, the likelihood of
+the observed data under HPF (and BPF) depends only on the consumed
+items, that is, the non-zero elements of the user/item matrix $y$.
+This facilates computation for the kind of sparse matrices that we
+tend to observe in real-world data.
+
+We can see this property from the form of the Poisson distribution.
+Given the latent preferences $\theta_u$ and latent attributes
+$\beta_i$, the Poisson distribution of the rating $y_{ui}$ is
 \begin{equation}
   p(y_{ui} \g \theta_u, \beta_i) =
   \left(\theta_u^\top \beta_i\right)^y
@@ -225,15 +240,12 @@ complete matrix $y$ is
   \right) \\
   & -
   \left(\textstyle\sum_{u} \theta_u\right)^\top \left(\textstyle
-    \sum_{i} \beta_i\right).
+    \sum_{i} \beta_i\right). \nonumber
 \end{align}
-That this likelihood depends only on the non-zero elements facilitates
-inference with sparse matrices.  In contrast, classical matrix
-factorization methods, especially when applied to
-massive data sets, must address the zeros either through
-sub-sampling~\cite{Dror:2012a} or approximation~\cite{Hu:2008p9402}.
 
-% dmb: above, maybe add a comment above that this is a heavy-tailed
-% realistic distribution for consumer data.  cite goodhardt 1984
-% again.
-
+Classical MF does not enjoy this property. These methods, especially
+when applied to massive data sets of implicit feedback, must (in
+theory) iterate over all the cells of the matrix.  Practitioners
+require solutions such as sub-sampling~\cite{Dror:2012a}
+approximation~\cite{Hu:2008p9402}, or stochastic
+optimization~\cite{Mairal:2010}.

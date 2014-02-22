@@ -1,4 +1,4 @@
-\section{Variational Inference}
+\subsection{Inference with variational methods}
 \label{sec:inference}
 In the above section we discussed the process for and properties of
 generating ratings from the HPF model assuming known model
@@ -66,7 +66,7 @@ not random---the posterior distribution of $z_{ui}$ will place all its
 mass on the zero vector.  Consequently, our inference procedure need
 only consider $z_{ui}$ for those user/item pairs where $y_{ui} > 0$.
 
-\subsection{Mean-field variational inference} The latent variables in
+\paragraph{Mean-field variational inference} The latent variables in
 the model are user weights $\theta_{uk}$, item weights $\beta_{ik}$,
 and user-item contributions $z_{uik}$, which we represent as a
 $K$-vector of counts $z_{ui}$.  The mean-field family considers these
@@ -98,7 +98,7 @@ mean-field factorization facilitates both optimizing the variational
 objective and downstream computations with the approximate posterior,
 such as the recommendation score of \myeq{score}.
 
-\subsection{Complete conditionals}
+\paragraph{Complete conditionals}
 
 Variational inference fits the variational parameters to minimize
 their KL divergence to the posterior.  For a large class of models, we
@@ -160,7 +160,7 @@ distribution of a set of Poisson variables, given their sum, is a
 multinomial for which the parameter is their normalized set of rates.
 See~\cite{Johnson:2005} (and Appendix A).
 
-\subsection{Variational algorithm}
+\paragraph{Variational algorithm}
 We now derive variational inference for the HPF. First, we set each
 factor in the mean-field family (\myeq{q}) to be the same type of
 distribution as its complete conditional.  The complete conditionals

@@ -103,10 +103,10 @@ for (dataset in c("echonest", "nyt", "netflix", "mendeley", "netflix45")) {
         hits.by.user <- compute.hits.by.user(predictions)
 
         precision.by.user <- merge(hits.by.user, users, by="user", all.x=T)
-        precision.by.user <- transform(precision.by.user, precision=hits/num.recs)
+        #precision.by.user <- transform(precision.by.user, precision=hits/num.recs)
         precision.by.user <- merge(precision.by.user, test.users, by="user", all.x=T)
-	#precision.by.user$precision <- apply(precision.by.user[,c('num.test.items','num.recs')],1,min)
-        #precision.by.user <- transform(precision.by.user, precision=hits/precision)
+	precision.by.user$precision <- apply(precision.by.user[,c('num.test.items','num.recs')],1,min)
+        precision.by.user <- transform(precision.by.user, precision=hits/precision)
         precision.by.user$method <- toupper(method)
         precision.by.user$K <- K
         precision.by.user$dataset <- dataset

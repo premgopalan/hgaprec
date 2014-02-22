@@ -18,7 +18,7 @@ others fixed.  A \textit{complete conditional} is the conditional
 distribution of a latent variable given the observations and the other
 latent variables in the model.  A conditionally conjugate model is one
 where each complete conditional is in an exponential family (such as a
-Gaussian, Gamma, Poisson, multinomial, or others).  This is a large
+Gaussian, Gamma, Poisson, etc.).  This is a large
 class of models.
 
 The HPF, with the $z_{ui}$ variables described in \mysec{inference},
@@ -42,13 +42,13 @@ weights $\beta_{ik}$ act as ``exposure'' variables~\cite{Gelman:1995}.
 (The roles are reversed in the item weight distribution.) We can
 similarly write down the complete conditionals for the user activity
 $\xi_u$ and the item popularity $\eta_i$.
-\begin{align}
+\begin{align*}
   \label{eq:user-weight-cc}
   \xi_{u} \g \theta \sim
   \gam(a' + \textstyle Ka, b' + \sum_{k} \theta_{uk}).\nonumber\\
   \eta_{i} \g \beta \sim
   \gam(c' + \textstyle Kc, d' + \sum_{k} \beta_{ik}).\nonumber\\
-\end{align}
+\end{align*}
 
 The final latent variables are the auxiliary variables.  Recall that
 each $z_{ui}$ is a $K$-vector of Poisson counts that sum to the
@@ -89,7 +89,7 @@ conditional.\footnote{It is a little more complex then this.  We must
   be working with the natural parameterization of the corresponding
   exponential families.  For details, see~\cite{Hoffman:2013}.}  The
 parameter to each complete conditional is a function of the other
-latent variables (by definition) and the mean-field family sets all
+latent variables and the mean-field family sets all
 the variables to be independent.  These facts guarantee that the
 parameter we are optimizing will not appear in the expected parameter.
 

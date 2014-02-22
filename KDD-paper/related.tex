@@ -62,14 +62,6 @@ network data~\cite{Gopalan:2013}.  As with GaP, this model is
 unregularized and the authors fit the model with maximum likelihood
 via expectation maximization.
 
-There has been significant research on Bayesian nonparametric Poisson
-factor models. Using a Beta-Negative-Binomial process prior for
-Poisson factor analysis the authors of ~\cite{Zhou:2012} demonstrate
-that NMF, LDA and GaP are special cases of a finite approximation of
-their model. Both BPF and HPF does not immediately fall out of their
-framework, and placing Bayesian nonparametric priors on our models is
-an ongoing research effort.
-
 Probabilistic Matrix Factorization~\cite{Salakhutdinov:2008a} (PMF)
 places spherical Gaussian priors on the latent user preferences and
 latent item attributes, and is aimed at factorizing explicit feedback.
@@ -81,13 +73,34 @@ MCMC algorithm scales poorly to our datasets.
 
 With implicit feedback, researchers have proposed treating the data as
 indication of positive and negative preference associated with varying
-confidence levels~\cite{Hu:2008p9402}.
+confidence levels~\cite{Hu:2008p9402}. These confidence levels try to
+adjust for the overweighting of the zeros, as discussed in
+\mysec{model}. Poisson factorization does not require such special
+treating of the zeros.
 
+There has been significant research on Bayesian nonparametric Poisson
+factor models. Using a Beta-Negative-Binomial process prior for
+Poisson factor analysis the authors of ~\cite{Zhou:2012} demonstrate
+that NMF, LDA and GaP are special cases of a finite approximation to
+their model. Inference for the models in~\cite{Zhou:2012} do not scale
+to the size of datasets we consider here.
+
+A number of collaborative filtering algorithms are based on the
+assumption that missing ratings are missing at
+random~\cite{Marlin:2012}. Both theory and practice have shown that
+incorrect assumptions about missing data can lead to biased
+predictions~\cite{Marlin:2009}. We note that the BPF and the HPF
+naturally accomodate all user/item matrix entries as observations. As
+future work, the methods developed here could provide better models
+that incorporate both the user bias towards higher ratings for
+non-zero entries; and a limited user budget.
+
+%%done: Marlin:2009,Marlin:2012,
+
+%% TODO: Elkan:2008
 
 We discuss further differences between our method and previous work on
-matrix factorization in the empirical results below.
-
-
+matrix factorization in \mysec{eval}.
 
 % !!! add reference to canny's click data
 % !!! add reference to SIGIR

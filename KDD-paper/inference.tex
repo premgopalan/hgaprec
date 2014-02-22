@@ -3,7 +3,7 @@
 
 Using HPF for recommendation hinges on solving the posterior inference
 problem.  Given a set of observed ratings, we would like to infer the
-user preferenecs and item attributes that explain these ratings, and
+user preferences and item attributes that explain these ratings, and
 then use these inferences to recommend new content to the users.  In
 this section we discuss the details and practical challenges of
 posterior inference for HPF, and present a mean-field variational
@@ -47,7 +47,7 @@ recommendation~\cite{Paquet:2013p9197}.
 %% users from the matrix and updates its estimates of the latent
 %% representations.
 
-We will describe a simple variational inference algortihm for HPF.  To
+We will describe a simple variational inference algorithm for HPF.  To
 do so, however, we first give an alternative formulation of the model
 in which we add an additional layer of latent variables.  These
 auxiliary variables allow us to take advantage of some general results
@@ -133,7 +133,7 @@ parameter.  The variational factors for preferences $\theta_{uk}$,
 attributes $\beta_{ik}$, activity $\xi_u$, and popularity $\eta_i$ are
 all Gamma distributions.  (Thus their corresponding variational
 parameters are freely set scales and rates.)  The variational factor
-for $z_{ui}$ is a free muiltinomial, i.e., $\phi_{ui}$ is a $K$-vector
+for $z_{ui}$ is a free multinomial, i.e., $\phi_{ui}$ is a $K$-vector
 that sums to one.  This form stems from $z_{ui}$ being a bank of
 Poisson variables conditional on a fixed sum $y_{ui}$, and the
 property that such conditional Poissons are distributed as a

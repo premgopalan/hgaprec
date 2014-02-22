@@ -14,19 +14,18 @@ hundreds of thousands of items on a single CPU.
 Given an observed matrix of user behavior $y$, we would like to
 compute the posterior distribution of user preferences $\theta_{uk}$,
 item attributes $\beta_{ik}$, user activity $\xi_{u}$ and item
-popularity $\eta_i$,
-\begin{equation*}
-  p(\theta, \beta, \xi, \eta \g y) = \frac{p(\theta | \xi) p(\xi)
-    p(\eta) p(\beta | \eta) p(y \g \theta, \beta, \xi, \eta)}
-  {\int_{\theta} \int_{\xi} \int_{\eta} \int_{\beta} p(\theta |
-    \xi) p(\xi) p(\beta) p(\beta | \eta) p(y \g \theta, \beta, \xi, \eta)}.
-\end{equation*}
-As for many Bayesian models of interest, however, the posterior is
-intractable to compute exactly.  The problem is with the denominator,
-which is the marginal probability of the observed matrix and involves
-a complicated and high-dimensional integral.  In this section, we show
-how to efficiently approximate the posterior with mean-field
-variational inference.
+popularity $\eta_i$.  As for many Bayesian models of interest,
+however, the posterior is intractable to compute exactly. We show how
+to efficiently approximate the posterior with mean-field variational
+inference.
+
+% \begin{equation*}
+%   p(\theta, \beta, \xi, \eta \g y) = \frac{p(\theta | \xi) p(\xi) 
+%     p(\eta) p(\beta | \eta) p(y \g \theta, \beta, \xi, \eta)}
+%   {\int_{\theta} \int_{\xi} \int_{\eta} \int_{\beta} p(\theta |
+%     \xi) p(\xi) p(\beta) p(\beta | \eta) p(y \g \theta, \beta, \xi, \eta)}. 
+% \end{equation*}
+
 
 Variational inference is an optimization-based strategy for
 approximating posterior distributions in complex probabilistic
@@ -36,9 +35,9 @@ indexed by free ``variational'' parameters, and then find the member
 of that family that is closest in KL divergence to the true posterior.
 (The form of the family is chosen to make this optimization possible.)
 Thus, variational inference turns the inference problem into an
-optimization problem.  Variational algorithms tend to scale better
+optimization problem.  Variational inference tends to scale better
 than alternative sampling-based approaches, like Monte Carlo Markov
-chain sampling, and have been deployed to solve many applied problems
+chain sampling, and has been deployed to solve many applied problems
 with complex models, including large-scale
 recommendation~\cite{Paquet:2013p9197}.
 
@@ -48,7 +47,7 @@ recommendation~\cite{Paquet:2013p9197}.
 %% users from the matrix and updates its estimates of the latent
 %% representations.
 
-We will derive a simple variational inference algortihm for HPF.  To
+We will describe a simple variational inference algortihm for HPF.  To
 do so, however, we first give an alternative formulation of the model
 in which we add an additional layer of latent variables.  These
 auxiliary variables allow us to take advantage of some general results
@@ -67,10 +66,10 @@ $z_{ui}$ will place all its mass on the zero vector.  Consequently,
 our inference procedure need only consider $z_{ui}$ for those
 user/item pairs where $y_{ui} > 0$.
 
-With these latent variables in place, we now develop the inference
-algorithm.  First, we posit the variational family over the hidden
-variables.  Then we show how to optimize its parameters to find the
-member close to the posterior of interest.
+With these latent variables in place, we now describe the algorithm.
+First, we posit the variational family over the hidden variables.
+Then we show how to optimize its parameters to find the member close
+to the posterior of interest.
 
 The latent variables in the model are user weights $\theta_{uk}$, item
 weights $\beta_{ik}$, and user-item contributions $z_{uik}$, which we
@@ -86,157 +85,59 @@ governed by its own distribution,
 \end{align}
 Though the variables are independent, this is a flexible family of
 distributions because each variable is governed by its own free
-parameter.  (We postpone specifying the forms of each of these factors
-to below.)
+parameter.  The variational factors for preferences $\theta_{uk}$,
+attributes $\beta_{ik}$, activity $\xi_u$, and popularity $\eta_i$ are
+all Gamma distributions.  (Thus their corresponding variational
+parameters are freely set scales and rates.)  The variational factor
+for $z_{ui}$ is a free muiltinomial, i.e., $\phi_{ui}$ is a $K$-vector
+that sums to one.  This form stems from of $z_{ui}$ being a bank of
+Poisson variables conditional on a fixed sum $y_{ui}$, and the
+property that such conditional Poissons are distributed as a
+multinomial.
+
+% dmb: !!! above cite something for this fact.
+
+% \begin{equation*}
+%   \nu^* = \arg \min_\nu \textrm{KL}(q(\beta,
+%   \theta, \kappa, \tau, z \g \nu) || p(\beta, \theta, \kappa, \tau, z \g y)). 
+% \end{equation*}
+
 
 After specifying the family, we fit the variational parameters $\nu =
 \{\lambda, \gamma, \kappa, \tau, \phi\}$ to minimize the KL divergence
-to the posterior
-\begin{equation*}
-  \nu^* = \arg \min_\nu \textrm{KL}(q(\beta,
-  \theta, \kappa, \tau, z \g \nu) || p(\beta, \theta, \kappa, \tau, z \g y)).
-\end{equation*}
-We then use the corresponding variational distribution $q(\cdot \g
-\nu^*)$ as a proxy for the posterior.\footnote{In fact, variational
-  inference optimizes an equivalent objective that is the KL
-  divergence up to an additive constant.  But this detail is not
+to the posterior, and then use the corresponding variational
+distribution $q(\cdot \g \nu^*)$ as its proxy.\footnote{In fact,
+  variational inference optimizes an equivalent objective that is the
+  KL divergence up to an additive constant.  But this detail is not
   needed here.}  The mean-field factorization facilitates both
 optimizing the variational objective and downstream computations with
 the approximate posterior, such as the recommendation score of
 \myeq{score}.
 
-\paragraph{Complete conditionals}
+% dmb: !!! myeq{score} seems undefined.
 
-Variational inference fits the variational parameters to minimize
-their KL divergence to the posterior.  For a large class of models, we
-can easily perform this optimization with a coordinate-ascent
-algorithm, one in which we iteratively optimize each variational
-parameter while holding the others fixed.  Specifically, we appeal to
-general results about the class of \textit{conditionally conjugate}
-models~\cite{Ghahramani:2001,Hoffman:2013}.  We define the class, show
-that the HPF is in the class, and then give the variational inference
-algorithm.
+We optimize the variational parameters with a coordinate ascent
+algorithm, iteratively optimizing each parameter while holding the
+others fixed.  The algorithm is illustrated in \myfig{batch}.  (We
+give a detailed derivation in the Appendix.)
 
-A \textit{complete conditional} is the conditional distribution of a
-latent variable given the observations and the other latent variables
-in the model.  A conditionally conjugate model is one where each
-complete conditional is in an exponential family (such as a Gaussian,
-Gamma, Poisson, multinomial, or others).  This is a large class of
-models.
+Note that our algorithm is very efficient on sparse matrices. In step
+1, we need only update variational multinomials for the non-zero
+user/item observations $y_{ui}$.  In steps 2 and 3, the sums over
+users and items need only to consider non-zero observations.  This
+efficiency is thanks the likelihood of the full matrix only depending
+on the non-zero observations, as we discussed in the previous section.
 
-The HPF, with the $z_{ui}$ variables described above, is a
-conditionally conjugate model.  (Without the auxiliary variables, it
-is not conditionally conjugate.) For the user weights $\theta_{uk}$,
-the complete conditional is a Gamma,
-\begin{equation}
-  \label{eq:user-weight-cc}
-  \theta_{uk} \g \beta, \xi, z, y \sim
-  \gam(a + \textstyle \sum_{i} z_{uik}, \xi_u + \sum_{i} \beta_{ik}).
-\end{equation}
-The complete conditional for item weights $\beta_{ik}$ is symmetric,
-\begin{equation}
-  \label{eq:item-weight-cc}
-  \beta_{ik} \g \theta, \eta, z, y \sim
-  \gam(a + \textstyle \sum_{u} z_{uik}, \eta_i + \sum_{i} \theta_{uk}).
-\end{equation}
-These distributions stem from conjugacy properties between the Gamma
-and Poisson. In the user weight distribution, for example, the item
-weights $\beta_{ik}$ act as ``exposure'' variables~\cite{Gelman:1995}.
-(The roles are reversed in the item weight distribution.) We can
-similarly write down the complete conditionals for the user activity
-$\xi_u$ and the item popularity $\eta_i$.
-\begin{align}
-  \label{eq:user-weight-cc}
-  \xi_{u} \g \theta \sim
-  \gam(a' + \textstyle Ka, b' + \sum_{k} \theta_{uk}).\nonumber\\
-  \eta_{i} \g \beta \sim
-  \gam(c' + \textstyle Kc, d' + \sum_{k} \beta_{ik}).\nonumber\\
-\end{align}
+% We note that fitting classical matrix factorization with squared loss
+% must iteratively consider every cell of the matrix, both zeros and
+% non-zeros. This makes MF difficult to fit with large matrices, though
+% there are innovative solutions based on stochastic
+% optimization~\cite{Mairal:2010}.
 
-The final latent variables are the auxiliary variables.  Recall that
-each $z_{ui}$ is a $K$-vector of Poisson counts that sum to the
-observation $y_{ui}$. The complete conditional for this vector is
-\begin{equation}
-  \label{eq:aux-cc}
-  z_{ui} \g \beta, \theta, y \sim \mult\left(y_{ui}, \frac{\theta_{u} 
-      \beta_{i}}{\textstyle \sum_{k} \theta_{uk} \beta_{ik}}\right).
-\end{equation}
-Though these variables are Poisson in the model, their complete
-conditional is multinomial.  The reason is that the conditional
-distribution of a set of Poisson variables, given their sum, is a
-multinomial for which the parameter is their normalized set of rates.
-See~\cite{Johnson:2005} (and Appendix A).
+% dmb: above, i took this out.  we spent the whole last section
+% trashing MF.  i don't think we need to repeat this point.
 
-\paragraph{Variational algorithm}
-We now derive variational inference for the HPF. First, we set each
-factor in the mean-field family (\myeq{q}) to be the same type of
-distribution as its complete conditional.  The complete conditionals
-for the item weights $\beta_{ik}$ and user weights $\theta_{uk}$ are
-Gamma distributions (Equations \ref{eq:user-weight-cc} and
-\ref{eq:item-weight-cc}); thus the variational parameters
-$\lambda_{ik}$ and $\gamma_{uk}$ are Gamma parameters, each containing
-a shape and a rate.  Similarly, the variational user activity
-parameters $\kappa_u$ and the variational item popularity parameter
-$\tau_i$ are Gamma parameters, each containing a shape and a rate.
-The complete conditional of the auxiliary variables $z_{uik}$ is a
-multinomial (\myeq{aux-cc}); thus the variational parameter
-$\phi_{ui}$ is a multinomial parameter, a point on the $K$-simplex,
-and the variational distribution for $z_{ui}$ is $\mult(y_{ui},
-\phi_{ui})$.
-
-In coordinate ascent we iteratively optimize each variational
-parameter while holding the others fixed.  In conditionally conjugate
-models, this amounts to setting each variational parameter equal to
-the expected parameter (under $q$) of the complete
-conditional.\footnote{It is a little more complex then this.  We must
-  be working with the natural parameterization of the corresponding
-  exponential families.  For details, see~\cite{Hoffman:2013}.}  The
-parameter to each complete conditional is a function of the other
-latent variables (by definition) and the mean-field family sets all
-the variables to be independent.  These facts guarantee that the
-parameter we are optimizing will not appear in the expected parameter.
-
-
-For the user and item weights, we update the variational shape and
-rate parameters.  (We denote shape with the superscript ``shp'' and
-rate with the superscript ``rte''.) The updates are
-\begin{eqnarray}
-  \gamma_{uk} &=& \langle a + \textstyle \sum_{i} y_{ui} \phi_{uik},
-  b + \textstyle \sum_i \lambda_{ik}^{\shape} / \lambda_{ik}^{\rate} \rangle \\
-  \lambda_{ik} &=& \langle c + \textstyle \sum_{u} y_{ui} \phi_{uik},
-  d + \textstyle \sum_u \gamma_{ik}^{\shape} / \gamma_{ik}^{\rate} \rangle.
-\end{eqnarray}
-These are expectations of the complete conditionals in
-Equations~\ref{eq:user-weight-cc} and \ref{eq:item-weight-cc}.  In the
-shape parameter, we use that the expected count of the $k$th item in
-the multinomial is $\E_q[z_{uik}] = y_{ui} \phi_{uik}$. In the rate
-parameter, we use that the expectation of a Gamma variable is the
-shape divided by the rate.
-
-For the variational multinomial the update is
-\begin{equation}
-  \phi_{ui} \propto \exp\{\Psi(\gamma_{uk}^\shape) - \log
-  \gamma_{uk}^{\rate} + \Psi(\lambda_{ik}^\shape) - \log
-  \lambda_{ik}^\rate\},
-\end{equation}
-where $\Psi(\cdot)$ is the digamma function (the first derivative of
-the log $\Gamma$ function).  This update comes from the expectation of
-the log of a Gamma variable, for example $\E_q[\log \theta_{uk}] =
-\Psi(\gamma_{nk}^\shape) - \log \gamma_{nk}^{\rate}$.
-
-The coordinate ascent algorithm iteratively executes these updates
-(see \myfig{batch}).  This algorithm is very efficient on sparse
-matrices. In step 1, the algorithm only needs to update variational
-multinomials for the non-zero user/item observations $y_{ui}$.  In
-steps 2 and 3, the sums over users and items also only need to
-consider non-zero observations.  In contrast, fitting a traditional
-matrix factorization with squared loss must iteratively consider every
-cell of the matrix, both zeros and non-zeros. This makes matrix
-factorization difficult to fit with large matrices, though there are
-innovative solutions based on stochastic
-optimization~\cite{Mairal:2010}.
-
-\begin{figure}
+\begin{figure}[th]
   \begin{framed}
     For all users and items, initialize the user parameters
     $\gamma_u$, $\kappa_u^{\rate}$ and item parameters $\lambda_i$,
@@ -274,7 +175,7 @@ optimization~\cite{Mairal:2010}.
       \end{align}
     \end{enumerate}
 \end{framed}
-\caption{\label{fig:batch}Batch variational inference for Poisson
+\caption{\label{fig:batch}Variational inference for Poisson
   factorization.  Each iteration only needs to consider the non-zero
   elements of the user/item matrix.}
 \end{figure}
@@ -288,11 +189,131 @@ optimization~\cite{Mairal:2010}.
 %% parameters of all users and items using the multinomial $\phi_{ui}$
 %% parameters.
 
-We terminate the training process when the HPF algorithm
-converges. The convergence is measured by computing the prediction
-accuracy on our validation set. We approximate the probability that a
-user consumed an item using the variational approximations to
-posterior expectations of $\theta_u$ and $\beta_i$, and compute the
-average predictive log likelihood of the validation ratings. The HPF
-algorithm stops when the change in log likelihood is less than
-0.0001\%.
+We terminate the algorithm when the variational distribution
+converges. Convergence is measured by computing the prediction
+accuracy on a validation set.  Specifically, we approximate the
+probability that a user consumed an item using the variational
+approximations to posterior expectations of $\theta_u$ and $\beta_i$,
+and compute the average predictive log likelihood of the validation
+ratings. The HPF algorithm stops when the change in log likelihood is
+less than 0.0001\%.
+
+% !!! DMB: clean up and move this to an appendix
+
+% \paragraph{Complete conditionals}
+
+% Variational inference fits the variational parameters to minimize
+% their KL divergence to the posterior.  For a large class of models, we
+% can easily perform this optimization with a coordinate-ascent
+% algorithm, one in which we iteratively optimize each variational
+% parameter while holding the others fixed.  Specifically, we appeal to
+% general results about the class of \textit{conditionally conjugate}
+% models~\cite{Ghahramani:2001,Hoffman:2013}.  We define the class, show
+% that the HPF is in the class, and then give the variational inference
+% algorithm.
+
+% A \textit{complete conditional} is the conditional distribution of a
+% latent variable given the observations and the other latent variables
+% in the model.  A conditionally conjugate model is one where each
+% complete conditional is in an exponential family (such as a Gaussian,
+% Gamma, Poisson, multinomial, or others).  This is a large class of
+% models.
+
+% The HPF, with the $z_{ui}$ variables described above, is a
+% conditionally conjugate model.  (Without the auxiliary variables, it
+% is not conditionally conjugate.) For the user weights $\theta_{uk}$,
+% the complete conditional is a Gamma,
+% \begin{equation}
+%   \label{eq:user-weight-cc}
+%   \theta_{uk} \g \beta, \xi, z, y \sim
+%   \gam(a + \textstyle \sum_{i} z_{uik}, \xi_u + \sum_{i} \beta_{ik}).
+% \end{equation}
+% The complete conditional for item weights $\beta_{ik}$ is symmetric,
+% \begin{equation}
+%   \label{eq:item-weight-cc}
+%   \beta_{ik} \g \theta, \eta, z, y \sim
+%   \gam(a + \textstyle \sum_{u} z_{uik}, \eta_i + \sum_{i} \theta_{uk}).
+% \end{equation}
+% These distributions stem from conjugacy properties between the Gamma
+% and Poisson. In the user weight distribution, for example, the item
+% weights $\beta_{ik}$ act as ``exposure'' variables~\cite{Gelman:1995}.
+% (The roles are reversed in the item weight distribution.) We can
+% similarly write down the complete conditionals for the user activity
+% $\xi_u$ and the item popularity $\eta_i$.
+% \begin{align}
+%   \label{eq:user-weight-cc}
+%   \xi_{u} \g \theta \sim
+%   \gam(a' + \textstyle Ka, b' + \sum_{k} \theta_{uk}).\nonumber\\
+%   \eta_{i} \g \beta \sim
+%   \gam(c' + \textstyle Kc, d' + \sum_{k} \beta_{ik}).\nonumber\\
+% \end{align}
+
+% The final latent variables are the auxiliary variables.  Recall that
+% each $z_{ui}$ is a $K$-vector of Poisson counts that sum to the
+% observation $y_{ui}$. The complete conditional for this vector is
+% \begin{equation}
+%   \label{eq:aux-cc}
+%   z_{ui} \g \beta, \theta, y \sim \mult\left(y_{ui}, \frac{\theta_{u} 
+%       \beta_{i}}{\textstyle \sum_{k} \theta_{uk} \beta_{ik}}\right).
+% \end{equation}
+% Though these variables are Poisson in the model, their complete
+% conditional is multinomial.  The reason is that the conditional
+% distribution of a set of Poisson variables, given their sum, is a
+% multinomial for which the parameter is their normalized set of rates.
+% See~\cite{Johnson:2005} (and Appendix A).
+
+% \textbf{The variational algorithm.}  We now derive variational
+% inference for the HPF. First, we set each factor in the mean-field
+% family (\myeq{q}) to be the same type of distribution as its complete
+% conditional.  The complete conditionals for the item weights
+% $\beta_{ik}$ and user weights $\theta_{uk}$ are Gamma distributions
+% (Equations \ref{eq:user-weight-cc} and \ref{eq:item-weight-cc}); thus
+% the variational parameters $\lambda_{ik}$ and $\gamma_{uk}$ are Gamma
+% parameters, each containing a shape and a rate.  Similarly, the
+% variational user activity parameters $\kappa_u$ and the variational
+% item popularity parameter $\tau_i$ are Gamma parameters, each
+% containing a shape and a rate.  The complete conditional of the
+% auxiliary variables $z_{uik}$ is a multinomial (\myeq{aux-cc}); thus
+% the variational parameter $\phi_{ui}$ is a multinomial parameter, a
+% point on the $K$-simplex, and the variational distribution for
+% $z_{ui}$ is $\mult(y_{ui}, \phi_{ui})$.
+
+% In coordinate ascent we iteratively optimize each variational
+% parameter while holding the others fixed.  In conditionally conjugate
+% models, this amounts to setting each variational parameter equal to
+% the expected parameter (under $q$) of the complete
+% conditional.\footnote{It is a little more complex then this.  We must
+%   be working with the natural parameterization of the corresponding
+%   exponential families.  For details, see~\cite{Hoffman:2013}.}  The
+% parameter to each complete conditional is a function of the other
+% latent variables (by definition) and the mean-field family sets all
+% the variables to be independent.  These facts guarantee that the
+% parameter we are optimizing will not appear in the expected parameter.
+
+
+% For the user and item weights, we update the variational shape and
+% rate parameters.  (We denote shape with the superscript ``shp'' and
+% rate with the superscript ``rte''.) The updates are
+% \begin{eqnarray}
+%   \gamma_{uk} &=& \langle a + \textstyle \sum_{i} y_{ui} \phi_{uik},
+%   b + \textstyle \sum_i \lambda_{ik}^{\shape} / \lambda_{ik}^{\rate} \rangle \\
+%   \lambda_{ik} &=& \langle c + \textstyle \sum_{u} y_{ui} \phi_{uik},
+%   d + \textstyle \sum_u \gamma_{ik}^{\shape} / \gamma_{ik}^{\rate} \rangle.
+% \end{eqnarray}
+% These are expectations of the complete conditionals in
+% Equations~\ref{eq:user-weight-cc} and \ref{eq:item-weight-cc}.  In the
+% shape parameter, we use that the expected count of the $k$th item in
+% the multinomial is $\E_q[z_{uik}] = y_{ui} \phi_{uik}$. In the rate
+% parameter, we use that the expectation of a Gamma variable is the
+% shape divided by the rate.
+
+% For the variational multinomial the update is
+% \begin{equation}
+%   \phi_{ui} \propto \exp\{\Psi(\gamma_{uk}^\shape) - \log
+%   \gamma_{uk}^{\rate} + \Psi(\lambda_{ik}^\shape) - \log
+%   \lambda_{ik}^\rate\},
+% \end{equation}
+% where $\Psi(\cdot)$ is the digamma function (the first derivative of
+% the log $\Gamma$ function).  This update comes from the expectation of
+% the log of a Gamma variable, for example $\E_q[\log \theta_{uk}] =
+% \Psi(\gamma_{nk}^\shape) - \log \gamma_{nk}^{\rate}$.

@@ -1,4 +1,4 @@
-\section{The Variational algorithm}
+%\section{The Variational algorithm}
 Given an observed matrix of user behavior $y$, we would like to
 compute the posterior distribution of user preferences $\theta_{uk}$,
 item attributes $\beta_{ik}$, user activity $\xi_u$ and item
@@ -10,7 +10,7 @@ models~\cite{Ghahramani:2001,Hoffman:2013}.  We define the class, show
 that the HPF is in the class, and then derive the variational
 inference algorithm.
 
-\paragraph{Complete conditionals}
+{\bf Complete conditionals.}
 Variational inference fits the variational parameters to minimize
 their KL divergence to the posterior. For a large class of models, we
 can easily perform this optimization with a coordinate-ascent
@@ -67,7 +67,7 @@ distribution of a set of Poisson variables, given their sum, is a
 multinomial for which the parameter is their normalized set of
 rates. (See ~\cite{Johnson:2005, Cemgil:2009}.)
 
-\paragraph{Deriving the algorithm}
+{\bf Deriving the algorithm.}
 We now derive variational inference for the HPF. First, we set each
 factor in the mean-field family (\myeq{q}) to be the same type of
 distribution as its complete conditional.  The complete conditionals

@@ -1,25 +1,3 @@
-
-\begin{comment}
-  * details of datasets
-    * variety of activities
-    * different balance of user, item, density
-    * different meaning to ratings
-    * implicit vs explicit (be clear about netflix)
-  * preprocessing
-  * baselines
-    * NMF
-    * LDA
-    * MF (sampling schemes)
-    * train/test methology
-  * performance
-    * overall dominance (draw distinction btwn HPF and BPF?)
-    * no need to sample (time savings)
-    * default hyperparameters vs. grid search
-    * failing of bpr
-    * variation by user activity (helping head vs. tail)
-  * exploratory
-\end{comment}
-
 \begin{figure*}[t!]
 \centering
 \includegraphics[width=\textwidth]{figures/mean_precision_at_20.pdf}\\
@@ -70,8 +48,8 @@ of our algorithm. The Mendeley, Echo Nest, and New York Times data
 sets are sparse in comparison to the movie data. For example, we
 observe only 0.001\% of all possible user-item ratings in Mendeley,
 while 1\% of the ratings are non-zero in the Netflix data. This is
-partially a reflection of large number of articles relative to number
-users in the Mendeley data.
+partially a reflection of large number of items relative to number
+users in these data sets.
 
 Furthermore, the intent signaled by an observed rating varies
 significantly across these data sets. For instance, the Netflix data
@@ -87,20 +65,20 @@ information about their preferences.
 
 As such, we treat each data set as a source of implicit feedback,
 where an observed positive rating indicates that a user likes a
-particular item, but the rating value is ignored. The Mendeley data
-are already of this simple binary form. For the Echo Nest and New York
-Times data, we consider any song play or article click as a positive
-rating, regardless of the play or click count. We also consider two
-versions of the Netflix data---the original, explicit ratings, and an
-implicit version in which only 4 and 5 star ratings are retained as
-observations~\cite{Paquet:2013p9197}.
+particular item, but the rating value itself is ignored. The Mendeley
+data are already of this simple binary form. For the Echo Nest and New
+York Times data, we consider any song play or article click as a
+positive rating, regardless of the play or click count. We also
+consider two versions of the Netflix data---the original, explicit
+ratings, and an implicit version in which only 4 and 5 star ratings
+are retained as observations~\cite{Paquet:2013p9197}.
 
 
 {\bf Baselines.} We compare Poisson factorization against an array of
 competing methods:
 \begin{itemize}
   \item {\bf NMF}: Non-negative Matrix
-    Factorization~\cite{Lee:1999}. In NMF, user interests and item
+    Factorization~\cite{Lee:1999}. In NMF, user preferences and item
     attributes are modeled as non-negative vectors in a
     low-dimensional space. These latent vectors are randomly
     initialized and modified via an alternating multiplicative update
@@ -108,20 +86,20 @@ competing methods:
     actual and modeled rating matrices.
 
   \item {\bf LDA}: Latent Dirichlet Allocation~\cite{Blei:2003b}. LDA
-    is a Bayesian probabilistic generative model where user interests
+    is a Bayesian probabilistic generative model where user preferences
     are represented by a distribution over different topics, and each
     topic is a distribution over items. Interest and topic
     distributions are randomly initialized and updated using
     stochastic variational inference~\cite{Hoffman:2010a} to
     approximate these intractable posteriors.
 
-  \item {\bf PMF}: Probabilistic Matrix Factorization with user and
-    item biases. We use a variant of matrix factorization popularized
-    through the Netflix Prize~\cite{Koren:2009}, where a linear
-    predictor---comprised of a constant term, user activity and item
-    popularity biases, and a low-rank interaction term---is fit to
-    minimize the mean squared error between the predicted and observed
-    rating values, subject to L2 regularization to avoid
+  \item {\bf MF (or PMF)}: Probabilistic Matrix Factorization with
+    user and item biases. We use a variant of matrix factorization
+    popularized through the Netflix Prize~\cite{Koren:2009}, where a
+    linear predictor---comprised of a constant term, user activity and
+    item popularity biases, and a low-rank interaction term---is fit
+    to minimize the mean squared error between the predicted and
+    observed rating values, subject to L2 regularization to avoid
     overfitting. Weights are randomly initialized and updated via
     stochastic gradient descent using the Vowpal Wabbit
     package~\cite{Weinberger:2009}. This corresponds to maximum
@@ -131,11 +109,12 @@ competing methods:
 
 We note that while HPF, BPF, and LDA take only the non-zero observed
 ratings as input, traditional matrix factorization requires that we
-provide explicit zeros in the ratings matrix as negative examples. In
-practice, this amounts to either treating all missing ratings as zeros
-(as in NMF) and down-weighting to balance the relative importance of
-observed and missing ratings~\cite{Hu:2008p9402}, or generating
-negatives by randomly sampling from missing ratings in the training
+provide explicit zeros in the ratings matrix as negative examples,
+even in the implicit feedback setting. In practice, this amounts to
+either treating all missing ratings as zeros (as in NMF) and
+down-weighting to balance the relative importance of observed and
+missing ratings~\cite{Hu:2008p9402}, or generating negatives by
+randomly sampling from missing ratings in the training
 set~\cite{Dror:2012a}.
 
 We take the latter approach for computational convenience, employing a
@@ -164,12 +143,23 @@ to our data sets within a budget of 3 days.
   Ranking~\cite{Rendle:2009p9243,Gantner:2012p9364} optimizes a
   ranking-based criteria using stochastic gradient descent. The
   algorithm iteratively performs an expensive bootstrap sampling step.
-  In particular, we found this prohibitive when applying the BPR
-  implementation in the MyMediaLite library for the data sets
-  considered here.
+  In particular, we found this to be prohibitive when attempting to
+  use BPR with the data sets considered here.
 \end{itemize}
 
-%% expensive grid searches over parameters
+%% jake: i merged this para into above; note: i removed the point
+%% about ``dozens of iterations''
+
+%% We note that this
+%% procedure is relatively expensive for large-scale data sets, and
+%% results in scaling difficulties for methods such as Bayesian
+%% Personalized Ranking (BPR)~\cite{Rendle:2009p9243,Gantner:2012p9364},
+%% which iteratively perform such sampling over dozens of iterations. In
+%% particular, we found this to be prohibitive when attempting to use BPR
+%% with the data sets considered here.
+
+
+%% attempted to get SIGIR code, but failed
 
 \begin{figure*}[t!]
 \centering
@@ -186,45 +176,64 @@ to our data sets within a budget of 3 days.
 comprised of items that the user has consumed. Additionally, we set
 aside 1\% of the training ratings as a validation set and use it to
 determine algorithm convergence and to tune free parameters. For HPF
-and BPF we find that the algorithm is insensitive to small changes in
-the hyper-parameters.
+and BPF we find that the algorithm is largely insensitive to small
+changes in the hyper-parameters.
 
 During testing, we generate the top $M$ recommendations for each user
-as those items with the highest predictive score under each method
-(e.g., \myeq{score} for HPF). The ranked list of items predicted for
-each user includes items in the test set, as well as items in the
-training set that were zeros. We compute normalized precision-at-$M$,
-which measures the fraction of the top $M$ recommendations present in
-the test set, varying $M$ from 10 to 100 items. Likewise, we compute
-recall-at-$M$, which captures the fraction of items in the test set
-present in the top $M$ recommendations.
+as those items with the highest predictive score under each
+method. For each user, we compute a variant of precision-at-$M$, which
+measures the fraction of relevant items in the user's top-$M$
+recommendations. So as not to artificially deflate this measurement
+for lightly active users who have consumed fewer than $M$ items, we
+compute {\it normalized} precision-at-$M$, which adjusts the
+denominator to be at most the number of items that the user has in the
+test set. Likewise, we compute recall-at-$M$, which captures the
+fraction of items in the test set present in the top $M$
+recommendations.
 
-XXX explain normalized precision XXX
-
-\begin{equation*}
-  \textrm{NormPrec}@M = \frac{|~\textrm{relevant items at $M$ recommendations}~|}
-         {\mathrm{min}(M, |~\textrm{relevant items}~|)}
-\end{equation*}
+%% \begin{equation*}
+%%   \textrm{NPrec}@M = \frac{|~\textrm{relevant items at $M$ recommendations}~|}
+%%          {\mathrm{min}(M, |~\textrm{relevant items}~|)}
+%% \end{equation*}
 
 \myfig{precision_recall} shows the normalized mean precision at 20
-recommendations for each method and data sets. We see that HPF
-outperforms other methods on all data sets by a sizeable margin---as
-much as 8 percentage points. Likewise, HPF shows similar gains in
-recall over PMF, indicated in \myfig{recall_by_M}. A relatively high
-fraction of items recommended by HPF are found to be relevant, and
-many relevant items are recommended.
+recommendations for each method and data sets. We see that HPF and BPF
+outperform other methods on all data sets by a sizeable margin---as
+much as 8 percentage points. Likewise, Poisson factorization shows
+similar gains in recall over traditional MF approaches, indicated in
+\myfig{recall_by_M}---a relatively high fraction of items recommended
+by HPF are found to be relevant, and many relevant items are
+recommended. While not shown in these plots, the relative performance
+of methods within a data set is consistent as we vary the number of
+recommendations shown to users. We also note that while Poisson
+factorization dominates across all of these data sets, the relative
+quality of recommendations from baseline methods varies substantially
+from one dataset to the next. For instance, LDA performs quite well on
+the Echo Nest data, but fails to beat classical matrix factorization
+for the implicit Netflix data set.
 
 We also study precision as a function of user activity to investigate
-for which kinds of users the algorithm performs
-well. \myfig{precision_recall_by_user_activity} highlights the results
-in further detail, showing the normalized mean precision and mean
-recall at 20 recommendations for users of varying activity. HPF
-provides increasingly better performance for more active users.
-
-As expected, we see that HPF provides increasingly better
-recommendations for more active users, and that HPF outperforms PMF on
-the Netflix, MovieLens, and Echo Nest data sets by this measure as
-well as mean precision across all users.
+how performance varies across users of different types. In particular,
+\myfig{precision_recall_by_user_activity} shows the mean normalized
+precision and mean recall at 20 recommendations as we look at
+performance for users of varying activity, measured by
+percentile. (For example, the 10\% mark shows mean performance across
+the bottom 10\% of users, who are least active; the 90\% mark shows
+the mean performance for all but the 10\% of most active users.) Here
+we see that Poisson factorization outperforms other methods for users
+of all activity levels---both the ``light'' users who constitute the
+majority, and the relatively few ``heavy'' users who consume
+more---for all data sets. For the New York Times and Netflix data, we
+see that higher levels of user activity enable us to better estimate
+user preferences and improve the quality of recommendations. For the
+Mendeley and Echo Nest data, however, we see a decline in normalized
+precision for the heavy users. Presumably this difference is due to
+the large catalogues of items relative to the number of users in these
+data sets, comparatively. (??? More nicheness of users???) We also
+note that the decrease in mean recall as we consider increasingly
+active sets of users is inevitable, as these individuals have a larger
+set of relevant items in the test set than their less active
+counterparts.
 
 {\bf Exploratory analysis.} The fitted model can be explored to
 discover latent structure among items and users and to confirm that

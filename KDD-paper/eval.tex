@@ -109,21 +109,21 @@ competing methods:
 
 We note that while HPF, BPF, and LDA take only the non-zero observed
 ratings as input, traditional matrix factorization requires that we
-provide explicit zeros in the ratings matrix as negative examples,
-even in the implicit feedback setting. In practice, this amounts to
-either treating all missing ratings as zeros (as in NMF) and
-down-weighting to balance the relative importance of observed and
-missing ratings~\cite{Hu:2008p9402}, or generating negatives by
-randomly sampling from missing ratings in the training
-set~\cite{Dror:2012a}.
-
+provide explicit zeros in the ratings matrix as negative examples, in
+the implicit feedback setting. In practice, this amounts to either
+treating all missing ratings as zeros (as in NMF) and down-weighting
+to balance the relative importance of observed and missing
+ratings~\cite{Hu:2008p9402}, or generating negatives by randomly
+sampling from missing ratings in the training set~\cite{Dror:2012a}.
 We take the latter approach for computational convenience, employing a
 popularity-based sampling scheme: we sample users by activity---the
 number of items rated in the training set---and items by
 popularity---the number of training ratings an item received to
 generate negative examples.\footnote{We also compared this to a
   uniform random sampling of negative examples, but found that the
-  popularity-based sampling performed better.} 
+  popularity-based sampling performed better.} Although the explicit
+feedback setting does not strictly require subsampled negative
+examples,
 
 
 Finally, we note a couple of candidate algorithms that failed to scale
@@ -136,7 +136,7 @@ to our data sets within a budget of 3 days.
   report that a single Gibbs iteration on the Netflix data set with 60
   latent factors, requires ~30 minutes, and that they throw away the
   first 800 samples. This implies at least 16 days of training, while
-  the HPF variational inference algorithm converges in ~13 hours on
+  the HPF variational inference algorithm converges within 13 hours on
   the Netflix data.
 
 \item {\bf BPR} Bayesian Personalized
@@ -177,7 +177,8 @@ comprised of items that the user has consumed. Additionally, we set
 aside 1\% of the training ratings as a validation set and use it to
 determine algorithm convergence and to tune free parameters. For HPF
 and BPF we find that the algorithm is largely insensitive to small
-changes in the hyper-parameters.
+changes in the hyper-parameters. We set the shape hyperparameters $a'$
+and $a$ to 0.3, and set hyperparameters $b'$ and $d'$ to 1.
 
 During testing, we generate the top $M$ recommendations for each user
 as those items with the highest predictive score under each

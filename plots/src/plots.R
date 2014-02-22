@@ -214,7 +214,7 @@ for (dataset in names(datasets)) {
   #  the method here is "mf" instead of "mfpop", as no negative sampling is used,
   #  so output/netflix/mf is symlinked to output/netflix/mfpop
   # in both cases the test set involves prediction of ratings >= 4 (items users "like")
-  for (method in c("bpf.hier", "bpf", "lda", "nmf", "mfpop", "mfunif")) {
+  for (method in c("bpf.hier", "bpf", "lda", "nmf", "mfpop")) {
       tsv <- sprintf('../output/%s/%s/precision.txt', dataset, method)
       if (file.exists(tsv)) {
         print(tsv)

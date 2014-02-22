@@ -88,23 +88,25 @@ for (dataset in c("echonest", "nyt", "netflix", "mendeley", "netflix45")) {
   #  the method here is "mf" instead of "mfpop", as no negative sampling is used,
   #  so output/netflix/mf is symlinked to output/netflix/mfpop
   # in both cases the test set involves prediction of ratings >= 4 (items users "like")
-  for (method in c("bpf.hier", "bpf", "lda", "nmf", "mfpop", "mfunif")) {
+  for (method in c("bpf.hier", "bpf", "lda", "nmf", "mfpop")) {
     for (K in ranks) {
       ranking.file <- sprintf('../output/%s/%s/ranking.tsv', dataset, method)
       prec.file <- sprintf('../output/%s/%s/precision.txt', dataset, method)
       recall.file <- sprintf('../output/%s/%s/recall.txt', dataset, method)
       coverage.file <- sprintf('../output/%s/%s/coverage.txt', dataset, method)
 
-      if (file.exists(ranking.file) && (!file.exists(recall.file))) {
+      if (T) {
+      #if (file.exists(ranking.file) && !file.exists(recall.file)) {
         print(ranking.file)
         predictions <- read.delim(ranking.file, sep='\t', header=F, col.names=c('user','item','predicted','actual'))
 
         hits.by.user <- compute.hits.by.user(predictions)
 
         precision.by.user <- merge(hits.by.user, users, by="user", all.x=T)
+        precision.by.user <- transform(precision.by.user, precision=hits/num.recs)
         precision.by.user <- merge(precision.by.user, test.users, by="user", all.x=T)
-	precision.by.user$precision <- apply(precision.by.user[,c('num.test.items','num.recs')],1,min)
-        precision.by.user <- transform(precision.by.user, precision=hits/precision)
+	#precision.by.user$precision <- apply(precision.by.user[,c('num.test.items','num.recs')],1,min)
+        #precision.by.user <- transform(precision.by.user, precision=hits/precision)
         precision.by.user$method <- toupper(method)
         precision.by.user$K <- K
         precision.by.user$dataset <- dataset

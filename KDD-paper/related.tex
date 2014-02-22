@@ -32,20 +32,11 @@ approximations to the posterior, though the issues and details around
 these data differ significantly from user data we consider and our
 derivation below (based on auxiliary variables) is more direct.
 
-Probabilistic Matrix Factorization~\cite{Salakhutdinov:2008a} (PMF)
-places spherical Gaussian priors on the latent user preferences and
-latent item attributes, and is aimed at factorizing explicit feedback.
-PMF uses gradient descent for inference, while the fully Bayesian
-treatment uses an Monte Carlo Markov Chain (MCMC) algorithm
-~\cite{Salakhutdinov:2008}.  In \mysec{eval}, we show significantly
-improved performance compared to gradient descent algorithm while the
-MCMC algorithm scales poorly to our datasets.
-
-With implicit feedback data sets, researchers have proposed merging
-factorization techniques with neighborhood models~\cite{Koren:2008},
-weighting techniques to adjust the relative importance of positive
-examples~\cite{Hu:2008p9402}, and sampling-based approaches to create
-informative negative
+When modeling implicit feedback data sets, researchers have proposed
+merging factorization techniques with neighborhood
+models~\cite{Koren:2008}, weighting techniques to adjust the relative
+importance of positive examples~\cite{Hu:2008p9402}, and
+sampling-based approaches to create informative negative
 examples~\cite{Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.  In
 addition to the difficulty in appropriately weighting or sampling
 negative examples, there is a known selection bias in provided ratings
@@ -53,6 +44,7 @@ that causes further complications~\cite{Marlin:2009,Marlin:2012}
 Poisson factorization does not require such special adjustments and
 scales linearly with the number of observed ratings.
 
-We discuss further differences between our method and previous work on
-matrix factorization in \mysec{eval}.
+We discuss a number of other related recommendation methods in
+\mysec{eval}, where we compare a variety of applicable methods to
+Poisson factorization empirically.
 

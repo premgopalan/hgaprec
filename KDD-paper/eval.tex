@@ -15,46 +15,46 @@
 \label{sec:eval}
 We evaluate the performance of the Hierarchical Poisson factorization
 (HPF) algorithm and its non-hierarchical variant (BPF) on a variety of
-large-scale data sets for the purpose of recommending new items to
-users. We find that HPF and BPF significantly outperform competing
-methods for generating high quality recommendations for users
-listening to music, watching movies, and reading scientific and
-newspaper articles.
+large-scale user behavior data sets: users listening to music, users
+watching movies, users reading scientific articles, and users reading
+the newspaper.  We find that HPF and BPF give significantly better
+recommendations than competing methods.
 
-We first discuss details of each data set and of competing
-recommendation methods. In particular, we note the superior
-performance and computational efficiency of Poisson factorization in
-comparison to competing methods. We conclude with an exploratory
-analysis of the preferences and attributes inferred by HPF.
+We first discuss the details of each data set and of the competing
+recommendation methods. We then describe our study, noting the
+superior performance and computational efficiency of HPF.  We conclude
+with an exploratory analysis of preferences and attributes on several
+of the data sets.
 
 {\bf Data Sets.} We study the HPF algorithm in Figure~\ref{fig:batch}
-on several data sets of user behavior that contain both implicit
-and explicit feedback:
+on several data sets of user behavior, including both implicit and
+explicit feedback:
 \begin{itemize}
 \item The {\bf Mendeley} data set~\cite{Jack:2010} of scientific
   articles is a binary matrix of 80,000 users and 260,000 articles,
-  where each of the 5 million observations corresponds to the presence
-  of an article in a user's online library.
-\item The {\bf Echo Nest} music data set~\cite{Bertin-Mahieux:2011}
-  consists of 1 million users, 385,000 distinct songs and 48 million
-  (user, song, play count) triplets.
-\item The {\bf New York Times} data set with 1,615,675 users, 103,390
-  articles, and 80 million (user, article, view count)
-  observations.
-\item The {\bf Netflix} data set~\cite{Koren:2009} consists of 480,000
-  users, 17,770 movies and 100 million ratings, where each observation
-  is an explicit rating (from 1 to 5 stars) that a user provided for
-  the given movie.
-  discarded~\cite{Paquet:2013p9197}.
+  with 5 million observations.  Each cell corresponds to the presence
+  or absence of an article in a scientist's online library.
+\item The {\bf Echo Nest} music data set~\cite{Bertin-Mahieux:2011} is
+  a matrix of 1 million users and 385,000 songs, with 48 million
+  observations.  Each observation is the number of times a user played
+  a song.
+\item The {\bf New York Times} data set is a matrix of 1,615,675 users
+  and 103,390 articles, with 80 million observations.  Each
+  observation is the number of times a user viewed an article.
+
+\item The {\bf Netflix} data set~\cite{Koren:2009} contains 480,000
+  users and 17,770 movies, with 100 million observations. Each
+  observation is the rating (from 1 to 5 stars) that a user provided
+  for a movie.
 \end{itemize}
 
 The scale and diversity of these data sets enables a robust evaluation
 of our algorithm. The Mendeley, Echo Nest, and New York Times data
-sets are sparse in comparison to the movie data. For example, we
-observe only 0.001\% of all possible user-item ratings in Mendeley,
-while 1\% of the ratings are non-zero in the Netflix data. This is
-partially a reflection of large number of items relative to number
-users in these data sets.
+sets are sparse compared to the Netflix data. For example, we observe
+only 0.001\% of all possible user-item ratings in Mendeley, while 1\%
+of the ratings are non-zero in the Netflix data. This is partially a
+reflection of large number of items relative to number users in these
+data sets.
 
 Furthermore, the intent signaled by an observed rating varies
 significantly across these data sets. For instance, the Netflix data
@@ -208,15 +208,17 @@ the mean performance for all but the top 10\% of most active users. Here
 we see that Poisson factorization outperforms other methods for users
 of all activity levels---both the ``light'' users who constitute the
 majority, and the relatively few ``heavy'' users who consume
-more---for all data sets. For the New York Times and Netflix data, we
-see that higher levels of user activity enable us to better estimate
-user preferences and improve the quality of recommendations, as
-measured by mean normalized precision. For the Mendeley and Echo Nest
-data, however, we see a decline in normalized precision for the heavy
-users. This difference is likely due to the large number of items
-relative to the largest user activity in these data sets. Even highly
-active users represent a small fraction of the total items present,
-that it is difficult to make predictions.
+more---for all data sets.
+
+For the New York Times and Netflix data, we see that higher levels of
+user activity enable us to better estimate user preferences and
+improve the quality of recommendations, as measured by mean normalized
+precision. For the Mendeley and Echo Nest data, however, we see a
+decline in normalized precision for the heavy users.  One possible
+reason for this decline is that these data sets contain many more
+items than users, and this makes prediction difficult.  For example,
+heavy users in the music data may have more diverse taste than the
+light users.
 %%
 %% Presumably this difference is due to the large catalogues of
 %% items relative to the number of users in these data sets,
@@ -227,15 +229,15 @@ increasingly active sets of users is inevitable, as these individuals
 have a larger set of relevant items in the test set than their less
 active counterparts. 
 
-\myfig{precision_recall} shows that HPF outperforms BPF on the
-Mendeley, New York Times and Echo Nest data sets in terms of mean
-normalized precision and mean recall. Knowing how many articles a user
-has read in one component, helps predict her consumption on other
-components. However, we note that HPF and BPF have similar mean
-performance on the Netflix data sets, with BPF performing slightly
-better on users with low activity. This suggests that there is less
-sharing of statistical strength among components for any given
-users on these movie datasets.
+% \myfig{precision_recall} shows that HPF outperforms BPF on the
+% Mendeley, New York Times and Echo Nest data sets in terms of mean
+% normalized precision and mean recall. Knowing how many articles a user
+% has read in one component helps predict her consumption on other
+% components. However, we note that HPF and BPF have similar mean
+% performance on the Netflix data sets, with BPF performing slightly
+% better on users with low activity. This suggests that there is less
+% sharing of statistical strength among components for any given users
+% on these movie datasets.
 
 {\bf Exploratory analysis.} The fitted model can be explored to
 discover latent structure among items and users and to confirm that

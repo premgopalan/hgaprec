@@ -3,9 +3,10 @@
 \includegraphics[width=\textwidth]{figures/mean_precision_at_20.pdf}\\
 \includegraphics[width=\textwidth]{figures/mean_recall_at_20.pdf}\\
 \caption{Predictive performance on data sets. The top and bottom plots
-  show the mean precision and mean recall at 20 recommendations,
-  respectively. While baseline performance varies across data sets,
-  HPF and BPF consistently outperform competing methods.}
+  show normalized mean precision and mean recall at 20
+  recommendations, respectively. While baseline performance varies
+  across data sets, HPF and BPF consistently outperform competing
+  methods.}
 \label{fig:precision_recall}
 \end{figure*}
 
@@ -165,8 +166,8 @@ to our data sets within a budget of 3 days.
 \includegraphics[width=\textwidth]{figures/mean_precision_at_20_by_user_percentile.pdf}\\
 \includegraphics[width=\textwidth]{figures/mean_recall_at_20_by_user_percentile.pdf}\\
 \caption{Predictive performance across users. The top and bottom plots
-  show mean precision and mean recall at 20 recommendations,
-  respectively, by user activity.}
+  show normalized mean precision and mean recall at 20
+  recommendations, respectively, by user activity.}
 \label{fig:precision_recall_by_user_activity}
 \end{figure*}
 
@@ -184,18 +185,27 @@ same settings across all data sets.
 
 During testing, we generate the top $M$ recommendations for each user
 as those items with the highest predictive score under each
-method. For each user, we compute precision-at-$M$, which
+method. For each user, we compute a variant of precision-at-$M$, which
 measures the fraction of relevant items in the user's top-$M$
-recommendations. Likewise, we compute recall-at-$M$, which captures
-the fraction of items in the test set present in the top $M$
+recommendations. So as not to artificially deflate this measurement
+for lightly active users who have consumed fewer than $M$ items, we
+compute {\it normalized} precision-at-$M$, which adjusts the
+denominator to be at most the number of items that the user has in the
+test set. Likewise, we compute recall-at-$M$, which captures the
+fraction of items in the test set present in the top $M$
 recommendations.
 
-\myfig{precision_recall} shows the mean precision and mean recall at
-20 recommendations for each method and data sets. We see that HPF and
-BPF outperform other methods on all data sets by a sizeable
-margin. Poisson factorization provides high-quality
-recommendations---a relatively high fraction of items recommended by
-HPF and BPF are found to be relevant, and many relevant items are
+%% \begin{equation*}
+%%   \textrm{NPrec}@M = \frac{|~\textrm{relevant items at $M$ recommendations}~|}
+%%          {\mathrm{min}(M, |~\textrm{relevant items}~|)}
+%% \end{equation*}
+
+\myfig{precision_recall} shows the normalized mean precision at 20
+recommendations for each method and data sets. We see that HPF and BPF
+outperform other methods on all data sets by a sizeable margin---as
+much as 8 percentage points. Poisson factorization provides high-quality
+recommendations---a relatively high fraction of items recommended
+by HPF are found to be relevant, and many relevant items are
 recommended. While not shown in these plots, the relative performance
 of methods within a data set is consistent as we vary the number of
 recommendations shown to users. We also note that while Poisson
@@ -208,33 +218,42 @@ for the implicit Netflix data set.
 We also study precision and recall as a function of user activity to
 investigate how performance varies across users of different types. In
 particular, \myfig{precision_recall_by_user_activity} shows the mean
-precision and mean recall at 20 recommendations as we look at
-performance for users of varying activity, measured by percentile. For
-example, the 10\% mark shows mean performance across the bottom 10\%
-of users, who are least active; the 90\% mark shows the mean
-performance for all but the top 10\% of most active users. Here we see
-that Poisson factorization outperforms other methods for users of all
-activity levels---both the ``light'' users who constitute the
+normalized precision and mean recall at 20 recommendations as we look
+at performance for users of varying activity, measured by
+percentile. For example, the 10\% mark shows mean performance across
+the bottom 10\% of users, who are least active; the 90\% mark shows
+the mean performance for all but the top 10\% of most active users. Here
+we see that Poisson factorization outperforms other methods for users
+of all activity levels---both the ``light'' users who constitute the
 majority, and the relatively few ``heavy'' users who consume
-more---for all data sets. Furthermore, we see that higher levels of
-user activity enable us to better estimate user preferences and
-improve the quality of recommendations, as measured by mean
-precision. We note that the decrease in mean recall as we consider
+more---for all data sets. For the New York Times and Netflix data, we
+see that higher levels of user activity enable us to better estimate
+user preferences and improve the quality of recommendations, as
+measured by mean normalized precision. For the Mendeley and Echo Nest
+data, however, we see a decline in normalized precision for the heavy
+users. This difference is likely due to the large number of items
+relative to the largest user activity in these data sets. Even highly
+active users represent a small fraction of the total items present,
+that it is difficult to make predictions.
+%%
+%% Presumably this difference is due to the large catalogues of
+%% items relative to the number of users in these data sets,
+%% comparatively. (??? More nicheness of users???) 
+%%
+We also note that the decrease in mean recall as we consider
 increasingly active sets of users is inevitable, as these individuals
 have a larger set of relevant items in the test set than their less
-active counterparts. Regardless, Poisson factorization returns a
-larger set of relevant recommendations to users compared to other
-approaches.
+active counterparts. 
 
 \myfig{precision_recall} shows that HPF outperforms BPF on the
 Mendeley, New York Times and Echo Nest data sets in terms of mean
-precision and mean recall. Knowing how many articles a user has read
-in one component helps predict her consumption on other
+normalized precision and mean recall. Knowing how many articles a user
+has read in one component, helps predict her consumption on other
 components. However, we note that HPF and BPF have similar mean
 performance on the Netflix data sets, with BPF performing slightly
 better on users with low activity. This suggests that there is less
-sharing of statistical strength among components for any given users
-on these movie datasets.
+sharing of statistical strength among components for any given
+users on these movie datasets.
 
 {\bf Exploratory analysis.} The fitted model can be explored to
 discover latent structure among items and users and to confirm that

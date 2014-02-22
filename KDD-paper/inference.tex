@@ -66,6 +66,50 @@ $z_{ui}$ will place all its mass on the zero vector.  Consequently,
 our inference procedure need only consider $z_{ui}$ for those
 user/item pairs where $y_{ui} > 0$.
 
+
+\begin{figure}[th]
+  \begin{framed}
+    For all users and items, initialize the user parameters
+    $\gamma_u$, $\kappa_u^{\rate}$ and item parameters $\lambda_i$,
+    $\tau_i^{\rate}$ to the prior with a small random offset. Set the
+    user activity and item popularity shape parameters:
+    \begin{align}
+      \kappa_u^{\shape} = a + Ka'; \quad \tau_i^{\shape} = c + Kc'\nonumber
+    \end{align}
+
+    \vspace{0.1in}
+
+    Repeat until convergence:
+    \begin{enumerate}
+    \item For each user/item such that $y_{ui} > 0$, update the multinomial:
+      \begin{equation*}
+        \phi_{ui} \propto \exp\{\Psi(\gamma_{uk}^\shape) - \log
+        \gamma_{uk}^{\rate} + \Psi(\lambda_{ik}^\shape) - \log
+        \lambda_{ik}^\rate\}.
+      \end{equation*}
+    \item For each user, update the user weight and activity parameters:
+      \begin{align}
+        \gamma_{uk}^\shape & = a + \textstyle \sum_{i} y_{ui}
+        \phi_{uik} \nonumber\\
+        \gamma_{uk}^\rate & = \frac{\kappa_u^{\shape}}{\kappa_u^{\rate}} + \textstyle \sum_i \lambda_{ik}^{\shape} / \lambda_{ik}^{\rate}\nonumber\\
+        \kappa_{u}^\rate & = b' + \sum_k \Psi(\gamma_u^{\shape}) - \log(\gamma_u^{\rate})\nonumber
+      \end{align}
+    \item For each item, update the item weight and popularity parameters:
+      \begin{align}
+        \lambda_{ik}^\shape & = c + \textstyle \sum_{u} y_{ui}
+        \phi_{uik}\nonumber\\
+        \lambda_{ik}^\rate & = \frac{\tau_i^{\shape}}{\tau_i^{\rate}} + \textstyle \sum_u
+        \gamma_{uk}^{\shape} / \gamma_{uk}^{\rate}\nonumber\\
+        \tau_{i}^\rate & = d' + \sum_k \Psi(\lambda_i^{\shape}) -
+        \log(\lambda_i^{\rate})\nonumber
+      \end{align}
+    \end{enumerate}
+\end{framed}
+\caption{\label{fig:batch}Variational inference for Poisson
+  factorization.  Each iteration only needs to consider the non-zero
+  elements of the user/item matrix.}
+\end{figure}
+
 With these latent variables in place, we now describe the algorithm.
 First, we posit the variational family over the hidden variables.
 Then we show how to optimize its parameters to find the member close
@@ -137,48 +181,6 @@ on the non-zero observations, as we discussed in the previous section.
 % dmb: above, i took this out.  we spent the whole last section
 % trashing MF.  i don't think we need to repeat this point.
 
-\begin{figure}[th]
-  \begin{framed}
-    For all users and items, initialize the user parameters
-    $\gamma_u$, $\kappa_u^{\rate}$ and item parameters $\lambda_i$,
-    $\tau_i^{\rate}$ to the prior with a small random offset. Set the
-    user activity and item popularity shape parameters:
-    \begin{align}
-      \kappa_u^{\shape} = a + Ka'; \quad \tau_i^{\shape} = c + Kc'\nonumber
-    \end{align}
-
-    \vspace{0.1in}
-
-    Repeat until convergence:
-    \begin{enumerate}
-    \item For each user/item such that $y_{ui} > 0$, update the multinomial:
-      \begin{equation*}
-        \phi_{ui} \propto \exp\{\Psi(\gamma_{uk}^\shape) - \log
-        \gamma_{uk}^{\rate} + \Psi(\lambda_{ik}^\shape) - \log
-        \lambda_{ik}^\rate\}.
-      \end{equation*}
-    \item For each user, update the user weight and activity parameters:
-      \begin{align}
-        \gamma_{uk}^\shape & = a + \textstyle \sum_{i} y_{ui}
-        \phi_{uik} \nonumber\\
-        \gamma_{uk}^\rate & = \frac{\kappa_u^{\shape}}{\kappa_u^{\rate}} + \textstyle \sum_i \lambda_{ik}^{\shape} / \lambda_{ik}^{\rate}\nonumber\\
-        \kappa_{u}^\rate & = b' + \sum_k \Psi(\gamma_u^{\shape}) - \log(\gamma_u^{\rate})\nonumber
-      \end{align}
-    \item For each item, update the item weight and popularity parameters:
-      \begin{align}
-        \lambda_{ik}^\shape & = c + \textstyle \sum_{u} y_{ui}
-        \phi_{uik}\nonumber\\
-        \lambda_{ik}^\rate & = \frac{\tau_i^{\shape}}{\tau_i^{\rate}} + \textstyle \sum_u
-        \gamma_{uk}^{\shape} / \gamma_{uk}^{\rate}\nonumber\\
-        \tau_{i}^\rate & = d' + \sum_k \Psi(\lambda_i^{\shape}) -
-        \log(\lambda_i^{\rate})\nonumber
-      \end{align}
-    \end{enumerate}
-\end{framed}
-\caption{\label{fig:batch}Variational inference for Poisson
-  factorization.  Each iteration only needs to consider the non-zero
-  elements of the user/item matrix.}
-\end{figure}
 
 %% Implemented in parallel, the coordinate updates are equal to the
 %% natural gradient of the variational objective. We found that following

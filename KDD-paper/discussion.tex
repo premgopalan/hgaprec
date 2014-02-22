@@ -1,20 +1,24 @@
 \section{Conclusion}
-
 We have demonstrated that Poisson factorization is an efficient and
 effective means of generating high quality recommendations across a
 variety of data sets ranging from movie views to scientific article
 libraries. It significantly outperforms existing recommendation
 methods on both explicit rating data and implicit behavior data,
-without the need for ad hoc modifications. The key feature that
-differentiates Poisson factorization from traditional methods is its
-ability to capture the heterogeneity amongst users and items,
+without the need for ad hoc modifications.  Poisson factorization
+algorithms scale to massive data and differ from traditional methods
+in their ability to capture the heterogeneity amongst users and items,
 accounting for the wide range of activity and popularity amongst them,
 respectively.
 
-Future work includes exploring modifications to BPF to incorporate
-additional features---e.g., user and item metadata---as well as
-stochastic inference to scale to massive data sets and non-parametric
-extensions~\cite{Zhou:2012}.
+Future work includes extensions to HPF, for example, to provide
+cold-start recommendations using text data~\cite{Wang:2011b}, and to
+infer the number of latent components using Bayesian nonparametric
+assumptions~\cite{Zhou:2012}.
+
+%% exploring modifications to BPF to incorporate
+%% additional features---e.g., user and item metadata---as well as
+%% stochastic inference to scale to massive data sets and Bayesian
+%% non-parametric extensions~\cite{Zhou:2012}.
 
 
 %% In settings where there are many more items than the typical user

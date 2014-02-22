@@ -4,16 +4,18 @@ compute the posterior distribution of user preferences $\theta_{uk}$,
 item attributes $\beta_{ik}$, user activity $\xi_u$ and item
 popularity $\eta_i$, $p(\theta, \beta, \xi, \eta \g y)$.
 
+Our derivation of the variational algorithm for the HPF makes use of
+general results about the class of \textit{conditionally conjugate}
+models~\cite{Ghahramani:2001,Hoffman:2013}.  We define the class, show
+that the HPF is in the class, and then derive the variational
+inference algorithm.
+
 \paragraph{Complete conditionals}
 Variational inference fits the variational parameters to minimize
 their KL divergence to the posterior. For a large class of models, we
 can easily perform this optimization with a coordinate-ascent
 algorithm, one in which we iteratively optimize each variational
-parameter while holding the others fixed.  Specifically, we appeal to
-general results about the class of \textit{conditionally conjugate}
-models~\cite{Ghahramani:2001,Hoffman:2013}.  We define the class, show
-that the HPF is in the class, and then give the variational inference
-algorithm.
+parameter while holding the others fixed. 
 
 A \textit{complete conditional} is the conditional distribution of a
 latent variable given the observations and the other latent variables

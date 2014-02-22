@@ -31,14 +31,14 @@ Variational inference is an optimization-based strategy for
 approximating posterior distributions in complex probabilistic
 models~\cite{Jordan:1999,Wainwright:2008}.  Variational inference
 algorithms posit a family of distributions over the hidden variables,
-indexed by free ``variational'' parameters, and then find the member
-of that family that is closest in Kullback-Liebler (KL) divergence to the true posterior.
-(The form of the family is chosen to make this optimization possible.)
-Thus, variational inference turns the inference problem into an
-optimization problem.  Variational inference tends to scale better
-than alternative sampling-based approaches, like Monte Carlo Markov
-chain sampling, and has been deployed to solve many applied problems
-with complex models, including large-scale
+indexed by free ``variational'' parameters, and then finds the member
+of that family that is closest in Kullback-Liebler (KL) divergence to
+the true posterior.  (The form of the family is chosen to make this
+optimization possible.)  Thus, variational inference turns the
+inference problem into an optimization problem.  Variational inference
+tends to scale better than alternative sampling-based approaches, like
+Monte Carlo Markov chain sampling, and has been deployed to solve many
+applied problems with complex models, including large-scale
 recommendation~\cite{Paquet:2013p9197}.
 
 % prem: remove stochastic
@@ -134,7 +134,7 @@ attributes $\beta_{ik}$, activity $\xi_u$, and popularity $\eta_i$ are
 all Gamma distributions.  (Thus their corresponding variational
 parameters are freely set scales and rates.)  The variational factor
 for $z_{ui}$ is a free muiltinomial, i.e., $\phi_{ui}$ is a $K$-vector
-that sums to one.  This form stems from of $z_{ui}$ being a bank of
+that sums to one.  This form stems from $z_{ui}$ being a bank of
 Poisson variables conditional on a fixed sum $y_{ui}$, and the
 property that such conditional Poissons are distributed as a
 multinomial~\cite{Johnson:2005, Cemgil:2009}.
@@ -200,7 +200,7 @@ less than 0.0001\%. For the HPF and the BPF we find that the algorithm
 is largely insensitive to small changes in the hyper-parameters. To
 enforce sparsity, we set the shape hyperparameters $a'$, $a$, $c$ and
 $c'$ to provide an exponentially shaped prior \gam~distribution. We
-fixed each hyperparameter at $0.3$. We set the scale parameters $b'$
-and $d'$ to 1.
+fixed each hyperparameter at $0.3$. We set the hyperparameters $b'$
+and $d'$ to 1, which fixes the prior mean at 1.
 
 % !!! DMB: clean up and move this to an appendix

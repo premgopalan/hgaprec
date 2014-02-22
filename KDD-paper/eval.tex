@@ -243,12 +243,18 @@ active counterparts.
 discover latent structure among items and users and to confirm that
 the model is capturing the components in the data in a reasonable
 way. For example, in \myfig{components} we illustrate the components
-discovered by our algorithm on the scientific articles in Mendeley,
-movies in Netflix and articles in the New York Times. For each data
-set, the illustration shows the top 10 items---items sorted in
-decreasing order of their expected weight $\beta_i$---from three of
-the 100 components discovered by our algorithm. These components
-naturally organize the movies and articles, and enable recommendation
+discovered by our algorithm on the scientific articles in Mendeley and
+news articles in the New York Times. For each data set, the
+illustration shows the top items---items sorted in decreasing order of
+their expected weight $\beta_i$---from three of the 100 components
+discovered by our algorithm. From these, we see that learned
+components both cut across and differentiate between conventional
+topics and genres. For instance, in the New York Times data, we find
+that multiple business-related topics (e.g., self help and personal
+finance), comprise separate components, whereas other articles that
+appear across different sections of the newspaper (e.g., business and
+regional news) are unified by their content (e.g., airplanes). These
+components naturally organize the articles, and enable recommendation
 of new items to the user.
 
 %% In \myfig{movielens-illustration} we show a subset of the highly rated

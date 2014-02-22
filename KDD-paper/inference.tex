@@ -74,7 +74,7 @@ user/item pairs where $y_{ui} > 0$.
     $\tau_i^{\rate}$ to the prior with a small random offset. Set the
     user activity and item popularity shape parameters:
     \begin{align}
-      \kappa_u^{\shape} = a + Ka'; \quad \tau_i^{\shape} = c + Kc'\nonumber
+      \kappa_u^{\shape} = a' + Ka; \quad \tau_i^{\shape} = c' + Kc\nonumber
     \end{align}
 
     \vspace{0.1in}
@@ -92,7 +92,7 @@ user/item pairs where $y_{ui} > 0$.
         \gamma_{uk}^\shape & = a + \textstyle \sum_{i} y_{ui}
         \phi_{uik} \nonumber\\
         \gamma_{uk}^\rate & = \frac{\kappa_u^{\shape}}{\kappa_u^{\rate}} + \textstyle \sum_i \lambda_{ik}^{\shape} / \lambda_{ik}^{\rate}\nonumber\\
-        \kappa_{u}^\rate & = b' + \sum_k \Psi(\gamma_u^{\shape}) - \log(\gamma_u^{\rate})\nonumber
+        \kappa_{u}^\rate & = \frac{a'}{b'} + \sum_k \Psi(\gamma_u^{\shape}) - \log(\gamma_u^{\rate})\nonumber
       \end{align}
     \item For each item, update the item weight and popularity parameters:
       \begin{align}
@@ -100,7 +100,7 @@ user/item pairs where $y_{ui} > 0$.
         \phi_{uik}\nonumber\\
         \lambda_{ik}^\rate & = \frac{\tau_i^{\shape}}{\tau_i^{\rate}} + \textstyle \sum_u
         \gamma_{uk}^{\shape} / \gamma_{uk}^{\rate}\nonumber\\
-        \tau_{i}^\rate & = d' + \sum_k \Psi(\lambda_i^{\shape}) -
+        \tau_{i}^\rate & = \frac{c'}{d'} + \sum_k \Psi(\lambda_i^{\shape}) -
         \log(\lambda_i^{\rate})\nonumber
       \end{align}
     \end{enumerate}

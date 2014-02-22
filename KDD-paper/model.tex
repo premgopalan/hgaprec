@@ -77,25 +77,22 @@ will like.  We discuss our posterior inference algorithm in detail in
 \mysec{inference}.  Figure 1 illustrates posterior estimates of
 $\beta$ and $\theta$ on Netflix data.
 
-% jmh: the below seemed out of place, and is repeated in the algorithm
-% section just before empirical results, which seems like a better
-% spot
 
-%% \subsection{The Posterior distribution}
 %% The posterior distribution of the latent variables $p(\theta, \beta,
 %% \xi, \eta \g y)$ embeds users and items in a latent space of
 %% $K$-dimensional positive vectors. 
 
-%% We use the HPF to recommend items to users by predicting which of the
-%% unconsumed items each will like.  We rank each user's unconsumed items
-%% by their posterior expected Poisson parameters,
-%% \begin{equation}
-%%   \label{eq:score}
-%%   \textrm{score}_{ui} = \E[\theta_u^\top \beta_i \g y].
-%% \end{equation}
-%% This amounts to asking the model to rank by probability which of the
-%% presently unconsumed items each user will likely consume in the
-%% future.
+Once the posterior is fit, we use HPF to recommend items to users by
+predicting which of the unconsumed items each will like.  We rank each
+user's unconsumed items by their posterior expected Poisson
+parameters,
+\begin{equation}
+  \label{eq:score}
+  \textrm{score}_{ui} = \E[\theta_u^\top \beta_i \g y].
+\end{equation}
+This amounts to asking the model to rank by probability which of the
+presently unconsumed items each user will likely consume in the
+future.
 
 \subsection{Properties of HPF}
 
@@ -103,15 +100,17 @@ With the modeling details in place, we highlight several statistical
 properties of hierarchical Poisson factorization.  These properties
 provide advantages over classical (Gaussian) matrix
 factorization.~\footnote{Specifically, by classical matrix
-  factorization refers to L2 regularized matrix factorization with
+  factorization we mean L2 regularized matrix factorization with
   bias terms for users and items, fit using stochastic gradient
   descent~\cite{Koren:2009}. Without the bias terms, this corresponds
   to maximum a-posteriori inference under Probabilistic Matrix
-  Factorization~\cite{Salakhutdinov:2008a}.}  {\bf HPF captures sparse
-  factors}.  As we mentioned above, the Gamma priors on preferences
-and attributes encourages sparse representations of users and items.
-Specifically, by setting the shape parameter $a$ to be small, most of
-the weights will be close to zero and only a few will be large.
+  Factorization~\cite{Salakhutdinov:2008a}.}
+
+{\bf HPF captures sparse factors}.  As we mentioned above, the Gamma
+priors on preferences and attributes encourages sparse representations
+of users and items.  Specifically, by setting the shape parameter $a$
+to be small, most of the weights will be close to zero and only a few
+will be large.
 
 % dmb: !!! above, cite something for this property.  without even
 % looking at it, citing johnson and kotz (continuous multivariate

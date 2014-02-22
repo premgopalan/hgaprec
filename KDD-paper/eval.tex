@@ -4,7 +4,7 @@
 \includegraphics[width=\textwidth]{figures/mean_recall_at_20.pdf}\\
 \caption{Predictive performance on data sets. The top and bottom plots
   show normalized mean precision and mean recall at 20
-  recommendations, respectively. While baseline performance varies
+  recommendations, respectively. While competiting method performance varies
   across data sets, HPF and BPF consistently outperform competing
   methods.}
 \label{fig:precision_recall}
@@ -16,10 +16,15 @@
 We evaluate the performance of the Hierarchical Poisson factorization
 (HPF) algorithm and its non-hierarchical variant (BPF) on a variety of
 large-scale data sets for the purpose of recommending new items to
-users. We first discuss details of each data set and of competing
+users. We find that HPF and BPF significantly outperform competing
+methods for generating high quality recommendations for users
+listening to music, watching movies, and reading scientific and
+newspaper articles.
+
+We first discuss details of each data set and of competing
 recommendation methods. In particular, we note the superior
 performance and computational efficiency of Poisson factorization in
-comparison to baseline methods. We conclude with an exploratory
+comparison to competing methods. We conclude with an exploratory
 analysis of the preferences and attributes inferred by HPF.
 
 {\bf Data Sets.} We study the HPF algorithm in Figure~\ref{fig:batch}
@@ -74,7 +79,7 @@ ratings, and an implicit version in which only 4 and 5 star ratings
 are retained as observations~\cite{Paquet:2013p9197}.
 
 
-{\bf Baselines.} We compare Poisson factorization against an array of
+{\bf Competing methods.} We compare Poisson factorization against an array of
 competing methods:
 \begin{itemize}
   \item {\bf NMF}: Non-negative Matrix
@@ -93,7 +98,7 @@ competing methods:
     stochastic variational inference~\cite{Hoffman:2010a} to
     approximate these intractable posteriors.
 
-  \item {\bf MF (or PMF)}: Probabilistic Matrix Factorization with
+  \item {\bf MF}: Probabilistic Matrix Factorization with
     user and item biases. We use a variant of matrix factorization
     popularized through the Netflix Prize~\cite{Koren:2009}, where a
     linear predictor---comprised of a constant term, user activity and
@@ -109,13 +114,14 @@ competing methods:
 
 We note that while HPF, BPF, and LDA take only the non-zero observed
 ratings as input, traditional matrix factorization requires that we
-provide explicit zeros in the ratings matrix as negative examples, in
+provide explicit zeros in the ratings matrix as negative examples for
 the implicit feedback setting. In practice, this amounts to either
 treating all missing ratings as zeros (as in NMF) and down-weighting
 to balance the relative importance of observed and missing
 ratings~\cite{Hu:2008p9402}, or generating negatives by randomly
-sampling from missing ratings in the training set~\cite{Dror:2012a}.
-We take the latter approach for computational convenience, employing a
+sampling from missing ratings in the training
+set~\cite{Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.  We take the
+latter approach for computational convenience, employing a
 popularity-based sampling scheme: we sample users by activity---the
 number of items rated in the training set---and items by
 popularity---the number of training ratings an item received to
@@ -125,39 +131,21 @@ generate negative examples.\footnote{We also compared this to a
 feedback setting does not strictly require subsampled negative
 examples,
 
-
 Finally, we note a couple of candidate algorithms that failed to scale
-to our data sets within a budget of 3 days.  
-
-\begin{itemize}
-\item {\bf PMF (MCMC)} The fully Bayesian treatment of the
-  Probabilistic Matrix Factorization~\cite{Salakhutdinov:2008}, uses a
-  MCMC algorithm for inference. The authors~\cite{Salakhutdinov:2008}
-  report that a single Gibbs iteration on the Netflix data set with 60
-  latent factors, requires ~30 minutes, and that they throw away the
-  first 800 samples. This implies at least 16 days of training, while
-  the HPF variational inference algorithm converges within 13 hours on
-  the Netflix data.
-
-\item {\bf BPR} Bayesian Personalized
-  Ranking~\cite{Rendle:2009p9243,Gantner:2012p9364} optimizes a
-  ranking-based criteria using stochastic gradient descent. The
-  algorithm iteratively performs an expensive bootstrap sampling step.
-  In particular, we found this to be prohibitive when attempting to
-  use BPR with the data sets considered here.
-\end{itemize}
-
-%% jake: i merged this para into above; note: i removed the point
-%% about ``dozens of iterations''
-
-%% We note that this
-%% procedure is relatively expensive for large-scale data sets, and
-%% results in scaling difficulties for methods such as Bayesian
-%% Personalized Ranking (BPR)~\cite{Rendle:2009p9243,Gantner:2012p9364},
-%% which iteratively perform such sampling over dozens of iterations. In
-%% particular, we found this to be prohibitive when attempting to use BPR
-%% with the data sets considered here.
-
+to our data sets. The fully Bayesian treatment of the Probabilistic
+Matrix Factorization~\cite{Salakhutdinov:2008}, uses a MCMC algorithm
+for inference. The authors~\cite{Salakhutdinov:2008} report that a
+single Gibbs iteration on the Netflix data set with 60 latent factors,
+requires ~30 minutes, and that they throw away the first 800
+samples. This implies at least 16 days of training, while the HPF
+variational inference algorithm converges within 13 hours on the
+Netflix data. Another alternative, Bayesian Personalized Ranking
+(BPR)~\cite{Rendle:2009p9243,Gantner:2012p9364}, optimizes a
+ranking-based criteria using stochastic gradient descent. The
+algorithm performs an expensive bootstrap sampling step at each
+iteration to generate negative examples from the vast set of
+unobserved. We found time and space constraints to be prohibitive when
+attempting to use BPR with the data sets considered here.
 
 %% attempted to get SIGIR code, but failed
 
@@ -206,7 +194,7 @@ recommended. While not shown in these plots, the relative performance
 of methods within a data set is consistent as we vary the number of
 recommendations shown to users. We also note that while Poisson
 factorization dominates across all of these data sets, the relative
-quality of recommendations from baseline methods varies substantially
+quality of recommendations from competing methods varies substantially
 from one dataset to the next. For instance, LDA performs quite well on
 the Echo Nest data, but fails to beat classical matrix factorization
 for the implicit Netflix data set.

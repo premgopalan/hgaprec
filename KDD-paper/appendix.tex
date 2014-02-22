@@ -11,20 +11,19 @@ inference algorithm.
 
 {\bf Complete conditionals.}  Variational inference fits the
 variational parameters to minimize their KL divergence to the
-posterior. For a large class of models, we can easily perform this
-optimization with a coordinate-ascent algorithm, one in which we
-iteratively optimize each variational parameter while holding the
-others fixed.  A \textit{complete conditional} is the conditional
-distribution of a latent variable given the observations and the other
-latent variables in the model.  A conditionally conjugate model is one
-where each complete conditional is in an exponential family (such as a
-Gaussian, Gamma, Poisson, etc.).  This is a large
-class of models.
+posterior. For the large class of conditionally conjugate models, we
+can easily perform this optimization with a coordinate-ascent
+algorithm, one in which we iteratively optimize each variational
+parameter while holding the others fixed.  A \textit{complete
+conditional} is the conditional distribution of a latent variable
+given the observations and the other latent variables in the model.  A
+conditionally conjugate model is one where each complete conditional
+is in an exponential family.
 
-HPF, with the $z_{ui}$ variables described in \mysec{inference},
-is a conditionally conjugate model.  (Without the auxiliary variables,
-it is not conditionally conjugate.) For the user weights
-$\theta_{uk}$, the complete conditional is a Gamma,
+HPF, with the $z_{ui}$ variables described in \mysec{inference}, is a
+conditionally conjugate model.  (Without the auxiliary variables, it
+is not conditionally conjugate.) For the user weights $\theta_{uk}$,
+the complete conditional is a Gamma,
 \begin{equation}
   \label{eq:user-weight-cc}
   \theta_{uk} \g \beta, \xi, z, y \sim
@@ -49,7 +48,6 @@ $\xi_u$ and the item popularity $\eta_i$.
   \eta_{i} \g \beta \sim
   \gam(c' + \textstyle Kc, d' + \sum_{k} \beta_{ik}).\nonumber\\
 \end{align*}
-
 The final latent variables are the auxiliary variables.  Recall that
 each $z_{ui}$ is a $K$-vector of Poisson counts that sum to the
 observation $y_{ui}$. The complete conditional for this vector is
@@ -84,18 +82,15 @@ and the variational distribution for $z_{ui}$ is $\mult(y_{ui},
 In coordinate ascent we iteratively optimize each variational
 parameter while holding the others fixed.  In conditionally conjugate
 models, this amounts to setting each variational parameter equal to
-the expected parameter (under $q$) of the complete
-conditional.\footnote{It is a little more complex then this.  We must
-  be working with the natural parameterization of the corresponding
-  exponential families.  For details, see~\cite{Hoffman:2013}.}  The
-parameter to each complete conditional is a function of the other
-latent variables and the mean-field family sets all
-the variables to be independent.  These facts guarantee that the
-parameter we are optimizing will not appear in the expected parameter.
+the expected parameter (under $q$) of the complete conditional.
+\footnote{It is a little more complex then this. For details, see~\cite{Hoffman:2013}.}  
+The parameter to each complete conditional is a function of the other
+latent variables and the mean-field family sets all the variables to
+be independent.  These facts guarantee that the parameter we are
+optimizing will not appear in the expected parameter.
 
 For the user and item weights, we update the variational shape and
-rate parameters.  (We denote shape with the superscript ``shp'' and
-rate with the superscript ``rte''.) The updates are
+rate parameters. The updates are
 \begin{eqnarray}
   \gamma_{uk} &=& \langle a + \textstyle \sum_{i} y_{ui} \phi_{uik},
   b + \textstyle \sum_i \lambda_{ik}^{\shape} / \lambda_{ik}^{\rate} \rangle \\

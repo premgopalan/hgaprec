@@ -19,6 +19,54 @@ properties of user behavior data: the heterogenous interests of users,
 the varied types of items, and a realistic distribution of the finite
 resources that users have to consume items.
 
+
+\begin{figure*}[th]
+\centering
+\vspace{0.1cm}
+\small
+\begin{tabular}{c}
+\toprule
+\bf{``Action''}\\
+\midrule
+The Matrix\\
+The Matrix: Reloaded\\
+Spider-Man\\
+X2: X-Men United\\
+\bottomrule
+\end{tabular}
+\begin{tabular}{c}
+\toprule
+\bf{``Indie Comedy, Romance''}\\
+\midrule
+Grosse Pointe Blank\\
+Four Weddings and a Funeral\\
+High Fidelity\\
+Much Ado About Nothing\\
+\bottomrule
+\end{tabular}
+\begin{tabular}{c}
+\toprule
+\bf{``80's Science Fiction''}\\
+\midrule
+Star Wars: Episode IV: A New Hope\\
+Star Wars: Episode VI: Return of the Jedi\\
+Star Wars: Episode V: The Empire Strikes Back\\
+Back to the Future Part II\\
+\bottomrule
+\end{tabular}
+
+\centering
+\includegraphics[width=\textwidth]{figures/netflix-exploratory.pdf}\\
+\caption{
+%The top movies in 3 components of the user $U$ illustrated in Fig~\ref{fig:movielens-illustration}.
+An illustration showing a subset of the highly rated movies
+  of a selected user in the Netflix data set~\cite{Koren:2009}, and
+  some of the top movies recommended to the user by our algorithm. The
+  expected user's $K$-vector of weights $\theta_u$, inferred by our
+  algorithm is shown. In our analysis, $K$ was set to 100.}
+\label{fig:netflix-illustration}
+\end{figure*}
+
 Figure 1 illustrates Poisson factorization on data from Netflix.  The
 Netflix data contains the ratings of 480,000 users on 17,000 movies,
 organized in a matrix of 8.16B cells (and containing 250M ratings).
@@ -112,55 +160,6 @@ use to analyze data sets even larger than those we studied.
 We reviewed related work below before discussing details of the
 Poisson factorization model, including its statistical properties and
 methods for scalable inference on large data sets.
-
-\begin{figure*}[th]
-\centering
-\caption{The top movies in 3 components of the user $U$ illustrated in
-  Fig~\ref{fig:movielens-illustration}.}
-\vspace{0.1cm}
-\small
-\begin{tabular}{c}
-\toprule
-\bf{``Action''}\\
-\midrule
-The Matrix\\
-The Matrix: Reloaded\\
-Spider-Man\\
-X2: X-Men United\\
-\bottomrule
-\end{tabular}
-\begin{tabular}{c}
-\toprule
-\bf{``Indie Comedy, Romance''}\\
-\midrule
-Grosse Pointe Blank\\
-Four Weddings and a Funeral\\
-High Fidelity\\
-Much Ado About Nothing\\
-\bottomrule
-\end{tabular}
-\begin{tabular}{c}
-\toprule
-\bf{``80's Science Fiction''}\\
-\midrule
-Star Wars: Episode IV: A New Hope\\
-Star Wars: Episode VI: Return of the Jedi\\
-Star Wars: Episode V: The Empire Strikes Back\\
-Back to the Future Part II\\
-\bottomrule
-\end{tabular}
-\end{figure*}
-
-\begin{figure*}
-\centering
-\includegraphics[width=\textwidth]{figures/netflix-exploratory.pdf}\\
-\caption{An illustration showing a subset of the highly rated movies
-  of a selected user in the Netflix data set~\cite{Koren:2009}, and
-  some of the top movies recommended to the user by our algorithm. The
-  expected user's $K$-vector of weights $\theta_u$, inferred by our
-  algorithm is shown. In our analysis, $K$ was set to 100.}
-\label{fig:netflix-illustration}
-\end{figure*}
 
 
 %%

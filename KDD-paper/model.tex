@@ -186,14 +186,15 @@ distributions of user activity and item popularity.
 \begin{figure}[t!]
   \centering
   \includegraphics[width=0.4\textwidth]{figures/user_activity_sim_netflix.pdf}
-  \caption{The distribution of total ratings for the Netflix dataset.
-    The pink curve shows the empirical count of the number of users
-    who have rated a given number of items, while the green and blue
-    curves show the simulated totals from fitted Poisson and
-    traditional matrix factorization models, respectively. The Poisson
-    marginal closely matches the empirical, whereas classical matrix
-    factorization fits a large mean to account for skew in the
-    distribution and the missing ratings.}
+  \caption{A posterior predictive check of the distribution of total
+    ratings for the Netflix dataset.  The pink curve shows the
+    empirical count of the number of users who have rated a given
+    number of items, while the green and blue curves show the
+    simulated totals from fitted Poisson and traditional matrix
+    factorization models, respectively. The Poisson marginal closely
+    matches the empirical, whereas classical matrix factorization fits
+    a large mean to account for skew in the distribution and the
+    missing ratings.}
 \label{fig:marginals}
 \end{figure}
 

@@ -77,25 +77,22 @@ will like.  We discuss our posterior inference algorithm in detail in
 \mysec{inference}.  Figure 1 illustrates posterior estimates of
 $\beta$ and $\theta$ on Netflix data.
 
-% jmh: the below seemed out of place, and is repeated in the algorithm
-% section just before empirical results, which seems like a better
-% spot
 
-%% \subsection{The Posterior distribution}
 %% The posterior distribution of the latent variables $p(\theta, \beta,
 %% \xi, \eta \g y)$ embeds users and items in a latent space of
 %% $K$-dimensional positive vectors. 
 
-%% We use the HPF to recommend items to users by predicting which of the
-%% unconsumed items each will like.  We rank each user's unconsumed items
-%% by their posterior expected Poisson parameters,
-%% \begin{equation}
-%%   \label{eq:score}
-%%   \textrm{score}_{ui} = \E[\theta_u^\top \beta_i \g y].
-%% \end{equation}
-%% This amounts to asking the model to rank by probability which of the
-%% presently unconsumed items each user will likely consume in the
-%% future.
+Once the posterior is fit, we use HPF to recommend items to users by
+predicting which of the unconsumed items each will like.  We rank each
+user's unconsumed items by their posterior expected Poisson
+parameters,
+\begin{equation}
+  \label{eq:score}
+  \textrm{score}_{ui} = \E[\theta_u^\top \beta_i \g y].
+\end{equation}
+This amounts to asking the model to rank by probability which of the
+presently unconsumed items each user will likely consume in the
+future.
 
 \subsection{Properties of HPF}
 

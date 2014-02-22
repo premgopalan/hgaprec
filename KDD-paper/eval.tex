@@ -177,8 +177,11 @@ comprised of items that the user has consumed. Additionally, we set
 aside 1\% of the training ratings as a validation set and use it to
 determine algorithm convergence and to tune free parameters. For HPF
 and BPF we find that the algorithm is largely insensitive to small
-changes in the hyper-parameters. We set the shape hyperparameters $a'$
-and $a$ to 0.3, and set hyperparameters $b'$ and $d'$ to 1.
+changes in the hyper-parameters. To enforce sparsity, we set the shape
+hyperparameters $a'$, $a$, $c$ and $c'$ to provide an exponentially
+shaped prior \gam~distribution. We fixed each hyperparameter at
+$0.3$. We set the scale parameters $b'$ and $d'$ to 1. We used the
+same settings across all data sets.
 
 During testing, we generate the top $M$ recommendations for each user
 as those items with the highest predictive score under each
@@ -202,7 +205,7 @@ recommendations for each method and data sets. We see that HPF and BPF
 outperform other methods on all data sets by a sizeable margin---as
 much as 8 percentage points. Likewise, Poisson factorization shows
 similar gains in recall over traditional MF approaches, indicated in
-\myfig{recall_by_M}---a relatively high fraction of items recommended
+\myfig{precision_recall_by_user_activity}---a relatively high fraction of items recommended
 by HPF are found to be relevant, and many relevant items are
 recommended. While not shown in these plots, the relative performance
 of methods within a data set is consistent as we vary the number of
@@ -213,11 +216,11 @@ from one dataset to the next. For instance, LDA performs quite well on
 the Echo Nest data, but fails to beat classical matrix factorization
 for the implicit Netflix data set.
 
-We also study precision as a function of user activity to investigate
-how performance varies across users of different types. In particular,
-\myfig{precision_recall_by_user_activity} shows the mean normalized
-precision and mean recall at 20 recommendations as we look at
-performance for users of varying activity, measured by
+We also study precision and recall as a function of user activity to
+investigate how performance varies across users of different types. In
+particular, \myfig{precision_recall_by_user_activity} shows the mean
+normalized precision and mean recall at 20 recommendations as we look
+at performance for users of varying activity, measured by
 percentile. (For example, the 10\% mark shows mean performance across
 the bottom 10\% of users, who are least active; the 90\% mark shows
 the mean performance for all but the 10\% of most active users.) Here
@@ -226,15 +229,32 @@ of all activity levels---both the ``light'' users who constitute the
 majority, and the relatively few ``heavy'' users who consume
 more---for all data sets. For the New York Times and Netflix data, we
 see that higher levels of user activity enable us to better estimate
-user preferences and improve the quality of recommendations. For the
-Mendeley and Echo Nest data, however, we see a decline in normalized
-precision for the heavy users. Presumably this difference is due to
-the large catalogues of items relative to the number of users in these
-data sets, comparatively. (??? More nicheness of users???) We also
-note that the decrease in mean recall as we consider increasingly
-active sets of users is inevitable, as these individuals have a larger
-set of relevant items in the test set than their less active
-counterparts.
+user preferences and improve the quality of recommendations, as
+measured by mean normalized precision. For the Mendeley and Echo Nest
+data, however, we see a decline in normalized precision for the heavy
+users. This difference is likely due to the large number of items
+relative to the largest user activity in these data sets. Even highly
+active users represent a small fraction of the total items present,
+that it is difficult to make predictions.
+%%
+%% Presumably this difference is due to the large catalogues of
+%% items relative to the number of users in these data sets,
+%% comparatively. (??? More nicheness of users???) 
+%%
+We also note that the decrease in mean recall as we consider
+increasingly active sets of users is inevitable, as these individuals
+have a larger set of relevant items in the test set than their less
+active counterparts. 
+
+\myfig{precision_recall} shows that HPF outperforms BPF on the
+Mendeley, New York Times and Echo Nest data sets in terms of mean
+normalized precision and mean recall. Knowing how many articles a user
+has read in one component, helps predict her consumption on other
+components. However, we note that HPF and BPF have similar mean
+performance on the Netflix data sets, with BPF performing slightly
+better on users with low activity. This suggests that there is less
+sharing of statistical strength among components for any given
+users on these movie datasets.
 
 {\bf Exploratory analysis.} The fitted model can be explored to
 discover latent structure among items and users and to confirm that

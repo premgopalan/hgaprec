@@ -3,10 +3,10 @@ Given an observed matrix of user behavior $y$, we would like to
 compute the posterior distribution of user preferences $\theta_{uk}$,
 item attributes $\beta_{ik}$, user activity $\xi_u$ and item
 popularity $\eta_i$, $p(\theta, \beta, \xi, \eta \g y)$.  Our
-derivation of the variational algorithm for the HPF makes use of
+derivation of the variational algorithm for HPF makes use of
 general results about the class of \textit{conditionally conjugate}
 models~\cite{Ghahramani:2001,Hoffman:2013}.  We define the class, show
-that the HPF is in the class, and then derive the variational
+that HPF is in the class, and then derive the variational
 inference algorithm.
 
 {\bf Complete conditionals.}  Variational inference fits the
@@ -18,10 +18,10 @@ others fixed.  A \textit{complete conditional} is the conditional
 distribution of a latent variable given the observations and the other
 latent variables in the model.  A conditionally conjugate model is one
 where each complete conditional is in an exponential family (such as a
-Gaussian, Gamma, Poisson, multinomial, or others).  This is a large
+Gaussian, Gamma, Poisson, etc.).  This is a large
 class of models.
 
-The HPF, with the $z_{ui}$ variables described in \mysec{inference},
+HPF, with the $z_{ui}$ variables described in \mysec{inference},
 is a conditionally conjugate model.  (Without the auxiliary variables,
 it is not conditionally conjugate.) For the user weights
 $\theta_{uk}$, the complete conditional is a Gamma,
@@ -42,13 +42,13 @@ weights $\beta_{ik}$ act as ``exposure'' variables~\cite{Gelman:1995}.
 (The roles are reversed in the item weight distribution.) We can
 similarly write down the complete conditionals for the user activity
 $\xi_u$ and the item popularity $\eta_i$.
-\begin{align}
+\begin{align*}
   \label{eq:user-weight-cc}
   \xi_{u} \g \theta \sim
   \gam(a' + \textstyle Ka, b' + \sum_{k} \theta_{uk}).\nonumber\\
   \eta_{i} \g \beta \sim
   \gam(c' + \textstyle Kc, d' + \sum_{k} \beta_{ik}).\nonumber\\
-\end{align}
+\end{align*}
 
 The final latent variables are the auxiliary variables.  Recall that
 each $z_{ui}$ is a $K$-vector of Poisson counts that sum to the
@@ -65,7 +65,7 @@ multinomial for which the parameter is their normalized set of
 rates. (See ~\cite{Johnson:2005, Cemgil:2009}.)
 
 {\bf Deriving the algorithm.}
-We now derive variational inference for the HPF. First, we set each
+We now derive variational inference for HPF. First, we set each
 factor in the mean-field family (\myeq{q}) to be the same type of
 distribution as its complete conditional.  The complete conditionals
 for the item weights $\beta_{ik}$ and user weights $\theta_{uk}$ are
@@ -89,7 +89,7 @@ conditional.\footnote{It is a little more complex then this.  We must
   be working with the natural parameterization of the corresponding
   exponential families.  For details, see~\cite{Hoffman:2013}.}  The
 parameter to each complete conditional is a function of the other
-latent variables (by definition) and the mean-field family sets all
+latent variables and the mean-field family sets all
 the variables to be independent.  These facts guarantee that the
 parameter we are optimizing will not appear in the expected parameter.
 

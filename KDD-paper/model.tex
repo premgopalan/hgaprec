@@ -61,7 +61,7 @@ Poisson factorization model (HPF) is as follows:
   \poisson(\theta_u^\top \beta_i).$$
 \end{enumerate*}
 This process describes the statistical assumptions behind the model.
-Note that we also study a sub-class of the HPF where we fix the rate
+Note that we also study a sub-class of HPF where we fix the rate
 parameters for all users and items to the same pair of
 hyperparameters. We call this model Bayesian Poisson Factorization
 (BPF).
@@ -162,7 +162,7 @@ indicates that HPF better represents real data when measured by its
 ability to capture distributions of user activity and item popularity.
 
 % Figure 3 shows the distributions of user activity on large,
-% real-world ratings data sets. Under the BPF and the HPF, the
+% real-world ratings data sets. Under BPF and HPF, the
 % marginal distribution of each user's ratings, with the item weights
 % held fixed, is a negative binomial.  Let $y_{u} = \sum_{i} y_{ui}$
 % be the sum of the ratings for user $u$.  Since each of the terms in
@@ -179,7 +179,7 @@ ability to capture distributions of user activity and item popularity.
 
 % The negative binomial is a long-tailed distribution that is known to
 % fit user activity well~\cite{Goodhardt:1984,Dunning:1993}.  Figure 3
-% shows that the HPF provides good fits to the distribution of user
+% shows that HPF provides good fits to the distribution of user
 % activity on real-world data.  Classical matrix factorization is
 % based on Gaussian likelihoods, and the marginal distribution of
 % total user ratings is a Gaussian.  The Gaussian is a poor choice for

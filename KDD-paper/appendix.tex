@@ -3,10 +3,10 @@ Given an observed matrix of user behavior $y$, we would like to
 compute the posterior distribution of user preferences $\theta_{uk}$,
 item attributes $\beta_{ik}$, user activity $\xi_u$ and item
 popularity $\eta_i$, $p(\theta, \beta, \xi, \eta \g y)$.  Our
-derivation of the variational algorithm for the HPF makes use of
+derivation of the variational algorithm for HPF makes use of
 general results about the class of \textit{conditionally conjugate}
 models~\cite{Ghahramani:2001,Hoffman:2013}.  We define the class, show
-that the HPF is in the class, and then derive the variational
+that HPF is in the class, and then derive the variational
 inference algorithm.
 
 {\bf Complete conditionals.}  Variational inference fits the
@@ -21,7 +21,7 @@ where each complete conditional is in an exponential family (such as a
 Gaussian, Gamma, Poisson, etc.).  This is a large
 class of models.
 
-The HPF, with the $z_{ui}$ variables described in \mysec{inference},
+HPF, with the $z_{ui}$ variables described in \mysec{inference},
 is a conditionally conjugate model.  (Without the auxiliary variables,
 it is not conditionally conjugate.) For the user weights
 $\theta_{uk}$, the complete conditional is a Gamma,
@@ -65,7 +65,7 @@ multinomial for which the parameter is their normalized set of
 rates. (See ~\cite{Johnson:2005, Cemgil:2009}.)
 
 {\bf Deriving the algorithm.}
-We now derive variational inference for the HPF. First, we set each
+We now derive variational inference for HPF. First, we set each
 factor in the mean-field family (\myeq{q}) to be the same type of
 distribution as its complete conditional.  The complete conditionals
 for the item weights $\beta_{ik}$ and user weights $\theta_{uk}$ are

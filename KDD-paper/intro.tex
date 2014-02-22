@@ -74,18 +74,20 @@ on 17,000 movies, organized in a matrix of 8.16B cells (and containing
 250M ratings).  From these data, we extract the patterns of users'
 interests and the movies that are associated with those interests.
 The left panel ilustrates some of those patterns---the algorithm has
-uncovered genres of comedies, classic movies, and 1980s stoner movies.
+uncovered action movies, independent comedies, and 1980s science
+fiction.
 
 The top panel illustrates how we can use these patterns to form
 recommendations for an (imaginary) user.  This user enjoys various
-types of movies, including war movies (like ``Breaker Morant'') and
-romantic dramas (like ``Leaving Las Vegas'').  Of course, she has only
-seen a handful of the available movies.  PF first uses the movies she
-has seen to infer what kinds of movies she is interested in, and then
-uses these inferred interests to suggest movies she has not yet seen.
-The list of movies at the bottom of the figure was suggested by our
-algorithm. It includes other war dramas (such as ``Apocalypse Now'')
-and other romantic movies (such as ``Breakfast at Tiffany's'').
+types of movies, including fantasy (``Lord of the Rings''), classic
+science fiction (``Star Wars: Episode V''), and independent comedies
+(``Clerks'', ``High Fidelity'').  Of course, she has only seen a
+handful of the available movies.  PF first uses the movies she has
+seen to infer what kinds of movies she is interested in, and then uses
+these inferred interests to suggest movies she has not yet seen.  The
+list of movies at the bottom of the figure was suggested by our
+algorithm. It includes other compedies (such as ``The Big Lebowski'') and
+other science fiction (such as ``Star Wars: Episode II'').
 
 In more detail, Poisson factorization is a probabilistic model of
 users and items.  It associates each user with a latent vector of

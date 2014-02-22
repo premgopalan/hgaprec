@@ -196,6 +196,11 @@ probability that a user consumed an item using the variational
 approximations to posterior expectations of $\theta_u$ and $\beta_i$,
 and compute the average predictive log likelihood of the validation
 ratings. The HPF algorithm stops when the change in log likelihood is
-less than 0.0001\%.
+less than 0.0001\%. For the HPF and the BPF we find that the algorithm
+is largely insensitive to small changes in the hyper-parameters. To
+enforce sparsity, we set the shape hyperparameters $a'$, $a$, $c$ and
+$c'$ to provide an exponentially shaped prior \gam~distribution. We
+fixed each hyperparameter at $0.3$. We set the scale parameters $b'$
+and $d'$ to 1.
 
 % !!! DMB: clean up and move this to an appendix

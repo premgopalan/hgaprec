@@ -101,14 +101,17 @@ $\beta$ and $\theta$ on Netflix data.
 
 With the modeling details in place, we highlight several statistical
 properties of hierarchical Poisson factorization.  These properties
-provide advantages over classical (Gaussian) factorization, and
-form the basis for scalable algorithms.
-
-{\bf HPF captures sparse factors}.  As we mentioned above, the
-  Gamma priors on preferences and attributes encourages sparse
-  representations of users and items.  Specifically, by setting the
-  shape parameter $a$ to be small, most of the weights will be close
-  to zero and only a few will be large.
+provide advantages over classical (Gaussian) matrix
+factorization.~\footnote{Classical matrix factorization is L2
+  regularized matrix factorization with bias terms for users and
+  items, fit using stochastic gradient descent~\cite{Koren:2009}. Without the bias terms,
+  this corresponds to maximum a-posteriori inference under
+  Probabilistic Matrix Factorization~\cite{Salakhutdinov:2008a}.}
+{\bf HPF captures sparse factors}.  As we mentioned above, the Gamma
+priors on preferences and attributes encourages sparse representations
+of users and items.  Specifically, by setting the shape parameter $a$
+to be small, most of the weights will be close to zero and only a few
+will be large.
 
 % dmb: !!! above, cite something for this property.  without even
 % looking at it, citing johnson and kotz (continuous multivariate
@@ -189,9 +192,9 @@ distributions of user activity and item popularity.
     who have rated a given number of items, while the green and blue
     curves show the simulated totals from fitted Poisson and
     traditional matrix factorization models, respectively. The Poisson
-    marginal closely matches the empirical, whereas traditional matrix
+    marginal closely matches the empirical, whereas classical matrix
     factorization fits a large mean to account for skew in the
-    distribution and the missing data.}
+    distribution and the missing ratings.}
 \label{fig:marginals}
 \end{figure}
 

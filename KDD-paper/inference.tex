@@ -157,8 +157,9 @@ the recommendation score of \myeq{score}.
 
 We optimize the variational parameters with a coordinate ascent
 algorithm, iteratively optimizing each parameter while holding the
-others fixed.  The algorithm is illustrated in \myfig{batch}.  (We
-give a detailed derivation in the Appendix.)
+others fixed.  The algorithm is illustrated in \myfig{batch}. We
+denote shape with the superscript ``shp'' and rate with the
+superscript ``rte''.  (We give a detailed derivation in the Appendix.)
 
 Note that our algorithm is very efficient on sparse matrices. In step
 1, we need only update variational multinomials for the non-zero

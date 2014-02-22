@@ -2,41 +2,37 @@
 The roots of Poisson factorization come from nonnegative matrix
 factorization~\cite{Lee:1999}, where the objective function is
 equivalent to a factorized Poisson likelihood.  The original NMF
-update equations have been shown to be an expectation-maximisation
+update equations have been shown to be an expectation-maximization
 (EM) algorithm for maximum likelihood estimation of a Poisson model
 via data augmentation~\cite{Cemgil:2009}.
 
-Placing a Gamma prior on the user weights gives the GaP
+Placing a Gamma prior on the user weights results in the GaP
 model~\cite{Canny:2004}, which was developed as an alternative text
-model to latent Dirichlet allocation (LDA)~\cite{Blei:2003b}. Placing
-a Gamma prior on both the user and item weights gives the
-Probabilistic Factor Model (PFM)~\cite{Ma:2011}.
-
-A difference between our treatment and GaP is that GaP fits the item
-weights with maximum likelihood via the expectation maximization
-algorithm. We approximate the full posterior with variational
-inference. Further, our model places a hierarchical prior structure
-using Gamma priors on weights, and Gamma priors on user and item rate
-parameters.  Placing priors on both sets of weights further
-regularizes the model and lets us use the same inferential machinery
-in both user-space and item-space. 
-
-We note that GaP was developed as an alternative to LDA. In Appendix
-A, we show that LDA can be reinterpreted as an instance of Poisson
+model to latent Dirichlet allocation (LDA)~\cite{Blei:2003b}. (We show
+in Appendix A that LDA can be reinterpreted as an instance of Poisson
 factorization where we condition on the user counts and use an
-alternative prior on the item weights. This relationship has also been
-explored in ~\cite{Inouye:2014}.
+alternative prior on the item weights, a relationship that has also
+been explored in ~\cite{Inouye:2014}.) The GaP model is fit using the
+expectation-maximization algorithm to obtain point estimates for user
+preferences and item attributes. The Probabilistic Factor Model
+(PFM)~\cite{Ma:2011} improves upon GaP by placing a Gamma prior on the
+item weights as well, and using multiplicative update rules to infer
+an approximate maximum a posteriori estimate of the latent factors.
 
-Although the PFM~\cite{Ma:2011} model is the same as the BPF, the PFM
-was aimed at a particular application---that of recommending
-web-sites---while we demonstrate improved performance on a variety of
-recommendation tasks. Further, we study why Poisson factorization
-based models outperform others in recommendation. We also extended the
-BPF with a hierarchical prior structure to capture the skew in user
-activity and item popularity. Capturing these biases is important for
-predictive performance~\cite{Koren:2009}. Again, we approximate the
-full posterior with variational inference, while PFM uses Maximum a
-posteriori estimation
+In contrast, our model uses a hierarchical prior structure of Gamma
+priors on user and item weights, and Gamma priors over the rate
+parameters from which these weights are drawn. This enables us to
+accurately model the skew in user activity and item popularity, which
+contributes to good predictive performance~\cite{Koren:2009}. This
+prior structure further regularizes the model and lets us use the same
+inferential machinery in both user-space and item-space. Furthermore,
+we approximate the full posterior over all latent factors using a
+scalable variational inference algorithm.
+
+%% Although the PFM~\cite{Ma:2011} model is the same as the BPF, the PFM
+%% was aimed at a particular application---that of recommending
+%% web-sites---while we demonstrate improved performance on a variety of
+%% recommendation tasks.
 
 % prem: removed reference to stochastic inference
 %       we should add this in future work/discussion
@@ -53,14 +49,22 @@ issues and details around spectrogram data differ significantly from
 user behavior data we consider and our derivation below (based on
 auxiliary variables) is more direct.  As future work, the methods
 developed here could lead to improved methods for massive simultaneous
-analysis of audio spectrograms. 
+analysis of audio spectrograms.
 
 In the context of network data, a Poisson model of overlapping
 communities was described by the authors of ~\cite{Ball:2011}, and has
 been shown to work well in recovering overlapping communities in
-network data~\cite{Gopalan:2013}.  As with GaP, this model is
-unregularized and the authors fit the model with maximum likelihood
-via expectation maximization.
+network data~\cite{Gopalan:2013}.  As with GaP, the work
+in~\cite{Ball:2011} is unregularized and the authors fit the model
+with maximum likelihood via expectation maximization.
+
+There has also been significant research on Bayesian nonparametric
+Poisson factor models. Using a Beta-Negative-Binomial process prior
+for Poisson factor analysis the authors of ~\cite{Zhou:2012}
+demonstrate that NMF, LDA and GaP are special cases of a finite
+approximation to their model. Inference for the models
+in~\cite{Zhou:2012} do not scale to the size of datasets we consider
+here.
 
 Probabilistic Matrix Factorization~\cite{Salakhutdinov:2008a} (PMF)
 places spherical Gaussian priors on the latent user preferences and
@@ -71,37 +75,27 @@ treatment uses an Monte Carlo Markov Chain (MCMC) algorithm
 improved performance compared to gradient descent algorithm while the
 MCMC algorithm scales poorly to our datasets.
 
-With implicit feedback, researchers have proposed treating the data as
-indication of positive and negative preference associated with varying
-confidence levels~\cite{Hu:2008p9402}. These confidence levels try to
-adjust for the overweighting of the zeros, as discussed in
-\mysec{model}. Poisson factorization does not require such special
-treating of the zeros.
+With implicit feedback data sets, researchers have proposed merging
+factorization techniques with neighborhood models~\cite{Koren:2008},
+weighting techniques to adjust the relative importance of positive
+examples~\cite{Hu:2008p9402}, and sampling-based approaches to create
+informative negative
+examples~\cite{Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.
+Poisson factorization does not require such special adjustments and
+scales linearly with the number of observed ratings.
 
-There has been significant research on Bayesian nonparametric Poisson
-factor models. Using a Beta-Negative-Binomial process prior for
-Poisson factor analysis the authors of ~\cite{Zhou:2012} demonstrate
-that NMF, LDA and GaP are special cases of a finite approximation to
-their model. Inference for the models in~\cite{Zhou:2012} do not scale
-to the size of datasets we consider here.
 
 A number of collaborative filtering algorithms are based on the
-assumption that missing ratings are missing at
+assumption that unobserved ratings are missing at
 random~\cite{Marlin:2012}. Both theory and practice have shown that
 incorrect assumptions about missing data can lead to biased
-predictions~\cite{Marlin:2009}. We note that the BPF and the HPF
-naturally accomodate all user/item matrix entries as observations. As
-future work, the methods developed here could provide better models
-that incorporate both the user bias towards higher ratings for
-non-zero entries; and a limited user budget.
-
-%%done: Marlin:2009,Marlin:2012,
-
-%% TODO: Elkan:2008
+predictions~\cite{Marlin:2009}. We note that the hierarchical model we
+develop naturally accommodates all user/item matrix entries as
+observations. As future work, the methods presented here could provide
+better models that incorporate both the selection bias towards higher
+ratings for non-zero entries and limited user budgets highlighted in
+this work.
 
 We discuss further differences between our method and previous work on
 matrix factorization in \mysec{eval}.
 
-% !!! add reference to canny's click data
-% !!! add reference to SIGIR
-% XXX \cite{Marlin:2009,Marlin:2012,Elkan:2008,Ma:2011}

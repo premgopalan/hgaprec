@@ -13,7 +13,7 @@ future items to its users.
 
 In this paper, we develop Poisson factorization (PF) algorithms for
 recommendation.  Our algorithms easily scale to massive data and
-significantly outperform the existing state of the art.  We show that
+significantly outperform the existing methods.  We show that
 Poisson factorization for recommendation is tailored to real-world
 properties of user behavior data: the heterogenous interests of users,
 the varied types of items, and a realistic distribution of the finite
@@ -84,7 +84,7 @@ science fiction (``Star Wars: Episode V''), and independent comedies
 (``Clerks'', ``High Fidelity'').  Of course, she has only seen a
 handful of the available movies.  PF first uses the movies she has
 seen to infer what kinds of movies she is interested in, and then uses
-these inferred interests to suggest movies she has not yet seen.  The
+these inferred interests to suggest new movies.  The
 list of movies at the bottom of the figure was suggested by our
 algorithm. It includes other comedies (such as ``The Big Lebowski'') and
 other science fiction (such as ``Star Wars: Episode II'').
@@ -100,21 +100,22 @@ corresponding user preferences and item attributes.  The main
 computational problem is posterior inference: given an observed matrix
 of user behavior, we discover the latent attributes that describe the
 items and the latent preferences of the users.  For example, the
-components in \myfig{netflix-illustration} (left) illustrate the top items for specific
-attribute dimensions and the plot in \myfig{netflix-illustration} (middle) illustrates the
-estimated preference vector for the given user.  A spike in the
-preference vector means that the user tends to like items with the
+components in \myfig{netflix-illustration} (left) illustrate the top
+items for specific attribute dimensions and the plot in
+\myfig{netflix-illustration} (middle) illustrates the estimated
+preference vector for the given user.  A spike in the preference
+vector implies that the user tends to like items with the
 corresponding latent attribute.
 
-To readers familiar with recommendation systems, this procedure is
-reminiscent of many variants of matrix factorization.  We found,
+This general procedure is common to many variants of matrix factorization.
+We found,
 however, that PF enjoys significant quantitative advantages over
 classical methods and for a wide variety of data sets, including those
 with implicit feedback (a binary matrix indicating which items users
 consumed) and those with explicit feedback (a matrix of integer
 ratings).  \myfig{precision_recall} shows that PF, and its
 hierarchical variant HPF, perform significantly better than
-state-of-the art methods---including the industry standard of matrix
+existing methods---including the industry standard of matrix
 factorization with user and item biases (MF)---for large data sets of
 Netflix users watching movies, Last.FM users listening to music,
 scientists reading papers, and \textit{New York Times} readers
@@ -164,7 +165,7 @@ use to analyze data sets even larger than those we studied.
 
 We review related work below before discussing details of the Poisson
 factorization model, including its statistical properties and methods
-for scalable inference on large data sets.
+for scalable inference.
 
 
 %%

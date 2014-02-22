@@ -9,6 +9,16 @@ indicator of her interests. BPF captures these features of sparse user
 data via the Poisson likelihood, which appropriately balances strong
 signals of consumption with weaker signals of unobserved activity.
 
+%%% mention non-parametrics as extension %%%
+
+%% There has also been significant research on Bayesian nonparametric
+%% Poisson factor models. Using a Beta-Negative-Binomial process prior
+%% for Poisson factor analysis the authors of ~\cite{Zhou:2012}
+%% demonstrate that NMF, LDA and GaP are special cases of a finite
+%% approximation to their model. Inference for the models
+%% in~\cite{Zhou:2012} do not scale to the size of datasets we consider
+%% here.
+
 Conveniently, the same Poisson likelihood also leads to
 computationally efficient inference on sparse data sets, as it requires
 evaluation of only the consumed user-item pairs, which comprise a

@@ -148,13 +148,10 @@ multinomial~\cite{Johnson:2005, Cemgil:2009}.
 After specifying the family, we fit the variational parameters $\nu =
 \{\lambda, \gamma, \kappa, \tau, \phi\}$ to minimize the KL divergence
 to the posterior, and then use the corresponding variational
-distribution $q(\cdot \g \nu^*)$ as its proxy.\footnote{In fact,
-  variational inference optimizes an equivalent objective that is the
-  KL divergence up to an additive constant.  But this detail is not
-  needed here.}  The mean-field factorization facilitates both
-optimizing the variational objective and downstream computations with
-the approximate posterior, such as the recommendation score of
-\myeq{score}.
+distribution $q(\cdot \g \nu^*)$ as its proxy. The mean-field
+factorization facilitates both optimizing the variational objective
+and downstream computations with the approximate posterior, such as
+the recommendation score of \myeq{score}.
 
 % dmb: !!! myeq{score} seems undefined.
 

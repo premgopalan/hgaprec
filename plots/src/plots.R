@@ -377,3 +377,91 @@ p <- p + theme(legend.title=element_blank())
 ggsave(p, filename=sprintf('../../KDD-paper/figures/mean_recall_at_%d_by_user_percentile.pdf', N), width=10, height=2.5)
 p
 
+
+
+########################################
+# difference in precision/recall at N
+########################################
+
+diff.by.user <- data.table(precision.by.user)
+diff.by.user <- merge(diff.by.user, subset(diff.by.user, method=="HPF"), by=c("dataset","num.recs","user"), suffixes=c('', '.hpf'))
+diff.by.user <- diff.by.user[, diff.precision:=(hits - hits.hpf) / num.recs]
+diff.by.user <- diff.by.user[, diff.recall:=(hits - hits.hpf) / num.test.items]
+
+
+# plot mean precision at N recs for methods and datasets
+plot.data <- subset(diff.by.user, num.recs==N & K==rank)
+plot.data <- ddply(plot.data, c("dataset","method","K","num.recs"), summarize, mean.diff.precision=mean(diff.precision))
+p <- ggplot(plot.data, aes(x=dataset, y=mean.diff.precision))
+p <- p + geom_point(aes(color=method), size=1, show_guide=F)
+p <- p + geom_hline(aes(yintercept=mean.diff.precision, colour=method, linetype=method), size=1, show_guide=T)
+p <- p + facet_wrap(~ dataset, nrow=1, scale="free")
+p <- p + xlab("") + ylab('Mean difference in precision')
+#p <- p + scale_y_continuous(labels=percent)
+p <- p + theme(legend.title=element_blank())
+p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
+ggsave(p, filename=sprintf('../../KDD-paper/figures/mean_diff_precision_at_%d.pdf', N), width=10, height=2.5)
+p
+
+
+# plot mean recall at N recs for methods and datasets
+plot.data <- subset(diff.by.user, num.recs==N & K==rank)
+plot.data <- ddply(plot.data, c("dataset","method","K","num.recs"), summarize, mean.diff.recall=mean(diff.recall))
+p <- ggplot(plot.data, aes(x=dataset, y=mean.diff.recall))
+p <- p + geom_point(aes(color=method), size=1, show_guide=F)
+p <- p + geom_hline(aes(yintercept=mean.diff.recall, colour=method, linetype=method), size=1, show_guide=T)
+p <- p + facet_wrap(~ dataset, nrow=1, scale="free")
+p <- p + xlab("") + ylab('Mean difference in recall')
+#p <- p + scale_y_continuous(labels=percent)
+p <- p + theme(legend.title=element_blank())
+p <- p + theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank())
+ggsave(p, filename=sprintf('../../KDD-paper/figures/mean_diff_recall_at_%d.pdf', N), width=10, height=2.5)
+p
+
+
+
+########################################
+# difference in precision/recall by user activity
+########################################
+
+
+# plot mean difference in precision by user activity percentile
+percentiles <- seq(0.05,1,0.05)
+plot.data <- subset(diff.by.user, num.recs==N)
+plot.data <- ddply(plot.data, c("dataset","method"), function(df) {
+  adply(percentiles, 1, function(p) {
+    with(subset(df, activity <= quantile(activity, p)), mean(diff.precision, na.rm=T))
+  })
+})
+plot.data$X1 <- percentiles[plot.data$X1]
+names(plot.data) <- c("dataset","method","percentile","mean.diff.precision")
+p <- ggplot(plot.data, aes(x=percentile, y=mean.diff.precision))
+p <- p + geom_line(aes(color=method, linetype=method))
+p <- p + facet_wrap(~ dataset, nrow=1, scale="free_y")
+p <- p + scale_x_continuous(labels=percent, breaks=c(0.1, 0.5, 0.9))
+#p <- p + scale_y_continuous(labels=percent)
+p <- p + xlab('User percentile by activity') + ylab('Mean difference in precision')
+p <- p + theme(legend.title=element_blank())
+ggsave(p, filename=sprintf('../../KDD-paper/figures/mean_diff_precision_at_%d_by_user_percentile.pdf', N), width=10, height=2.5)
+p
+
+# plot mean difference in recall by user activity percentile
+percentiles <- seq(0.05,1,0.05)
+plot.data <- subset(diff.by.user, num.recs==N)
+plot.data <- ddply(plot.data, c("dataset","method"), function(df) {
+  adply(percentiles, 1, function(p) {
+    with(subset(df, activity <= quantile(activity, p)), mean(diff.recall, na.rm=T))
+  })
+})
+plot.data$X1 <- percentiles[plot.data$X1]
+names(plot.data) <- c("dataset","method","percentile","mean.diff.recall")
+p <- ggplot(plot.data, aes(x=percentile, y=mean.diff.recall))
+p <- p + geom_line(aes(color=method, linetype=method))
+p <- p + facet_wrap(~ dataset, nrow=1, scale="free_y")
+p <- p + scale_x_continuous(labels=percent, breaks=c(0.1, 0.5, 0.9))
+#p <- p + scale_y_continuous(labels=percent)
+p <- p + xlab('User percentile by activity') + ylab('Mean difference in recall')
+p <- p + theme(legend.title=element_blank())
+ggsave(p, filename=sprintf('../../KDD-paper/figures/mean_diff_recall_at_%d_by_user_percentile.pdf', N), width=10, height=2.5)
+p
+

@@ -17,10 +17,10 @@ libraries may need to be specified:
 The binary 'gaprec' will be installed in /usr/local/bin unless a
 different prefix is provided to configure. (See INSTALL.)
 
-GAPREC: Gamma Poisson factorization based recommendation tool
---------------------------------------------------------------
+HGAPREC: Hierarchical Gamma Poisson factorization based recommendation tool
+----------------------------------------------------------------------------
 
-**gaprec** [OPTIONS]
+**hgaprec** [OPTIONS]
 
    -dir <string>    path to dataset directory with 3 files:
    		    train.tsv, test.tsv, validation.tsv
@@ -59,7 +59,7 @@ GAPREC: Gamma Poisson factorization based recommendation tool
 Example
 --------
 
-(1) ../src/gaprec -dir ../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10
+(1) ../src/hgaprec -dir ../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10
 
 This will write output in n6040-m3900-k100-batch:
 
@@ -85,9 +85,12 @@ The output is now in n6040-m3900-k100-batch/ranking.tsv.
 
 Instead of (1) you could also run one of these:
 
-../src/gaprec -dir ../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10 -bias
-../src/gaprec -dir ../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10 -binary-data
-../src/gaprec -dir ../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10 -binary-data -bias
+../src/hgaprec -dir ../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10 -hier
+../src/hgaprec -dir ../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10 -bias
+../src/hgaprec -dir ../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10 -binary-data
+../src/hgaprec -dir ../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10 -binary-data -bias
+../src/hgaprec -dir ../example/movielens -n 6040 -m 3900  -k 100 -rfreq 10 -hier -bias -binary-data
+... and so on
 
 
 Bias terms

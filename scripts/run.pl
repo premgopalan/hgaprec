@@ -15,8 +15,9 @@ my $gapbin = "/scratch/pgopalan/kdd3/src/hgaprec";
 
 #
 # set the "prefix" path for the data sets
-# 
-my $dataloc = "/scratch/pgopalan/kdd3/example/data/";
+# e.g., if data set resides in /scratch/pgopalan/kdd3/example/movielens
+# set as follows
+my $dataloc = "/scratch/pgopalan/kdd3/example";
 
 # OPTIONAL
 
@@ -31,7 +32,7 @@ my $batch_rfreq = 10;
 my $K = 100;
 
 #
-# skip
+# SKIP
 #
 my $ldabin = "/scratch/pgopalan/lda-c-dist/lda";
 my $lda_settings_file = "/scratch/pgopalan/lda-c-dist/settings.txt";

@@ -6,10 +6,19 @@ use Getopt::Long;
 
 our $F;
 
+# ESSENTIAL
+
 #
 # set the location of the hgaprec binary
 #
-my $gapbin = "/scratch/pgopalan/hgaprec/src/hgaprec";
+my $gapbin = "/scratch/pgopalan/kdd3/src/hgaprec";
+
+#
+# set the "prefix" path for the data sets
+# 
+my $dataloc = "/scratch/pgopalan/kdd3/example/data/";
+
+# OPTIONAL
 
 #
 # how many iterations between hol computation, checking convegence etc.
@@ -20,11 +29,6 @@ my $batch_rfreq = 10;
 # set K (can be set via the -K option too)
 # 
 my $K = 100;
-
-#
-# set the "prefix" path for the data sets
-# 
-my $dataloc = "/scratch/pgopalan/hgaprec/analysis/data/";
 
 #
 # skip

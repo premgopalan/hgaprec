@@ -60,3 +60,46 @@ Example
 
 1. Input data
 
+   To run inference you need 4 files: {train,test,validation,test_users}.tsv in tab-separated format.
+   See the movielens files in example/
+
+   (Additional files are generated from these basic files during evaluation. More on this later.)
+
+2. Running the command
+
+   You can run "hgaprec" directly or using the scripts/run.pl Perl script.
+
+   Since hgaprec has numerous options, the perl script is recommended.
+
+   To setup the Perl script, do the following:
+
+   a. Set the "$dataloc" variable to the location of the data set directory. For example, for the movielens data, 
+   $dataloc = "/n/fs/example/movielens";
+
+   b. Set the location of the installed hgaprec binary. For example,
+   $gapbin = "/n/fs/bin/hgaprec";
+
+   c. Run the script in one of the following ways:
+
+   (fit the hierarchical model, i.e., HPF)
+   <path-to>/scripts/run.pl -dataset movielens -hier 
+
+   (fit HPF to data treated as binary)
+   <path-to>/scripts/run.pl -dataset movielens -hier -binary
+
+   (fit the non-hierarchical model, i.e., BPF to data and treat data as binary)
+   <path-to>/scripts/run.pl -dataset movielens -binary
+
+   (fit the non-hierarchical model with user, item bias terms, i.e., BPF+bias to data)
+   <path-to>/scripts/run.pl -dataset movielens -bias
+
+   (fit the non-hierarchical model with user, item bias terms, i.e., BPF+bias to data treated as binary)
+   <path-to>/scripts/run.pl -dataset movielens -bias -binary
+
+
+  d. Additional options to the Perl script
+
+  -K <integer>: set the latent dimensions K
+  -label <string>: set a label for the output directory
+  -seed <integer>: set the pseudo-random number generator seed 
+  -logl: compute ELBO every X iterations (expensive!)

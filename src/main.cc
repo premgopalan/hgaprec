@@ -257,7 +257,12 @@ main(int argc, char **argv)
 
   if (nmf) {
     HGAPRec hgaprec(env, ratings);
+#ifdef NMFLIB    
     hgaprec.nmf();
+#else
+    printf("run configure with --enable-nmflib to use the -nmf option!\n");
+    fflush(stdout);
+#endif
     //hgaprec.write_training_matrix();
     //hgaprec.load_nmf_beta_and_theta();
     exit(0);

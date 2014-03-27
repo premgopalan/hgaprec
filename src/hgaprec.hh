@@ -13,7 +13,11 @@ public:
   void vb();
   void vb_bias();
   void vb_hier();
+
+#ifdef HAVE_NMFLIB
   void nmf();
+#endif
+
   void run_vwlda();
   void run_chi_pmf();
   void run_chi_nmf();

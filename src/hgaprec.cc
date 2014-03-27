@@ -1,6 +1,9 @@
 #include "hgaprec.hh"
+
+#ifdef HAVE_NMFLIB
 #include "./nmflib/include/common.h"
 #include "./nmflib/include/nmfdriver.h"
+#endif
 
 HGAPRec::HGAPRec(Env &env, Ratings &ratings)
   : _env(env), _ratings(ratings),
@@ -719,6 +722,7 @@ HGAPRec::load_nmf_beta_and_theta()
 }
 */
 
+#ifdef HAVE_NMFLIB
 void
 HGAPRec::nmf()
 {
@@ -744,6 +748,7 @@ HGAPRec::nmf()
   nmfDriver(s.c_str(), _k, 100, NULL, NULL, mu, &opts);
   load_nmf_beta_and_theta();
 }
+#endif
 
 void
 HGAPRec::vb()

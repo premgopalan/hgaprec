@@ -5,13 +5,35 @@ use warnings;
 use Getopt::Long;
 
 our $F;
+
+#
+# set the location of the hgaprec binary
+#
 my $gapbin = "/scratch/pgopalan/hgaprec/src/hgaprec";
+
+#
+# how many iterations between hol computation, checking convegence etc.
+#
+my $batch_rfreq = 10;
+
+#
+# set K (can be set via the -K option too)
+# 
+my $K = 100;
+
+#
+# set the "prefix" path for the data sets
+# 
+my $dataloc = "/scratch/pgopalan/hgaprec/analysis/data/";
+
+#
+# skip
+#
 my $ldabin = "/scratch/pgopalan/lda-c-dist/lda";
 my $lda_settings_file = "/scratch/pgopalan/lda-c-dist/settings.txt";
-my $batch_rfreq = 10;
-my $online_rfreq = 10000;
-my $ml_online_rfreq = 100;
+
 my $dataset  = "";
+
 my $bias = 0;
 my $novb = 0;
 my $orig = 0;
@@ -31,11 +53,13 @@ sub init() {
 	$binstr = "batch-bin-vb-lda-write-training";
     }
     
-    $nf{loc} = "/scratch/pgopalan/hgaprec/analysis/data/netflix";
+    $nf{loc} = "$dataloc/netflix";
     $nf{N} = 480189;
     $nf{M} = 17770;
     $nf{batch_cmd} = "$gapbin  -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -rfreq $batch_rfreq -rating-threshold 4";
     $nf{gen_ranking_cmd} = "$gapbin -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -gen-ranking -rating-threshold 4";
+
+    # competing methods
     $nf{lda_write_cmd} = "$gapbin -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -lda -write-training -rating-threshold 4";
     $nf{lda_cp_cmd} = "cp $lda_settings_file n$nf{N}-m$nf{M}-k%d-$binstr;";
     $nf{lda_cmd} = "cd n$nf{N}-m$nf{M}-k%d-$binstr; $ldabin est %0.3f %d settings.txt ldatrain.tsv random lda-output";
@@ -45,11 +69,13 @@ sub init() {
     $nf{nmf_precision_cmd} = "$gapbin  -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -nmfload -nmf";
 
 
-    $nfmsr{loc} = "/scratch/pgopalan/hgaprec/analysis/data/netflixmsr";
+    $nfmsr{loc} = "$dataloc/netflixmsr";
     $nfmsr{N} = 478614;
     $nfmsr{M} = 17770;
     $nfmsr{batch_cmd} = "$gapbin  -dir $nfmsr{loc} -m $nfmsr{M} -n $nfmsr{N} -k %d -rfreq $batch_rfreq -rating-threshold 1";
     $nfmsr{gen_ranking_cmd} = "$gapbin -dir $nfmsr{loc} -m $nfmsr{M} -n $nfmsr{N} -k %d -gen-ranking -rating-threshold 1";
+
+    # competing methods
     $nfmsr{lda_write_cmd} = "$gapbin -dir $nfmsr{loc} -m $nfmsr{M} -n $nfmsr{N} -k %d -lda -write-training -rating-threshold 1";
     $nfmsr{lda_cp_cmd} = "cp $lda_settings_file n$nfmsr{N}-m$nfmsr{M}-k%d-$binstr;";
     $nfmsr{lda_cmd} = "cd n$nfmsr{N}-m$nfmsr{M}-k%d-$binstr; $ldabin est %0.3f %d settings.txt ldatrain.tsv random lda-output";
@@ -58,11 +84,13 @@ sub init() {
     $nfmsr{nmf_cmd} = "$gapbin  -dir $nfmsr{loc} -m $nfmsr{M} -n $nfmsr{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmf";
     $nfmsr{nmf_precision_cmd} = "$gapbin  -dir $nfmsr{loc} -m $nfmsr{M} -n $nfmsr{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmfload -nmf";
 
-    $nyt{loc} = "/scratch/pgopalan/hgaprec/analysis/data/nyt";
+    $nyt{loc} = "$dataloc/nyt";
     $nyt{N} = 1615675;
     $nyt{M} = 107523;
     $nyt{batch_cmd} = "$gapbin -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -rfreq $batch_rfreq -rating-threshold 1";
     $nyt{gen_ranking_cmd} = "$gapbin -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -gen-ranking -rating-threshold 1";
+
+    # competing methods
     $nyt{lda_write_cmd} = "$gapbin -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -lda -write-training -rating-threshold 1";
     $nyt{lda_cp_cmd} = "cp $lda_settings_file n$nyt{N}-m$nyt{M}-k%d-$binstr;";
     $nyt{lda_cmd} = "cd n$nyt{N}-m$nyt{M}-k%d-$binstr; $ldabin est %0.3f %d settings.txt ldatrain.tsv random lda-output";
@@ -71,11 +99,13 @@ sub init() {
     $nyt{nmf_cmd} = "$gapbin -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmf";
     $nyt{nmf_precision_cmd} = "$gapbin -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmfload -nmf";
 
-    $ml{loc} = "/scratch/pgopalan/hgaprec/analysis/data/movielens";
+    $ml{loc} = "$dataloc/movielens";
     $ml{N} = 6040;
     $ml{M} = 3681;
     $ml{batch_cmd} = "$gapbin  -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -rfreq $batch_rfreq -rating-threshold 4";
     $ml{gen_ranking_cmd} = "$gapbin -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -gen-ranking -rating-threshold 4";
+
+    # competing methods
     $ml{lda_write_cmd} = "$gapbin -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -lda -write-training -rating-threshold 4";
     $ml{lda_cp_cmd} = "cp $lda_settings_file n$ml{N}-m$ml{M}-k%d-$binstr;";
     $ml{lda_cmd} = "cd n$ml{N}-m$ml{M}-k%d-$binstr; $ldabin est %0.3f %d settings.txt ldatrain.tsv random lda-output";
@@ -84,11 +114,13 @@ sub init() {
     $ml{nmf_cmd} = "$gapbin  -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -nmf";
     $ml{nmf_precision_cmd} = "$gapbin  -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -nmfload -nmf";
 
-    $dy{loc} = "/scratch/pgopalan/hgaprec/analysis/data/mendeley";
+    $dy{loc} = "$dataloc/mendeley";
     $dy{N} = 80278;
     $dy{M} = 261248;
     $dy{batch_cmd} = "$gapbin -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -rfreq $batch_rfreq -rating-threshold 1";
     $dy{gen_ranking_cmd} = "$gapbin -mendeley -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -gen-ranking -rating-threshold 1";
+
+    # competing methods
     $dy{lda_write_cmd} = "$gapbin -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -lda -write-training -rating-threshold 1";
     $dy{lda_cp_cmd} = "cp $lda_settings_file n$dy{N}-m$dy{M}-k%d-$binstr;";
     $dy{lda_cmd} = "cd n$dy{N}-m$dy{M}-k%d-$binstr; $ldabin est %0.3f %d settings.txt ldatrain.tsv random lda-output";
@@ -97,11 +129,13 @@ sub init() {
     $dy{nmf_cmd} = "$gapbin -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmf";
     $dy{nmf_precision_cmd} = "$gapbin -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmfload -nmf";
 
-    $en{loc} = "/scratch/pgopalan/hgaprec/analysis/data/echonest";
+    $en{loc} = "$dataloc/echonest";
     $en{N} = 1019318;
     $en{M} = 384546;
     $en{batch_cmd} = "$gapbin  -dir $en{loc} -m $en{M} -n $en{N} -k %d -rfreq $batch_rfreq -rating-threshold 1";
     $en{gen_ranking_cmd} = "$gapbin -dir $en{loc} -m $en{M} -n $en{N} -k %d -gen-ranking -rating-threshold 1";
+
+    # competing methods
     $en{lda_write_cmd} = "$gapbin -dir $en{loc} -m $en{M} -n $en{N} -k %d -lda -write-training -rating-threshold 1";
     $en{lda_cp_cmd} = "cp $lda_settings_file n$en{N}-m$en{M}-k%d-$binstr;";
     $en{lda_cmd} = "cd n$en{N}-m$en{M}-k%d-$binstr; $ldabin est %0.3f %d settings.txt ldatrain.tsv random lda-output";
@@ -114,7 +148,6 @@ sub init() {
 my $label = "";
 my $seed = 0;
 my $hyp = 0;
-my $K = 100;
 my $online = 0;
 my $gen = 0;
 my $hier = 0;

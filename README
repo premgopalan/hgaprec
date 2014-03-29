@@ -1,3 +1,18 @@
+Reference
+---------
+
+@article{DBLP:journals/corr/GopalanHB13,
+  author    = {Prem Gopalan and
+               Jake M. Hofman and
+               David M. Blei},
+  title     = {Scalable Recommendation with Poisson Factorization},
+  journal   = {CoRR},
+  volume    = {abs/1311.1704},
+  year      = {2013},
+  ee        = {http://arxiv.org/abs/1311.1704},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
 Installation
 ------------
 

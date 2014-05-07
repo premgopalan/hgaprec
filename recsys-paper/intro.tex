@@ -20,73 +20,75 @@ the varied types of items, and a realistic distribution of the finite
 resources that users have to consume items.
 
 
-\begin{figure*}[th]
-\centering
-\vspace{0.1cm}
-\small
-\begin{tabular}{c}
-\bf{``Action''}\\
-\midrule
-The Matrix\\
-The Matrix: Reloaded\\
-Spider-Man\\
-X2: X-Men United\\
-\bottomrule
-\end{tabular}
-\begin{tabular}{c}
-\bf{``Indie Comedy, Romance''}\\
-\midrule
-Grosse Pointe Blank\\
-Four Weddings and a Funeral\\
-High Fidelity\\
-Much Ado About Nothing\\
-\bottomrule
-\end{tabular}
-\begin{tabular}{c}
-\bf{``80's Science Fiction''}\\
-\midrule
-Star Wars: Episode IV: A New Hope\\
-Star Wars: Episode VI: Return of the Jedi\\
-Star Wars: Episode V: The Empire Strikes Back\\
-Back to the Future Part II\\
-\bottomrule
-\end{tabular}
+%% \begin{figure*}[th]
+%% \centering
+%% \vspace{0.1cm}
+%% \small
+%% \begin{tabular}{c}
+%% \bf{``Action''}\\
+%% \midrule
+%% The Matrix\\
+%% The Matrix: Reloaded\\
+%% Spider-Man\\
+%% X2: X-Men United\\
+%% \bottomrule
+%% \end{tabular}
+%% \begin{tabular}{c}
+%% \bf{``Indie Comedy, Romance''}\\
+%% \midrule
+%% Grosse Pointe Blank\\
+%% Four Weddings and a Funeral\\
+%% High Fidelity\\
+%% Much Ado About Nothing\\
+%% \bottomrule
+%% \end{tabular}
+%% \begin{tabular}{c}
+%% \bf{``80's Science Fiction''}\\
+%% \midrule
+%% Star Wars: Episode IV: A New Hope\\
+%% Star Wars: Episode VI: Return of the Jedi\\
+%% Star Wars: Episode V: The Empire Strikes Back\\
+%% Back to the Future Part II\\
+%% \bottomrule
+%% \end{tabular}
 
-\vspace{0.5cm}
+%% \vspace{0.5cm}
 
-\centering
-\includegraphics[width=0.8\textwidth]{figures/netflix-exploratory.pdf}\\
-\caption{ The top panel shows the top movies in 3 components for a
-  user from the Netflix data set. The bottom panel is an illustration
-  showing a subset of the highly rated movies by this user, and the
-  right panel shows movies recommended to the user by our
-  algorithm. The expected user's $K$-vector of weights $\theta_u$,
-  inferred by our algorithm is shown in the middle panel.}
-\label{fig:netflix-illustration}
-\end{figure*}
+%% \centering
+%% \includegraphics[width=0.8\textwidth]{figures/netflix-exploratory.pdf}\\
+%% \caption{ The top panel shows the top movies in 3 components for a
+%%   user from the Netflix data set. The bottom panel is an illustration
+%%   showing a subset of the highly rated movies by this user, and the
+%%   right panel shows movies recommended to the user by our
+%%   algorithm. The expected user's $K$-vector of weights $\theta_u$,
+%%   inferred by our algorithm is shown in the middle panel.}
+%% \label{fig:netflix-illustration}
+%% \end{figure*}
 
-\myfig{netflix-illustration} illustrates Poisson factorization on data
-from Netflix.  The Netflix data contains the ratings of 480,000 users
-on 17,000 movies, organized in a matrix of 8.16B cells (and containing
-250M ratings).  From these data, we extract the patterns of users'
-interests and the movies that are associated with those interests.
-The left panel illustrates some of those patterns---the algorithm has
-uncovered action movies, independent comedies, and 1980s science
-fiction.
+%% \myfig{netflix-illustration} illustrates Poisson factorization on data
+%% from Netflix.  The Netflix data contains the ratings of 480,000 users
+%% on 17,000 movies, organized in a matrix of 8.16B cells (and containing
+%% 250M ratings).  From these data, we extract the patterns of users'
+%% interests and the movies that are associated with those interests.
+%% The left panel illustrates some of those patterns---the algorithm has
+%% uncovered action movies, independent comedies, and 1980s science
+%% fiction.
 
-The top panel illustrates how we can use these patterns to form
-recommendations for an (imaginary) user.  This user enjoys various
-types of movies, including fantasy (``Lord of the Rings''), classic
-science fiction (``Star Wars: Episode V''), and independent comedies
-(``Clerks'', ``High Fidelity'').  Of course, she has only seen a
-handful of the available movies.  PF first uses the movies she has
-seen to infer what kinds of movies she is interested in, and then uses
-these inferred interests to suggest new movies.  The
-list of movies at the bottom of the figure was suggested by our
-algorithm. It includes other comedies (such as ``The Big Lebowski'') and
-other science fiction (such as ``Star Wars: Episode II'').
+%% The top panel illustrates how we can use these patterns to form
+%% recommendations for an (imaginary) user.  This user enjoys various
+%% types of movies, including fantasy (``Lord of the Rings''), classic
+%% science fiction (``Star Wars: Episode V''), and independent comedies
+%% (``Clerks'', ``High Fidelity'').  Of course, she has only seen a
+%% handful of the available movies.  PF first uses the movies she has
+%% seen to infer what kinds of movies she is interested in, and then uses
+%% these inferred interests to suggest new movies.  The
+%% list of movies at the bottom of the figure was suggested by our
+%% algorithm. It includes other comedies (such as ``The Big Lebowski'') and
+%% other science fiction (such as ``Star Wars: Episode II'').
 
-In more detail, Poisson factorization is a probabilistic model of
+%%In more detail, 
+
+Poisson factorization is a probabilistic model of
 users and items.  It associates each user with a latent vector of
 preferences, each item with a latent vector of attributes, and
 constrains both sets of vectors to be sparse and non-negative.  Each
@@ -96,13 +98,15 @@ integers---whose parameter is a linear combination of the
 corresponding user preferences and item attributes.  The main
 computational problem is posterior inference: given an observed matrix
 of user behavior, we discover the latent attributes that describe the
-items and the latent preferences of the users.  For example, the
-components in \myfig{netflix-illustration} (left) illustrate the top
-items for specific attribute dimensions and the plot in
-\myfig{netflix-illustration} (middle) illustrates the estimated
-preference vector for the given user.  A spike in the preference
-vector implies that the user tends to like items with the
-corresponding latent attribute.
+items and the latent preferences of the users. 
+
+%%  For example, the
+%% components in \myfig{netflix-illustration} (left) illustrate the top
+%% items for specific attribute dimensions and the plot in
+%% \myfig{netflix-illustration} (middle) illustrates the estimated
+%% preference vector for the given user.  A spike in the preference
+%% vector implies that the user tends to like items with the
+%% corresponding latent attribute.
 
 This general procedure is common to many variants of matrix factorization.
 We found,
@@ -141,22 +145,23 @@ them~\cite{Hu:2008p9402,Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.
 Poisson factorization does not need to be modified in this way.
 
 
-The second advantage of PF algorithms is that they need only iterate
-over the viewed items in the observed matrix of user behavior, i.e.,
-the non-zero elements, and this is true even for implicit or
-``positive only'' data sets.  (This follows from the mathematical form
-of the Poisson distribution.)  Thus, Poisson factorization takes
-advantage of the natural sparsity of user behavior data and can easily
-analyze massive real-world data. In contrast, classical matrix
-factorization based on the Gaussian
-distribution~\cite{Salakhutdinov:2008} must iterate over both positive
-and negative examples in the implicit setting. Thus it cannot take
-advantage of data sparsity, which makes computation difficult for even
-modestly sized problems.  For example, one cannot fit to the full
-Netflix data set (as we did in \myfig{netflix-illustration}) without appealing to
-stochastic optimization~\cite{Mairal:2010}.  We note that our
-algorithms are also amenable to stochastic optimization, which we can
-use to analyze data sets even larger than those we studied.
+The second advantage of PF algorithms is that they need only iterate over the
+viewed items in the observed matrix of user behavior, i.e., the non-zero
+elements, and this is true even for implicit or ``positive only'' data sets.
+(This follows from the mathematical form of the Poisson distribution.)  Thus,
+Poisson factorization takes advantage of the natural sparsity of user behavior
+data and can easily analyze massive real-world data. In contrast, classical
+matrix factorization based on the Gaussian
+distribution~\cite{Salakhutdinov:2008} must iterate over both positive and
+negative examples in the implicit setting. Thus it cannot take advantage of
+data sparsity, which makes computation difficult for even modestly sized
+problems.
+
+%% For example, one cannot fit to the full Netflix data set with 100M
+%% (as we did in \myfig{netflix-illustration}) without appealing to
+%% stochastic optimization~\cite{Mairal:2010}.  We note that our
+%% algorithms are also amenable to stochastic optimization, which we can
+%% use to analyze data sets even larger than those we studied.
 
 % dmb: add paper organization
 

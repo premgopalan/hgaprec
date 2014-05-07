@@ -11,12 +11,12 @@ inference algorithm as a practical and scalable approach.  Our
 algorithm easily accommodates data sets with millions of users and
 hundreds of thousands of items on a single CPU.
 
-Given an observed matrix of user behavior $y$, we would like to
+Given a matrix of user behavior, we would like to
 compute the posterior distribution of user preferences $\theta_{uk}$,
 item attributes $\beta_{ik}$, user activity $\xi_{u}$ and item
-popularity $\eta_i$.  As for many Bayesian models of interest,
-however, the posterior is intractable to compute exactly. We show how
-to efficiently approximate the posterior with mean-field variational
+popularity $\eta_i$.  As for many Bayesian models, however, the exact
+posterior is computationally intractable. We show how to
+efficiently approximate the posterior with mean-field variational
 inference.
 
 % \begin{equation*}
@@ -29,7 +29,7 @@ inference.
 
 Variational inference is an optimization-based strategy for
 approximating posterior distributions in complex probabilistic
-models~\cite{Jordan:1999,Wainwright:2008}.  Variational inference
+models~\cite{Jordan:1999,Wainwright:2008}.  Variational
 algorithms posit a family of distributions over the hidden variables,
 indexed by free ``variational'' parameters, and then finds the member
 of that family that is closest in Kullback-Liebler (KL) divergence to
@@ -50,8 +50,8 @@ recommendation~\cite{Paquet:2013p9197}.
 We will describe a simple variational inference algorithm for HPF.  To
 do so, however, we first give an alternative formulation of the model
 in which we add an additional layer of latent variables.  These
-auxiliary variables allow us to take advantage of some general results
-for variational algorithms~\cite{Ghahramani:2001,Hoffman:2013}.
+auxiliary variables facilitate derivation and description of the
+algorithm~\cite{Ghahramani:2001,Hoffman:2013}.
 
 For each user and item we add $K$ latent variables $z_{uik} \sim
 \poisson(\theta_{uk} \beta_{ik})$, which are integers that sum to the
@@ -119,19 +119,19 @@ weights $\beta_{ik}$, and user-item contributions $z_{uik}$, which we
 represent as a $K$-vector of counts $z_{ui}$.  The \textit{mean-field
   family} considers these variables to be independent and each
 governed by its own distribution,
-\begin{align}
+\begin{eqnarray*}
   \label{eq:q}
   q(\beta, \theta, \xi, \eta, z) =& \prod_{i,k} q(\beta_{ik} \g \lambda_{ik})
   \prod_{u,k} q(\theta_{uk} \g \gamma_{uk}) \nonumber\\
   & \prod_{u} q(\xi_u \g \kappa_u) \prod_{i} q(\eta_i \g \tau_i)
   \prod_{u,i} q(z_{ui} \g \phi_{ui}).
-\end{align}
+\end{eqnarray*}
 Though the variables are independent, this is a flexible family of
 distributions because each variable is governed by its own free
 parameter.  The variational factors for preferences $\theta_{uk}$,
 attributes $\beta_{ik}$, activity $\xi_u$, and popularity $\eta_i$ are
-all Gamma distributions.  (Thus their corresponding variational
-parameters are freely set scales and rates.)  The variational factor
+all Gamma distributions, with freely set scale and rate variational
+parameters. The variational factor
 for $z_{ui}$ is a free multinomial, i.e., $\phi_{ui}$ is a $K$-vector
 that sums to one.  This form stems from $z_{ui}$ being a bank of
 Poisson variables conditional on a fixed sum $y_{ui}$, and the
@@ -198,6 +198,6 @@ is largely insensitive to small changes in the hyper-parameters. To
 enforce sparsity, we set the shape hyperparameters $a'$, $a$, $c$ and
 $c'$ to provide exponentially shaped prior \gam~distributions. We
 fixed each hyperparameter at $0.3$. We set the hyperparameters $b'$
-and $d'$ to 1, which fixes the prior mean at 1.
+and $d'$ to 1, fixing the prior mean at 1.
 
 % !!! DMB: clean up and move this to an appendix

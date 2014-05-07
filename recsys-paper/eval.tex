@@ -163,7 +163,7 @@ comprised of items that the user has consumed. Additionally, we set
 aside 1\% of the training ratings as a validation set and use it to
 determine algorithm convergence and to tune free parameters. We used
 the BPF and HPF settings described in \mysec{inference} across all
-data sets.
+data sets, and set the number of latent components $K$ to $100$.
 
 During testing, we generate the top $M$ recommendations for each user
 as those items with the highest predictive score under each

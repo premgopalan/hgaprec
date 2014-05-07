@@ -199,35 +199,40 @@ for the implicit Netflix data set.
 
 We also study precision and recall as a function of user activity to
 investigate how performance varies across users of different types. In
-particular, \myfig{precision_recall_by_user_activity} shows the mean
-normalized precision and mean recall at 20 recommendations as we look
-at performance for users of varying activity, measured by
-percentile. For example, the 10\% mark shows mean performance across
-the bottom 10\% of users, who are least active; the 90\% mark shows
-the mean performance for all but the top 10\% of most active users. Here
-we see that Poisson factorization outperforms other methods for users
-of all activity levels---both the ``light'' users who constitute the
-majority, and the relatively few ``heavy'' users who consume
+particular, \myfig{precision_recall_by_user_activity} shows the mean difference
+in precision and recall to HPF, at 20 recommendations, as we look at
+performance for users of varying activity, measured by percentile. For example,
+the 10\% mark shows mean performance across the bottom 10\% of users, who are
+least active; the 90\% mark shows the mean performance for all but the top 10\%
+of most active users. Here we see that Poisson factorization outperforms other
+methods for users of all activity levels---both the ``light'' users who
+constitute the majority, and the relatively few ``heavy'' users who consume
 more---for all data sets.
 
-For the New York Times and Netflix data, we see that higher levels of
-user activity enable us to better estimate user preferences and
-improve the quality of recommendations, as measured by mean normalized
-precision. For the Mendeley and Echo Nest data, however, we see a
-decline in normalized precision for the heavy users.  One possible
-reason for this decline is that these data sets contain many more
-items than users, and this makes prediction difficult.  For example,
-heavy users in the music data may have more diverse taste than the
-light users.
+%% recys-prem !!! removed paragraph below on higher levels of user activity
+
+%% For the New York Times and Netflix data, we see that higher levels of
+%% user activity enable us to better estimate user preferences and
+%% improve the quality of recommendations, as measured by mean normalized
+%% precision. For the Mendeley and Echo Nest data, however, we see a
+%% decline in normalized precision for the heavy users.  One possible
+%% reason for this decline is that these data sets contain many more
+%% items than users, and this makes prediction difficult.  For example,
+%% heavy users in the music data may have more diverse taste than the
+%% light users.
+
 %%
 %% Presumably this difference is due to the large catalogues of
 %% items relative to the number of users in these data sets,
 %% comparatively. (??? More nicheness of users???) 
 %%
-We also note that the decrease in mean recall as we consider
-increasingly active sets of users is inevitable, as these individuals
-have a larger set of relevant items in the test set than their less
-active counterparts. 
+
+%% recys-prem !!! removed paragraph below on higher levels of user activity
+
+%% We also note that the decrease in mean recall as we consider
+%% increasingly active sets of users is inevitable, as these individuals
+%% have a larger set of relevant items in the test set than their less
+%% active counterparts. 
 
 % \myfig{precision_recall} shows that HPF outperforms BPF on the
 % Mendeley, New York Times and Echo Nest data sets in terms of mean

@@ -50,7 +50,7 @@ explicit feedback:
 
 The scale and diversity of these data sets enables a robust evaluation
 of our algorithm. The Mendeley, Echo Nest, and New York Times data
-sets are sparse compared to the Netflix data. For example, we observe
+are sparse compared to Netflix. For example, we observe
 only 0.001\% of all possible user-item ratings in Mendeley, while 1\%
 of the ratings are non-zero in the Netflix data. This is partially a
 reflection of large number of items relative to number users in these
@@ -167,12 +167,12 @@ data sets.
 
 During testing, we generate the top $M$ recommendations for each user
 as those items with the highest predictive score under each
-method. For each user, we compute a variant of precision-at-$M$, which
+method. For each user, we compute a variant of precision-at-$M$ that
 measures the fraction of relevant items in the user's top-$M$
 recommendations. So as not to artificially deflate this measurement
 for lightly active users who have consumed fewer than $M$ items, we
 compute {\it normalized} precision-at-$M$, which adjusts the
-denominator to be at most the number of items that the user has in the
+denominator to be at most the number of items the user has in the
 test set. Likewise, we compute recall-at-$M$, which captures the
 fraction of items in the test set present in the top $M$
 recommendations.
@@ -193,7 +193,7 @@ of methods within a data set is consistent as we vary the number of
 recommendations shown to users. We also note that while Poisson
 factorization dominates across all of these data sets, the relative
 quality of recommendations from competing methods varies substantially
-from one dataset to the next. For instance, LDA performs quite well on
+from one data set to the next. For instance, LDA performs quite well on
 the Echo Nest data, but fails to beat classical matrix factorization
 for the implicit Netflix data set.
 
@@ -274,9 +274,9 @@ regional news) are unified by their content (e.g., airplanes).
 
 \begin{figure}
 \centering
-\includegraphics[width=0.45\textwidth]{./figures/attributes-nyt.pdf}
+\includegraphics[width=0.4\textwidth]{./figures/attributes-nyt.pdf}
 \caption{The top 10 items by the expected weight $\beta_i$ from three
   of the 100 components discovered by our algorithm for the New York
-  Times and Mendeley data sets.}
+  Times data set.}
 \label{fig:components}
 \end{figure}

@@ -92,17 +92,18 @@ resources that users have to consume items.
 
 %%In more detail, 
 
-Poisson factorization is a probabilistic model of
-users and items.  It associates each user with a latent vector of
-preferences, each item with a latent vector of attributes, and
-constrains both sets of vectors to be sparse and non-negative.  Each
-cell of the observed behavior matrix is assumed drawn from a Poisson
+Poisson factorization is a probabilistic model of users and items.  It
+associates each user with a latent vector of preferences, each item
+with a latent vector of attributes, and constrains both sets of
+vectors to be sparse and non-negative. The model assumes that each
+cell of the observed behavior matrix is drawn from a Poisson
 distribution---an exponential family distribution over non-negative
 integers---whose parameter is a linear combination of the
 corresponding user preferences and item attributes.  The main
 computational problem is posterior inference: given an observed matrix
-of user behavior, we discover the latent attributes that describe the
-items and the latent preferences of the users. 
+of user behavior, we would like to discover the latent attributes that
+describe the items and the latent preferences of the users, which we
+can then use to make predictions and recommendations.
 
 %% recys-prem !!! removed paragraph below (references fig 1)
 

@@ -273,7 +273,7 @@ cmpdouble(const void *p1, const void *p2)
 {
   double u = *(const double *)p1;
   double v = *(const double *)p2;
-  return u < v;
+  return u < v ? 1 : u == v ? 0 : -1;
 }
 
 static int
@@ -281,7 +281,7 @@ cmpuint32(const void *p1, const void *p2)
 {
   uint32_t u = *(const uint32_t *)p1;
   uint32_t v = *(const uint32_t *)p2;
-  return u > v;
+  return u < v ? 1 : u == v ? 0 : -1;
 }
 
 static int
@@ -289,7 +289,7 @@ cmppairval(const void *p1, const void *p2)
 {
   const KV &u = *(const KV *)p1;
   const KV &v = *(const KV *)p2;
-  return u.second < v.second;
+  return u.second < v.second ? 1 : u.second == v.second ? 0 : -1;
 }
 
 static int
@@ -297,7 +297,7 @@ cmppairedgeval(const void *p1, const void *p2)
 {
   const RatingV &u = *(const RatingV *)p1;
   const RatingV &v = *(const RatingV *)p2;
-  return u.second < v.second;
+  return u.second < v.second ? 1 : u.second == v.second ? 0 : -1;
 }
 
 static int
@@ -305,7 +305,7 @@ cmppairintval(const void *p1, const void *p2)
 {
   const KVI &u = *(const KVI *)p1;
   const KVI &v = *(const KVI *)p2;
-  return u.second < v.second;
+  return u.second < v.second ? 1 : u.second == v.second ? 0 : -1;
 }
 
 template<class T> inline void

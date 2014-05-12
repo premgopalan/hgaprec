@@ -158,7 +158,10 @@ Ratings::r(uint32_t a, uint32_t b) const
   assert(rm);
   const RatingMap &rmc = *rm;
   RatingMap::const_iterator itr = rmc.find(b);
-  return itr->second;
+  if (itr == rmc.end())
+    return 0;
+  else
+    return itr->second;
 }
 
 inline const vector<uint32_t> *

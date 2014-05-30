@@ -2,3 +2,16 @@
    high popularity and items with very low popularity
 
 2. make initialization accurate
+
+3. additional cites?
+   Cold-start Active Learning with Robust Matrix Factorization (2014)
+   Houlsby NMT, Hernandez-Lobato JMH, and Ghahramani Z
+   31st International Conference on Machine Learning (ICML)   (to appear)
+
+   Stochastic Inference for Scalable Probabilistic Modelling of Binary Matrices (2014)
+   Hernandez-Lobato JMH, Houlsby NMT, and Ghahramani Z
+   31st International Conference on Machine Learning (ICML)   (to appear)
+
+   Probabilistic Matrix Factorization with Non-random Missing Data (2014)
+   Hernandez-Lobato JMH, Houlsby NMT, and Ghahramani Z
+   31st International Conference on Machine Learning (ICML)   (to appear)

@@ -61,7 +61,9 @@ public:
       double av, double bv, double cv, double dv,
       Env::Dataset d, bool batch, bool binary_data, 
       bool bias, bool hier, bool explore, bool vb, 
-      bool nmf);
+      bool nmf, bool nmfload, bool lda, bool vwlda, 
+      bool write_training, uint32_t rating_threshold,
+      bool graphchi);
 
   ~Env() { fclose(_plogf); }
 
@@ -111,6 +113,12 @@ public:
   bool explore;
   bool vb;
   bool nmf;
+  bool nmfload;
+  bool lda;
+  bool vwlda;
+  bool write_training;
+  uint32_t rating_threshold;
+  bool graphchi;
 
   template<class T> static void plog(string s, const T &v);
   static string file_str(string fname);
@@ -201,7 +209,10 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
 	 double av, double bv, double cv, double dv,
 	 Env::Dataset datasetv, bool batchv, 
 	 bool binary_datav, bool biasv,  bool hierv,
-	 bool explore, bool vbv, bool nmfv)
+	 bool explore, bool vbv, bool nmfv, bool nmfloadv, 
+	 bool ldav, bool vwldav, 
+	 bool write_trainingv, uint32_t rating_thresholdv,
+	 bool graphchiv)
   : dataset(datasetv),
     n(N),
     m(M),
@@ -237,7 +248,13 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
     bias(biasv), 
     hier(hierv),
     vb(vbv),
-    nmf(nmfv)
+    nmf(nmfv),
+    nmfload(nmfloadv),
+    lda(ldav),
+    vwlda(vwldav),
+    write_training(write_trainingv),
+    rating_threshold(rating_thresholdv),
+    graphchi(graphchiv)
 {
   ostringstream sa;
   sa << "n" << n << "-";
@@ -283,12 +300,26 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
   if (vb)
     sa << "-vb";
 
-  if (nmf)
+  if (nmf || nmfload)
     sa << "-nmf";
+
+  if (lda)
+    sa << "-lda";
+
+  if (vwlda)
+    sa << "-vwlda";
+
+  if (graphchi)
+    sa << "-chi";
 
   if (seed)
     sa << "-seed" << seed;
-  
+
+  if (write_training)
+    sa << "-write-training";
+
+  //if (rating_threshold)
+  //sa << "-rthresh" << rating_threshold;
   
   prefix = sa.str();
   level = Logger::TEST;
@@ -319,6 +350,7 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
   plog("bias", bias);
   plog("hier", hier);
   plog("nmf", nmf);
+  plog("lda", lda);
   
   //string ndatfname = file_str("/network.dat");
   //unlink(ndatfname.c_str());

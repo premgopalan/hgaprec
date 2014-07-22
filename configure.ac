@@ -48,3 +48,14 @@ esac],
 [debug=false])
 
 AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
+
+AC_ARG_ENABLE(nmflib,
+AS_HELP_STRING([--enable-nmflib],
+               [enable nmflib, default: no]),
+[case "${enableval}" in
+             yes) nmflib=true ;;
+             no)  nmflib=false ;;
+             *)   AC_MSG_ERROR([bad value ${enableval} for --enable-nmflib]) ;;
+esac],
+[nmflib=false])
+AM_CONDITIONAL(HAVE_NMFLIB, test x"$nmflib" = x"true")

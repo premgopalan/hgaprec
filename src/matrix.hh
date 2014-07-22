@@ -268,12 +268,18 @@ D1Array<RatingV>::sort_by_value()
   qsort(_data, _n, sizeof(RatingV), cmppairedgeval);
 }
 
+template<> inline void 
+D1Array<KVI>::sort_by_value()
+{
+  qsort(_data, _n, sizeof(KVI), cmppairintval);
+}
+
 static int
 cmpdouble(const void *p1, const void *p2)
 {
   double u = *(const double *)p1;
   double v = *(const double *)p2;
-  return u < v;
+  return u < v ? 1 : u == v ? 0 : -1;
 }
 
 static int
@@ -281,7 +287,7 @@ cmpuint32(const void *p1, const void *p2)
 {
   uint32_t u = *(const uint32_t *)p1;
   uint32_t v = *(const uint32_t *)p2;
-  return u > v;
+  return u < v ? 1 : u == v ? 0 : -1;
 }
 
 static int
@@ -289,7 +295,7 @@ cmppairval(const void *p1, const void *p2)
 {
   const KV &u = *(const KV *)p1;
   const KV &v = *(const KV *)p2;
-  return u.second < v.second;
+  return u.second < v.second ? 1 : u.second == v.second ? 0 : -1;
 }
 
 static int
@@ -305,7 +311,15 @@ cmppairedgeval(const void *p1, const void *p2)
 {
   const RatingV &u = *(const RatingV *)p1;
   const RatingV &v = *(const RatingV *)p2;
-  return u.second < v.second;
+  return u.second < v.second ? 1 : u.second == v.second ? 0 : -1;
+}
+
+static int
+cmppairintval(const void *p1, const void *p2)
+{
+  const KVI &u = *(const KVI *)p1;
+  const KVI &v = *(const KVI *)p2;
+  return u.second < v.second ? 1 : u.second == v.second ? 0 : -1;
 }
 
 template<class T> inline void
@@ -794,7 +808,7 @@ D1Array<double>::load(string name) const
       k++;
     } while (p != NULL);
     n++;
-    lerr("read %d entries\n", n);
+    debug("read %d entries\n", n);
     memset(line, 0, sz);
   }
   assert (n <= _n);
@@ -821,6 +835,9 @@ public:
   void lognormalize();
   double logsum() const;
 
+  void normalize1();
+  void exp1();
+
   T **data() { return _data; }
   const T ** const data() const {return (const T **)_data;}
   const T ** const const_data() const {return (const T **)_data;}
@@ -829,8 +846,15 @@ public:
   D2Array &operator+=(const D2Array<T> &);
 
   void save(string name, const IDMap &m) const { lerr("save not implemented"); }
+  void save_transpose(string name, const IDMap &m) const;
   void load(string name, uint32_t skipcols=2, 
-	    bool transpose=false) const { lerr("load not implemented"); }
+	    bool transpose=false, uint32_t skiprows=0) 
+    const { lerr("load not implemented"); }
+  void mm_load_rowmajor(string name) 
+    const { lerr("load not implemented"); }
+  void mm_load_colmajor(string name) 
+    const { lerr("load not implemented"); }
+  void nmf_load(string name, bool transpose) const;
   double abs_mean() const;
 
   // expensive
@@ -875,7 +899,7 @@ D2Array<T>::D2Array(uint32_t m, uint32_t n, bool zero):
   _data = new T*[m];
   for (uint32_t i = 0; i < m; ++i) {
     _data[i] = new T[n];
-    if (zero)
+    if (zero) 
       memset(_data[i], 0, sizeof(T)*n);
   }
 }
@@ -1052,7 +1076,7 @@ D2Array<T>::add_slice(uint32_t p, const D1Array<T> &u)
 {
   assert (_n <= u.n());
   const T * const ud = u.data();  
-  for (uint32_t i = 0; i < u.n(); ++i)
+  for (uint32_t i = 0; i < _n; ++i)
     _data[p][i] += ud[i];
 }
 
@@ -1061,7 +1085,7 @@ D2Array<T>::add_slice(uint32_t p, const D1Array<uint32_t> &u)
 {
   assert (_n <= u.n());
   const uint32_t * const ud = u.data(); 
-  for (uint32_t i = 0; i < u.n(); ++i)
+  for (uint32_t i = 0; i < _n; ++i)
     _data[p][i] += ud[i];
 }
 
@@ -1069,9 +1093,9 @@ D2Array<T>::add_slice(uint32_t p, const D1Array<uint32_t> &u)
 template<class T> inline void
 D2Array<T>::sub_slice(uint32_t p, const D1Array<T> &u)
 {
-  assert (_n == u.n());
+  assert (_n <= u.n());
   const T * const ud = u.data();  
-  for (uint32_t i = 0; i < u.n(); ++i)
+  for (uint32_t i = 0; i < _n; ++i)
     _data[p][i] -= ud[i];
 }
 
@@ -1104,6 +1128,27 @@ D2Array<double>::lognormalize()
       _data[i][j] = ::exp(_data[i][j] - s);
 }
 
+template<> inline void
+D2Array<double>::normalize1()
+{
+  for (uint32_t i = 0; i < _m; ++i) {
+    double sum = .0;
+    for (uint32_t j = 0; j < _n; ++j)
+      sum += _data[i][j];
+    assert (sum);
+    for (uint32_t j = 0; j < _n; ++j)
+      _data[i][j] /= sum;
+  }
+}
+
+template<> inline void
+D2Array<double>::exp1()
+{
+  for (uint32_t i = 0; i < _m; ++i)
+    for (uint32_t j = 0; j < _n; ++j)
+      _data[i][j] = exp(_data[i][j]);
+}
+
 
 //  name = Env::file_str(string("/") + "theta.tsv").c_str();
 template<> inline void
@@ -1134,9 +1179,41 @@ D2Array<double>::save(string name, const IDMap &m) const
   fclose(tf);
 }
 
+
 template<> inline void
-D2Array<double>::load(string name, uint32_t skipcols, 
-		      bool transpose) const
+D2Array<double>::save_transpose(string name, const IDMap &m) const
+{
+  FILE * tf = fopen(name.c_str(), "w");
+  if (!tf) 
+    lerr("cannot open file %s\n", name.c_str());
+  assert (tf);
+  const double **cd = const_data();
+  uint32_t id = 0;
+  for (uint32_t i = 0; i < _n; ++i) {
+    IDMap::const_iterator idt = m.find(i);
+    if (idt != m.end()) 
+      id = idt->second;
+    else
+      id = i;
+
+    fprintf(tf,"%d\t", i);
+    fprintf(tf,"%d\t", id);
+    for (uint32_t k = 0; k < _m; ++k) {
+      if (k == _m - 1)
+	fprintf(tf,"%.8f\n", cd[k][i]);
+      else
+	fprintf(tf,"%.8f\t", cd[k][i]);
+    }
+  }
+  fclose(tf);
+}
+
+
+template<> inline void
+D2Array<double>::load(string name, 
+		      uint32_t skipcols, 
+		      bool transpose,
+		      uint32_t skiprows) const
 {
   FILE *f = fopen(name.c_str(), "r");
   if (!f)
@@ -1147,6 +1224,169 @@ D2Array<double>::load(string name, uint32_t skipcols,
   uint32_t m = 0;
   int sz = transpose ? 1024 *_m : 1024*_n;
   char *line = (char *)malloc(sz);
+  uint32_t l = 0, skipped = 0;
+  while (!feof(f)) {
+    if (fgets(line, sz, f) == NULL)
+      break;
+    if (l < skiprows) { //skip header, if any (e.g., vowpal wabbit output)
+	l++;
+	skipped++;
+	continue;
+    }
+    l++;
+    uint32_t n = 0;
+    char *p = line;
+    do {
+      char *q = NULL;
+      double d = strtod(p, &q);
+      if (q == p) {
+	break;
+      }
+      p = q;
+      if (transpose)  {
+	if (n >= skipcols) // skip node id and seq
+	  md[n-skipcols][m] = d;
+      } else {
+	if (n >= skipcols) // skip node id and seq
+	  md[m][n-skipcols] = d;
+      }
+      n++;
+    } while (p != NULL);
+    if (transpose) {
+      //if (n != _m)
+      lerr("n = %d, _m = %d\n", n, _m);
+      if (m >= _n - 1)
+	break;
+    } else if (n != _n) {
+      //lerr("n = %d, _n = %d\n", n, _n);
+      //assert (n == _n);
+      if (m >= _m - 1) 
+	break;
+    }
+    m++;
+    memset(line, 0, sz);
+  }
+  lerr("skipped %d lines\n", skipped);
+  //lerr("read %d lines\n", m);
+  //assert (m == _m);
+  fclose(f);
+  free(line);
+}
+
+template<> inline void
+D2Array<double>::mm_load_rowmajor(string name) const
+{
+  FILE *f = fopen(name.c_str(), "r");
+  if (!f) {
+    lerr("cannot open file %s\n", name.c_str());
+    return;
+  }
+  assert(f);
+
+  double **md = _data;
+  int sz = 4096;
+  char line[sz];
+  uint32_t l = 0, skiprows = 3;
+  uint32_t n = 0, m = 0;
+  while (!feof(f)) {
+    if (fgets(line, sz, f) == NULL)
+      break;
+
+    if (l < skiprows) {
+      l++;
+      continue;
+    }
+    char *p = line;
+    do {
+      char *q = NULL;
+      double d = strtod(p, &q);
+      if (q == p) {
+	break;
+      }
+      p = q;
+      md[m][n] = d;
+      l++;
+    } while (p != NULL);
+    n++;
+    if (m == _m - 1 && n == _n)
+      break;
+    else if (n == _n) {
+      n = 0;
+      m++;
+    }
+    memset(line, 0, sz);
+  }
+  lerr("l = %d, n = %d, m = %d", l, n, m);
+  //assert (n == _n && m == _m);
+  fclose(f);
+}
+
+template<> inline void
+D2Array<double>::mm_load_colmajor(string name) const
+{
+  FILE *f = fopen(name.c_str(), "r");
+  if (!f) {
+    lerr("cannot open file %s\n", name.c_str());
+    return;
+  }
+  assert(f);
+
+  double **md = _data;
+  int sz = 4096;
+  char line[sz];
+  uint32_t l = 0, skiprows = 3;
+  uint32_t n = 0, m = 0;
+  while (!feof(f)) {
+    if (fgets(line, sz, f) == NULL)
+      break;
+
+    if (l < skiprows) {
+      l++;
+      continue;
+    }
+    lerr("%s", line);
+    
+    char *p = line;
+    do {
+      char *q = NULL;
+      double d = strtod(p, &q);
+      if (q == p) {
+	break;
+      }
+      p = q;
+      md[m][n] = d;
+      lerr("%f", d);
+      l++;
+    } while (p != NULL);
+    m++;
+    if (m == _m && n == _n - 1)
+      break;
+    else if (m == _m) {
+      m = 0;
+      n++;
+    }
+    memset(line, 0, sz);
+  }
+  lerr("l = %d, n = %d, m = %d", l, n, m);
+  //assert (n == _n && m == _m);
+  fclose(f);
+}
+
+template<> inline void
+D2Array<double>::nmf_load(string name, bool transpose) const
+{
+  FILE *f = fopen(name.c_str(), "r");
+  if (!f)
+    lerr("cannot open file %s\n", name.c_str());
+  assert(f);
+
+  double **md = _data;
+  uint32_t m = 0;
+  int sz = transpose ? 1024 *_m : 1024*_n;
+  char *line = (char *)malloc(sz);
+
+  // skip the header
+  assert (fgets(line, sz, f) != NULL && fgets(line, sz, f) != NULL);
   while (!feof(f)) {
     if (fgets(line, sz, f) == NULL)
       break;
@@ -1164,20 +1404,18 @@ D2Array<double>::load(string name, uint32_t skipcols,
       }
       p = q;
       if (transpose)  {
-	if (n >= skipcols) // skip node id and seq
-	  md[n-skipcols][m] = d;
+	  md[n][m] = d;
       } else {
-	if (n >= skipcols) // skip node id and seq
-	  md[m][n-skipcols] = d;
+	  md[m][n] = d;
       }
       n++;
     } while (p != NULL);
     if (transpose) {
-      //if (n != _m)
-      //lerr("n = %d, _m = %d\n", n, _m);
+      if (n != _m)
+	lerr("n = %d, _m = %d\n", n, _m);
       assert (n == _m);
     } else if (n != _n) {
-      //lerr("n = %d, _n = %d\n", n, _n);
+      lerr("n = %d, _n = %d\n", n, _n);
       //assert (n == _n);
     }
     m++;

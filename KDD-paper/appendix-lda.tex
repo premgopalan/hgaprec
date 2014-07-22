@@ -1,0 +1,99 @@
+\section{Poisson factorization and LDA}
+
+We show that LDA is equivalent to Poisson factorization, conditioned
+on the per-user sums and where the item weights are constrained to sum
+to one (across items, for each component).  To show this fact we
+appeal to the relationships between the Gamma and Dirichlet
+distributions and between the Poisson and multinomial distributions.
+
+LDA is a mixed-membership model of word counts.  There are a set of
+``topics'' $\gamma_{1:K}$, distributions over a fixed vocabulary, and
+each document exhibits those topics with different proportions.
+Applied to the setting here, the vocabulary is the set of items; each
+user is a ``document'', represented as a sparse vector of item counts;
+a topic is a distribution over items, $\sum_{j} \gamma_{kj} = 1$; each
+user's topic proportions are denoted $\pi_u$, where $\sum_k \pi_{uk} =
+1$.  User/item data, treated as documents, was one of the original
+applications of LDA~\cite{Blei:2003b}.
+
+To see the connection to Poisson factorization, we take the
+``multinomial PCA'' perspective of LDA~\cite{Buntine:2004}.  Let
+$\Gamma$ be the $K \times I$ matrix of topics, where each row
+$\gamma_k$ is a distribution over $I$ items.  Recall that the
+Dirichlet distribution is a distribution over the simplex,
+non-negative vectors that sum to one.  For a distribution on the
+$K$-simplex, the Dirichlet parameter is a positive $K$-vector.  The
+generative process for LDA is
+\begin{eqnarray*}
+  \gamma_k \sim & \dir(\eta) & \quad k \in \{1, \ldots,
+  K\} \\
+  \pi_u  \sim &\dir(\alpha) & \quad u \in \{1, \ldots, U\}
+  \\
+  y_u \sim & \mult(n_u, \pi_u^\top \Gamma). & \quad u \in
+  \{1, \ldots, U\}.
+\end{eqnarray*}
+This process conditions on $n_u$, the sum of the counts for user $u$.
+Further, we assume exchangeable Dirichlets, that is, the
+hyperparameters $\alpha$ and $\eta$ are scalars repeated $K$ and $I$
+times, respectively, for their corresponding Dirichlet parameters.
+This generative process is different from but equivalent to the
+original process for LDA~\cite{Blei:2003b}.
+
+Before connecting LDA and Poisson factorization, we articulate the
+relationship between the Gamma and Dirichlet and between the Poisson
+and multinomial.  The relationship between the Dirichlet and Gamma
+distributions is that we can write a Dirichlet random vector as a
+normalized vector of independent Gammas.  Let $\pi$ be a
+$K$-dimensional simplex vector and let $\alpha$ is a positive
+$K$-vector.  If we generate $\pi$ from the following two-stage
+process,
+\begin{eqnarray*}
+  \theta_k &\sim& \gam(\alpha_k, 1) \\
+  \pi_k &=& \frac{\theta_k}{\sum_{j} \theta_j},
+\end{eqnarray*}
+then $\pi \sim \dir(\alpha)$.
+
+The relationship between the Poisson and multinomial is that a set of
+Poisson variables, conditioned on their sum, is a
+multinomial~\cite{Johnson:2005}.  Let $z_{1:K}$ be a set of Poisson
+variables, each with different rates $\mu_{1:K}$.  Conditioned on
+their sum $n = \sum_k z_k$, the joint distribution of $z_{1:K}$ is a
+multinomial (giving a vector of counts) whose proportions are the
+normalized rates,
+\begin{equation*}
+  z \sim \mult\left(n, \pi \right)
+\end{equation*}
+where $\pi_k = \mu_k / \sum_j \mu_j$.
+
+With these two facts in hand, we can show that LDA is a type of
+Poisson factorization.  First, we re-parameterize the Dirichlet topic
+proportions with Gamma distributions,
+\begin{eqnarray*}
+  \theta_{uk} &\sim& \gam(\alpha, 1) \\
+  \pi_{uk} &=& \theta_{uk} / \textstyle \sum_{j} \theta_{uj}.
+\end{eqnarray*}
+Second, we note that $y_u$ coming from a multinomial is equivalent to
+a conditional bank of Poissons (denoted by $\poisson_{n_u}$),
+\begin{equation*}
+  y_u \g n_u \sim \poisson_{n_u}(\pi_u^\top \Gamma).
+\end{equation*}
+This conditional Poisson is equivalent to any other with the rates
+scaled by a constant.  We can thus use the original Gamma variables
+$\theta_{uk}$ because $\pi$ is simply scaled by its sum,
+\begin{equation*}
+  y_u \g n_u \sim \poisson_{n_u}(\theta_u^\top \Gamma).
+\end{equation*}
+Note that we cannot symmetrically scale by a Gamma representation of
+$\beta_{ik}$ because the vector $\gamma_{\cdot i}$, which are the
+per-topic probabilities for a fixed item, cannot be represented by a
+normalized Gamma.  (Rather, it is the topics themselves, across words,
+which are normalized Gammas.)
+
+In summary, LDA is a form of Poisson factorization where (a) the
+scaling parameter on the gamma priors is fixed to be one (b) we
+condition on the marginal sums for each user (c) the per-item weights
+are scaled to sum to one for each component.
+
+% dmb: consider adding a cite to tina's paper.  note: this justifies
+% using LDA where it might seem "unnatural" to think about bags of
+% words

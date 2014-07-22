@@ -31,7 +31,9 @@ public:
   ~Ratings() { }
 
   int read(string s);
-  const uint8_t rating_class(uint32_t v);
+  uint32_t input_rating_class(uint32_t v) const;
+  bool test_hit(uint32_t v) const;
+  int write_marginal_distributions();
   
   const SparseMatrix &users() const { return _users; }
   SparseMatrix &users() { return _users; }
@@ -55,21 +57,25 @@ public:
   const IDMap &movie2seq() const { return _movie2seq; }
   const IDMap &seq2movie() const { return _seq2movie; }
   int read_generic(FILE *f, CountMap *m);
+  
+  int read_nyt_train(FILE *f, CountMap *m);
+  int read_nyt_titles(string dir);
+  
   void load_movies_metadata(string dir);
   int read_test_users(FILE *f, UserMap *);
 
   string movie_type(uint32_t movie_seq) const;
   string movie_name(uint32_t movie_seq) const;
+  int read_netflix_movie(string dir, uint32_t movie);
+  int read_netflix_metadata(string dir);
+  int read_movielens_metadata(string dir);
   
 private:
   int read_generic_train(string dir);
-  int read_netflix_movie(string dir, uint32_t movie);
   int read_movielens(string dir);
   int read_mendeley(string dir);
   int read_echonest(string dir);
   int read_nyt(string dir);
-  int read_movielens_metadata(string dir);
-  int read_netflix_metadata(string dir);
   int read_mendeley_metadata(string dir);
   string movies_by_user_s() const;
   bool add_movie(uint32_t id);
@@ -152,7 +158,10 @@ Ratings::r(uint32_t a, uint32_t b) const
   assert(rm);
   const RatingMap &rmc = *rm;
   RatingMap::const_iterator itr = rmc.find(b);
-  return itr->second;
+  if (itr == rmc.end())
+    return 0;
+  else
+    return itr->second;
 }
 
 inline const vector<uint32_t> *
@@ -171,12 +180,20 @@ Ratings::get_movies(uint32_t a)
   return v;
 }
 
-inline const uint8_t
-Ratings::rating_class(uint32_t v)
+inline bool
+Ratings::test_hit(uint32_t v) const
+{
+  if (_env.binary_data)
+    return v >= 1;
+  return v >= _env.rating_threshold;
+}
+
+inline uint32_t
+Ratings::input_rating_class(uint32_t v) const
 {
   if (!_env.binary_data)
     return v;
-  return v >= 1  ? 1 : 0;
+  return v >= _env.rating_threshold  ? 1 : 0;
 }
 
 inline string

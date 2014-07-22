@@ -637,7 +637,9 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='DEBUG_FALSE
+ac_subst_vars='HAVE_NMFLIB_FALSE
+HAVE_NMFLIB_TRUE
+DEBUG_FALSE
 DEBUG_TRUE
 am__EXEEXT_FALSE
 am__EXEEXT_TRUE
@@ -734,6 +736,7 @@ ac_user_opts='
 enable_option_checking
 enable_dependency_tracking
 enable_debug
+enable_nmflib
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1376,6 +1379,7 @@ Optional Features:
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
   --enable-debug          enable debugging, default: no
+  --enable-nmflib         enable nmflib, default: no
 
 Some influential environment variables:
   CXX         C++ compiler command
@@ -7550,3 +7554,26 @@ else
   DEBUG_TRUE='#'
   DEBUG_FALSE=
 fi
+
+
+# Check whether --enable-nmflib was given.
+if test "${enable_nmflib+set}" = set; then
+  enableval=$enable_nmflib; case "${enableval}" in
+             yes) nmflib=true ;;
+             no)  nmflib=false ;;
+             *)   { { $as_echo "$as_me:$LINENO: error: bad value ${enableval} for --enable-nmflib" >&5
+$as_echo "$as_me: error: bad value ${enableval} for --enable-nmflib" >&2;}
+   { (exit 1); exit 1; }; } ;;
+esac
+else
+  nmflib=false
+fi
+
+ if test x"$nmflib" = x"true"; then
+  HAVE_NMFLIB_TRUE=
+  HAVE_NMFLIB_FALSE='#'
+else
+  HAVE_NMFLIB_TRUE='#'
+  HAVE_NMFLIB_FALSE=
+fi
+

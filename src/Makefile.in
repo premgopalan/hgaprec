@@ -47,7 +47,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am_hgaprec_OBJECTS = ratings.$(OBJEXT) main.$(OBJEXT) log.$(OBJEXT) \
 	hgaprec.$(OBJEXT)
 hgaprec_OBJECTS = $(am_hgaprec_OBJECTS)
-hgaprec_LDADD = $(LDADD)
+hgaprec_DEPENDENCIES =
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -157,6 +157,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 hgaprec_SOURCES = env.hh ratings.hh ratings.cc matrix.hh main.cc log.cc log.hh hgaprec.cc hgaprec.hh gpbase.hh
+hgaprec_LDADD = -larpack -llapack -lblas
 all: all-am
 
 .SUFFIXES:
@@ -455,10 +456,18 @@ uninstall-am: uninstall-binPROGRAMS
 	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am uninstall-binPROGRAMS
 
+#
+# AUTOCONF 2.63 has a bug!
+# temp fix: uncomment to use these options
+#
+#if HAVE_NMFLIB
+#hgaprec_LDADD += ./nmflib/lib/libnnmf.a
+#endif
 #if DEBUG
 #AM_CFLAGS = -g  -O0
 #AM_CXXFLAGS = -g -O0
 #endif
+#
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

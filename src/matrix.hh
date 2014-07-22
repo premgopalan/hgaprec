@@ -257,12 +257,6 @@ D1Array<KV>::sort_by_value()
 }
 
 template<> inline void 
-D1Array<KVI>::sort_by_value()
-{
-  qsort(_data, _n, sizeof(KVI), cmppairintval);
-}
-
-template<> inline void 
 D1Array<RatingV>::sort_by_value()
 {
   qsort(_data, _n, sizeof(RatingV), cmppairedgeval);
@@ -296,14 +290,6 @@ cmppairval(const void *p1, const void *p2)
   const KV &u = *(const KV *)p1;
   const KV &v = *(const KV *)p2;
   return u.second < v.second ? 1 : u.second == v.second ? 0 : -1;
-}
-
-static int
-cmppairintval(const void *p1, const void *p2)
-{
-  const KVI &u = *(const KVI *)p1;
-  const KVI &v = *(const KVI *)p2;
-  return u.second < v.second;
 }
 
 static int

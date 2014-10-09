@@ -208,7 +208,7 @@ main(int argc, char **argv)
 	  batch, binary_data, bias, hier, 
 	  explore, vb, nmf, nmfload, lda, vwlda, 
 	  write_training, rating_threshold, 
-	  chi);
+	  chi, normal_priors);
   env_global = &env;
 
   Ratings ratings(env);

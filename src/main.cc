@@ -1,5 +1,6 @@
 #include "env.hh"
 #include "hgaprec.hh"
+#include "normprec.hh"
 #include "ratings.hh"
 
 #include <stdlib.h>
@@ -82,6 +83,8 @@ main(int argc, char **argv)
   bool write_training = false;
   uint32_t rating_threshold = 1;
   bool chi = false;
+
+  bool normal_priors = false; 
 
   uint32_t i = 0;
   while (i <= argc - 1) {
@@ -189,6 +192,8 @@ main(int argc, char **argv)
       chi = true;
     } else if (strcmp(argv[i], "-rating-threshold") == 0) {
       rating_threshold = atoi(argv[++i]);
+    } else if (strcmp(argv[i], "-normal-priors") == 0) {
+      normal_priors = true;
     } else if (i > 0) {
       fprintf(stdout,  "error: unknown option %s\n", argv[i]);
       assert(0);
@@ -212,6 +217,12 @@ main(int argc, char **argv)
 	    fname.c_str());
     return -1;
   }
+
+  if (normal_priors) { 
+    NormPRec normprec(env, ratings); 
+    normprec.vb_bias(); 
+    exit(0); 
+  } 
 
   if (chi) {
     HGAPRec hgaprec(env, ratings);

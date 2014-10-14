@@ -70,6 +70,10 @@ HGAPREC: Hierarchical Gamma Poisson factorization based recommendation tool
                   is based on leave-one-out, i.e., leaving one
                   item out for each user
 
+   -normal-priors (EXPERIMENTAL) use Gaussian priors on user and item
+                                 weights. Supports -bias. Does not support
+                                 -hier. 
+
 Example
 --------
 

@@ -6,10 +6,10 @@ NormPRec::NormPRec(Env &env, Ratings &ratings)
     _n(env.n), _m(env.m), _k(env.k),
     _iter(0),
     _start_time(time(0)),
-    _theta("theta", 0.3, 0.3, _n,_k,&_r),
-    _beta("beta", 0.3, 0.3, _m,_k,&_r),
-    _thetabias("thetabias", 0.3, 0.3, _n, 1, &_r),
-    _betabias("betabias", 0.3, 0.3, _m, 1, &_r),
+    _theta("theta", 1e-5, 0.0075, _n,_k,&_r),
+    _beta("beta", 1e-5, 0.0075, _m,_k,&_r),
+    _thetabias("thetabias", 1e-5, 0.0075, _n, 1, &_r),
+    _betabias("betabias", 1e-5, 0.0075, _m, 1, &_r),
     //_thetarate("thetarate", 0.3, 0.3, _n, &_r),
     //_betarate("betarate", 0.3, 0.3, _m, &_r),
     //_save_ranking_file(false),
@@ -123,78 +123,94 @@ NormPRec::initialize()
   _theta.initialize();
 
   if (_env.bias) {
-    // TODO: look over 
-    //_thetabias.initialize2(_m);
+    _thetabias.initialize2(_m);
     //_thetabias.compute_expectations();
     
-    //_betabias.initialize2(_n);
+    _betabias.initialize2(_n);
     //_betabias.compute_expectations();
   }
 }
 
 // perform inference
 void
-NormPRec::vb_bias() 
+NormPRec::vb() 
 {
-  lerr("running vb_bias()");
+  lerr("running vb()");
   initialize();
 
-  Array phi(_k+2);
-  Matrix phi_m(_m,_k+2); 
-  phi.zero(); 
-  phi_m.zero(); 
+  Array *phi; 
+  Matrix *phi_m; 
+  if (_env.bias) {
+      phi = new Array(_k+2);
+      phi_m = new Matrix(_m,_k+2); 
+  } else {
+      phi = new Array(_k);
+      phi_m = new Matrix(_m,_k); 
+  }
+  phi_m->zero(); 
+
+  Array *phi_n, *p; 
+  if (_env.bias) {
+    phi_n = new Array(_k+2);
+    p = new Array(_k+2);
+  } else { 
+    phi_n = new Array(_k);
+    p = new Array(_k);
+  }
+
+
   while (1) {
     for (uint32_t n = 0; n < _n; ++n) { // for every user 
-
-      Array phi_n(_k+2);
-      phi_n.zero(); 
 
       const vector<uint32_t> *movies = _ratings.get_movies(n);
       for (uint32_t j = 0; j < movies->size(); ++j) {
         uint32_t m = (*movies)[j];
         yval_t y = _ratings.r(n,m);
 
-        // TODO: look over 
-        //const double **tbias = _thetabias.expected_logv().const_data();
-        //const double **bbias = _betabias.expected_logv().const_data();
-        const double **tbias = _thetabias.expected_v().const_data();
-        const double **bbias = _betabias.expected_v().const_data();
 
-        get_phi(_theta, n, _beta, m, tbias[n][0], bbias[m][0], phi);
+        if (!_env.bias)
+            get_phi(_theta, n, _beta, m, *phi);
+        else { 
+            const double **tbias = _thetabias.expected_v().const_data();
+            const double **bbias = _betabias.expected_v().const_data();
+            get_phi(_theta, n, _beta, m, tbias[n][0], bbias[m][0], *phi);
+        }
 
         if (y > 1)
-          phi.scale(y);
+          phi->scale(y);
 
-        // TODO: look over 
-        //_thetabias.update_mean_next3(n, 0, phi[_k]);
-        //_betabias.update_mean_next3(m, 0, phi[_k+1]);
-
-        // TODO: add current phi to phi_n 
-        phi_n.add_to(phi); 
-        phi_m.add_slice(m,phi);
+        phi_n->add_to(*phi); 
+        phi_m->add_slice(m,*phi);
       }
 
-      _theta.update_mean_next(n, phi_n);
+      _theta.update_mean_next(n, *phi_n);
       _theta.update_var_next(n); 
-    }
 
+      if (_env.bias) {
+        _thetabias.update_mean_next(n, (*phi_n)[_k]);
+        _thetabias.update_var_next(n); 
+      }
+    }
 
     _theta.swap(); 
     // _theta.compute_expectations(); 
 
-    // I'M HERE!
-    Array p(_k+2);
     for (uint32_t m = 0; m < _m; ++m) { // for every item 
 
-      phi_m.slice(0, m, p); 
-      _beta.update_mean_next(m, p); 
+      phi_m->slice(0, m, *p); 
+      _beta.update_mean_next(m, *p); 
       _beta.update_var_next(m); 
-
+      if (_env.bias) {
+        _betabias.update_mean_next(m, (*p)[_k+1]);
+        _betabias.update_var_next(m); 
+      }
     }
     _beta.swap(); 
 
-    // TODO: add bias 
-
+    if (_env.bias) { 
+        _thetabias.swap();
+        _betabias.swap();
+    }
 
     printf("\r iteration %d", _iter);
     fflush(stdout);    
@@ -212,6 +228,10 @@ NormPRec::vb_bias()
 
     _iter++;
   }
+  delete phi_n; 
+  delete p; 
+  delete phi_m;
+  delete phi;
 }
 
 void
@@ -227,7 +247,167 @@ NormPRec::save_model()
 void
 NormPRec::compute_precision(bool save_ranking_file)
 {
-  printf("unimplemented\n"); 
+    double mhits10 = 0, mhits100 = 0;
+    double cumndcg10 = 0, cumndcg100 = 0;
+    uint32_t total_users = 0;
+    FILE *f = 0;
+    if (save_ranking_file)
+        f = fopen(Env::file_str("/ranking.tsv").c_str(), "w");
+
+    if (!save_ranking_file) {
+        _sampled_users.clear();
+        do {
+            uint32_t n = gsl_rng_uniform_int(_r, _n);
+            _sampled_users[n] = true;
+        } while (_sampled_users.size() < 1000 && _sampled_users.size() < _n / 2);
+    } 
+
+    KVArray mlist(_m);
+    KVIArray ndcglist(_m);
+    for (UserMap::const_iterator itr = _sampled_users.begin();
+            itr != _sampled_users.end(); ++itr) {
+        uint32_t n = itr->first;
+        for (uint32_t m = 0; m < _m; ++m) {
+            Rating r(n,m);
+            if (_ratings.r(n,m) > 0 || is_validation(r)) { // skip training and validation
+                mlist[m].first = m;
+                mlist[m].second = .0;
+                ndcglist[m].first = m;
+                ndcglist[m].second = 0; 
+                continue;
+            }
+            double u = .0;
+            u = prediction_score(n, m);
+            mlist[m].first = m;
+            mlist[m].second = u;
+            ndcglist[m].first = m;
+            CountMap::const_iterator itr = _test_map.find(r);
+            if (itr != _test_map.end()) {
+                ndcglist[m].second = itr->second;
+            } else { 
+                ndcglist[m].second = 0;
+            }      
+        }
+        uint32_t hits10 = 0, hits100 = 0;
+        double   dcg10 = .0, dcg100 = .0; 
+        mlist.sort_by_value();
+        for (uint32_t j = 0; j < mlist.size() && j < _topN_by_user; ++j) {
+            KV &kv = mlist[j];
+            uint32_t m = kv.first;
+            double pred = kv.second;
+            Rating r(n, m);
+
+            uint32_t m2 = 0, n2 = 0;
+            if (save_ranking_file) {
+                IDMap::const_iterator it = _ratings.seq2user().find(n);
+                assert (it != _ratings.seq2user().end());
+
+                IDMap::const_iterator mt = _ratings.seq2movie().find(m);
+                if (mt == _ratings.seq2movie().end())
+                    continue;
+
+                m2 = mt->second;
+                n2 = it->second;
+            }
+
+            CountMap::const_iterator itr = _test_map.find(r);
+            if (itr != _test_map.end()) {
+                int v_ = itr->second;
+                int v;
+                if (_ratings.test_hit(v_))
+                    v = 1;
+                else
+                    v = 0;
+
+                if (j < 10) {
+                    if (v > 0) { //hit
+                        hits10++;
+                        hits100++;
+                    }
+                    if (v_ > 0) { //has non-zero relevance
+                        dcg10 += (pow(2.,v_) - 1)/log(j+2);
+                        dcg100 += (pow(2.,v_) - 1)/log(j+2);
+                    }
+                } else if (j < 100) {
+                    if (v > 0)
+                        hits100++;
+                    if (v_ > 0)
+                        dcg100 += (pow(2.,v_) - 1)/log(j+2);
+                }
+
+                if (save_ranking_file) {
+                    if (_ratings.r(n, m) == .0)  {
+                        double hol = rating_likelihood(n,m,v);
+                        //fprintf(f, "%d\t%d\t%.5f\t%d\t%.5f\n", n2, m2, pred, v,
+                        //(pow(2.,v_) - 1)/log(j+2));
+                        fprintf(f, "%d\t%d\t%.5f\t%d\n", n2, m2, pred, v);
+                    }
+                }
+            } else {
+                if (save_ranking_file) {
+                    if (_ratings.r(n, m) == .0) {
+                        double hol = rating_likelihood(n,m,0);
+                        //fprintf(f, "%d\t%d\t%.5f\t%d\t%.5f\n", n2, m2, pred, 0, .0);
+                        fprintf(f, "%d\t%d\t%.5f\t%d\n", n2, m2, pred, 0);
+                    }
+                }
+            }
+        }
+        mhits10 += (double)hits10 / 10;
+        mhits100 += (double)hits100 / 100;
+        total_users++;
+        // DCG normalizer
+        double dcg10_gt = 0, dcg100_gt = 0;
+        bool user_has_test_ratings = true; 
+        ndcglist.sort_by_value();
+        for (uint32_t j = 0; j < ndcglist.size() && j < _topN_by_user; ++j) {
+            int v = ndcglist[j].second; 
+            if(v==0) { //all subsequent docs are irrelevant
+                if(j==0)
+                    user_has_test_ratings = false; 
+                break;
+            }
+
+            if (j < 10) { 
+                dcg10_gt += (pow(2.,v) - 1)/log(j+2);
+                dcg100_gt += (pow(2.,v) - 1)/log(j+2);
+            } else if (j < 100) {
+                dcg100_gt += (pow(2.,v) - 1)/log(j+2);
+            }
+        }
+        if(user_has_test_ratings) { 
+            cumndcg10 += dcg10/dcg10_gt;
+            cumndcg100 += dcg100/dcg100_gt;
+        } 
+    }
+    if (save_ranking_file)
+        fclose(f);
+    fprintf(_pf, "%d\t%.5f\t%.5f\n", 
+            total_users,
+            (double)mhits10 / total_users, 
+            (double)mhits100 / total_users);
+    fflush(_pf);
+    fprintf(_df, "%.5f\t%.5f\n", 
+            cumndcg10 / total_users, 
+            cumndcg100 / total_users);
+    fflush(_df);
+
+}
+
+void
+NormPRec::get_phi(NormBase<Matrix> &a, uint32_t ai, 
+		 NormBase<Matrix> &b, uint32_t bi, 
+		 Array &phi)
+{
+  assert (phi.size() == a.k() &&
+	  phi.size() == b.k());
+  assert (ai < a.n() && bi < b.n());
+  const double  **eloga = a.expected_v().const_data();
+  const double  **elogb = b.expected_v().const_data();
+  phi.zero();
+  for (uint32_t k = 0; k < _k; ++k)
+    phi[k] = eloga[ai][k] + elogb[bi][k];
+  phi.lognormalize();
 }
 
 void
@@ -241,7 +421,7 @@ NormPRec::get_phi(NormBase<Matrix> &a, uint32_t ai,
   assert (ai < a.n() && bi < b.n());
   const double  **ea = a.expected_v().const_data();
   const double  **eb = b.expected_v().const_data();
-  // phi.zero();
+  phi.zero();
   for (uint32_t k = 0; k < _k; ++k)
     phi[k] = ea[ai][k] + eb[bi][k];
   phi[_k] = biasa;
@@ -275,14 +455,17 @@ NormPRec::compute_likelihood(bool validation)
     double u = rating_likelihood(n,m,r);
     s += u;
     k += 1;
+
+    // add a fake 0 for that user
+    s += rating_likelihood(n, gsl_rng_uniform_int(_r, _m), 0); 
+    k += 1; 
   }
 
   double a = .0;
-  info("s = %.5f\n", s);
-  fprintf(ff, "%d\t%d\t%.9f\t%d\n", _iter, duration(), s / k, k);
-  printf("s/k %f\n", s/k); 
-  fflush(ff);
   a = s / k;  
+  info("s = %.5f\n", s);
+  fprintf(ff, "%d\t%d\t%.9f\t%d\n", _iter, duration(), a, k);
+  fflush(ff);
 
   if (!validation)
     return;
@@ -315,7 +498,7 @@ NormPRec::compute_likelihood(bool validation)
 }
 
 double
-NormPRec::rating_likelihood(uint32_t p, uint32_t q, yval_t y) const
+NormPRec::score(uint32_t p, uint32_t q) const
 {
   const double **etheta = _theta.expected_v().const_data();
   const double **ebeta = _beta.expected_v().const_data();
@@ -324,6 +507,7 @@ NormPRec::rating_likelihood(uint32_t p, uint32_t q, yval_t y) const
   for (uint32_t k = 0; k < _k; ++k)
     s += etheta[p][k] * ebeta[q][k];
   
+  // TODO: biases!!! 
   if (_env.bias) {
     const double **ethetabias = _thetabias.expected_v().const_data();
     const double **ebetabias = _betabias.expected_v().const_data();
@@ -332,7 +516,18 @@ NormPRec::rating_likelihood(uint32_t p, uint32_t q, yval_t y) const
   
   if (s < 1e-30)
     s = 1e-30;
-  
+
+  return s; 
+
+}
+
+
+double
+NormPRec::rating_likelihood(uint32_t p, uint32_t q, yval_t y) const
+{
+
+  double s = score(p,q);
+
   if (_env.binary_data)
     return y == 0 ? -s : log(1 - exp(-s));    
   return y * log(s) - s - log_factorial(y);
@@ -342,7 +537,42 @@ void
 NormPRec::do_on_stop()
 {
   save_model();
-  // TODO 
-  //gen_ranking_for_users(false);
+  gen_ranking_for_users(false);
 }
 
+void
+NormPRec::gen_ranking_for_users(bool load)
+{
+  if (load) { 
+    printf("unimplemented\n"); exit(-1); 
+  } 
+
+  char buf[4096];
+  sprintf(buf, "%s/test_users.tsv", _env.datfname.c_str());
+  FILE *f = fopen(buf, "r");
+  if (!f) { 
+    lerr("cannot open %s", buf);
+    return;
+  }
+  //assert(f);
+  _sampled_users.clear();
+  _ratings.read_test_users(f, &_sampled_users);
+  fclose(f);
+  compute_precision(true);
+  printf("DONE writing ranking.tsv in output directory\n");
+  fflush(stdout);
+}
+
+double
+NormPRec::prediction_score(uint32_t p, uint32_t q) const
+{
+  double s = score(p, q);
+
+  if (_use_rate_as_score)
+    return s;
+  
+  if (s < 1e-30)
+    s = 1e-30;
+  double prob_zero = exp(-s);
+  return 1 - prob_zero;
+}

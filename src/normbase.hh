@@ -67,6 +67,7 @@ public:
   const double vprior() const { return _vprior; }
   void set_to_prior();
   void initialize(); 
+  void initialize2(double v);
   void update_mean_next(uint32_t n, const Array &phi); 
   void update_var_next(uint32_t n); 
   // compute_elbo_term_helper
@@ -179,7 +180,7 @@ NormMatrix::f_mean(const gsl_vector *x, void * params)
     const double ** const vd = obj._vcurr.const_data();
     const double * const pd = (*((bundle *) params)->phi).const_data(); 
 
-    double x_k, nu_k; 
+    double x_k; 
     for(uint32_t k=0; k<obj._k; ++k) { 
 
         f -= gsl_vector_get(tmp, k); 
@@ -267,15 +268,28 @@ NormMatrix::initialize()
   for (uint32_t i = 0; i < _n; ++i)
     for (uint32_t k = 0; k < _k; ++k)
       ad[i][k] = _mprior + 0.01 * gsl_rng_uniform(*_r);
+      //gsl_ran_gaussian_ziggurat(*_r, _vprior)
 
-  for (uint32_t k = 0; k < _k; ++k) { 
+  for (uint32_t k = 0; k < _k; ++k)
     bd[0][k] = _vprior + 0.1 * gsl_rng_uniform(*_r);
-    printf("_vprior %f, bd[0][k] %f\n", _vprior, bd[0][k]);  
-  }
   
   for (uint32_t i = 0; i < _n; ++i)
     for (uint32_t k = 0; k < _k; ++k)
       bd[i][k] = bd[0][k];
+  set_to_prior();
+}
+
+inline void
+NormMatrix::initialize2(double v)
+{
+  double **ad = _mcurr.data();
+  double **bd = _vcurr.data();
+  for (uint32_t i = 0; i < _n; ++i) {
+    for (uint32_t k = 0; k < _k; ++k) {
+      ad[i][k] = _mprior + 0.01 * gsl_rng_uniform(*_r);
+      bd[i][k] = _vprior + 0.01 * gsl_rng_uniform(*_r);
+    }
+  }
   set_to_prior();
 }
 

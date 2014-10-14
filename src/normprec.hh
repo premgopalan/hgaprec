@@ -10,7 +10,7 @@ public:
   NormPRec(Env &env, Ratings &ratings);
   ~NormPRec();
 
-  void vb_bias();
+  void vb();
 
 private:
   void initialize();
@@ -18,10 +18,9 @@ private:
   void save_model(); 
   void compute_precision(bool); 
 
-  //void get_phi(NormBase<Matrix> &a, uint32_t ai, 
-//	       NormBase<Matrix> &b, uint32_t bi, 
-//	       Array &phi);
-
+  void get_phi(NormBase<Matrix> &a, uint32_t ai, 
+            NormBase<Matrix> &b, uint32_t bi, 
+            Array &phi);
   void get_phi(NormBase<Matrix> &a, uint32_t ai, 
 	       NormBase<Matrix> &b, uint32_t bi, 
 	       double biasa, double biasb,
@@ -32,7 +31,11 @@ private:
   // double log_factorial(uint32_t n)  const;
 
   double rating_likelihood(uint32_t p, uint32_t q, yval_t y) const;
-  double rating_likelihood_hier(uint32_t p, uint32_t q, yval_t y) const;
+  // double rating_likelihood_hier(uint32_t p, uint32_t q, yval_t y) const;
+  double prediction_score(uint32_t p, uint32_t q) const;
+  double score(uint32_t p, uint32_t q) const;
+  void gen_ranking_for_users(bool load_model_state);
+
 
   uint32_t duration() const;
   bool is_validation(const Rating &r) const;

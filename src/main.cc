@@ -220,7 +220,7 @@ main(int argc, char **argv)
 
   if (normal_priors) { 
     NormPRec normprec(env, ratings); 
-    normprec.vb_bias(); 
+    normprec.vb(); 
     exit(0); 
   } 
 

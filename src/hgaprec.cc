@@ -966,7 +966,6 @@ HGAPRec::vb_mle_user()
       for (uint32_t k = 0; k < _k; ++k)
 	thetasum[k] += td[n][k];
 
-    lerr("thetasum = %s", thetasum.s().c_str());
     _beta.update_rate_next(thetasum);
     _beta.swap();
     _beta.compute_expectations();
@@ -1113,16 +1112,12 @@ HGAPRec::vb_canny()
 	  bd[m][k] = 1e-10;
 	bd[m][k] = bd[m][k] / thetasum[k];
 	old_bd[m][k] = bd[m][k];
-	if (old_bd[m][k] <= 0 || thetasum[k] <= 0) 
-	  lerr("ASSERTION: k = %d, m = %d, thetasum = %f, old_bd = %f", 
-	       k, m, thetasum[k], old_bd[m][k]);
       }
 
     for (uint32_t k = 0; k < _k; ++k) {
       double s = .0;
       for (uint32_t m = 0; m < _m; ++m) 
 	s += old_bd[m][k];
-      lerr("k = %d, s = %f", k, s);
       for (uint32_t m = 0; m < _m; ++m) {
 	old_bd[m][k] /= s;
 	bd[m][k] = old_bd[m][k];
@@ -1144,6 +1139,8 @@ HGAPRec::vb_canny()
       compute_likelihood(true);
       compute_likelihood(false);
       compute_precision(false);
+      if (_n < 10000 && _m < 10000)
+	compute_itemrank();
       if (_env.logl)
 	logl();
     }
@@ -1551,10 +1548,16 @@ HGAPRec::compute_itemrank()
   uint32_t total_users = 0;
   FILE *f = 0;
   f = fopen(Env::file_str("/itemrank.tsv").c_str(), "w");
+  FILE *itemf = fopen(Env::file_str("/meanrank.txt").c_str(), "w");
+  if (!itemf)  {
+    printf("cannot open logl file:%s\n",  strerror(errno));
+    exit(-1);
+  }  
 
   KVArray mlist(_m);
   KVIArray ndcglist(_m);
   double sum_rank = .0;
+  double sum_reciprocal_rank = .0;
   for (UserMap::const_iterator itr = _sampled_users.begin();
        itr != _sampled_users.end(); ++itr) {
 
@@ -1583,6 +1586,7 @@ HGAPRec::compute_itemrank()
     mlist.sort_by_value();
     
     double rank_ui = .0;
+    double reciprocal_rank_ui = .0;
     uint32_t ntestitems = 0;
     uint32_t nranked = 0;
     for (uint32_t j = 0; j < mlist.size(); ++j) {
@@ -1591,10 +1595,8 @@ HGAPRec::compute_itemrank()
       double pred = kv.second;
       Rating r(n, m);
 
-      if (_ratings.r(n,m) == 0) { // not in validation or training 
-	assert (pred == .0);
+      if (_ratings.r(n,m) == 0) // not in validation or training 
 	nranked++;
-      }
 
       CountMap::const_iterator itr = _test_map.find(r);
       if (itr != _test_map.end()) {
@@ -1607,15 +1609,27 @@ HGAPRec::compute_itemrank()
 
 	if (v > 0) {
 	  ntestitems++;
-	  fprintf(f, "%d\t%d\t%.5f\t%d\n", n, m, pred, j);
-	  rank_ui += (j+1) / nranked;
+	  const vector<uint32_t> *t = _ratings.get_users(m);
+	  fprintf(f, "%d\t%d\t%.5f\t%d\t%d\n", n, m, pred, j, t?t->size():0);
+	  rank_ui += (j+1);
+	  reciprocal_rank_ui += 1 / (j+1);
 	}
       }
     }
-    sum_rank += rank_ui / ntestitems;
+    if (ntestitems > 0 && nranked > 0) {
+      sum_rank += (rank_ui / nranked) / ntestitems;
+      sum_reciprocal_rank += reciprocal_rank_ui / ntestitems;
+      total_users++;
+    }
   }
   fclose(f);
-  return(sum_rank / _sampled_users.size());
+
+  fprintf(itemf, "%d\t%.5f\t%.5f\n", 
+	  total_users,
+	  (double)sum_rank/total_users,
+	  (double)sum_reciprocal_rank/total_users);
+  fclose(itemf);
+  return(sum_rank / total_users);
 }
 
 void

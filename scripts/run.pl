@@ -11,13 +11,13 @@ our $F;
 #
 # set the location of the hgaprec binary
 #
-my $gapbin = "/scratch/pgopalan/kdd3/src/hgaprec";
+my $gapbin = "/scratch/pgopalan/hgaprec/src/hgaprec";
 
 #
 # set the "prefix" path for the data sets
 # e.g., if data set resides in /scratch/pgopalan/kdd3/example/movielens
 # set as follows
-my $dataloc = "/scratch/pgopalan/kdd3/example";
+my $dataloc = "/scratch/pgopalan/hgaprec/analysis/data";
 
 # OPTIONAL
 
@@ -61,7 +61,7 @@ sub init() {
     $nf{loc} = "$dataloc/netflix";
     $nf{N} = 480189;
     $nf{M} = 17770;
-    $nf{batch_cmd} = "$gapbin  -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -rfreq $batch_rfreq -rating-threshold 4";
+    $nf{batch_cmd} = "$gapbin -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -rfreq $batch_rfreq -rating-threshold 4";
     $nf{gen_ranking_cmd} = "$gapbin -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -gen-ranking -rating-threshold 4";
 
     # competing methods
@@ -70,24 +70,15 @@ sub init() {
     $nf{lda_cmd} = "cd n$nf{N}-m$nf{M}-k%d-$binstr; $ldabin est %0.3f %d settings.txt ldatrain.tsv random lda-output";
     $nf{lda_precision_cmd} = "cd n$nf{N}-m$nf{M}-k%d-$binstr; cp lda-output/%s.gamma gamma.tsv; cp lda-output/%s.beta beta.tsv;".
 	"$gapbin -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -lda -rating-threshold 4";
-    $nf{nmf_cmd} = "$gapbin  -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -nmf";
-    $nf{nmf_precision_cmd} = "$gapbin  -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -nmfload -nmf";
 
+    $nf{wals_cmd} = "$gapbin  -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -chi -wals";
+    $nf{climf_cmd} = "$gapbin  -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -chi -climf";
+    $nf{nmf_cmd} = "$gapbin  -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -chi -chinmf";
+    $nf{als_cmd} = "$gapbin  -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -chi -als";
 
-    $nfmsr{loc} = "$dataloc/netflixmsr";
-    $nfmsr{N} = 478614;
-    $nfmsr{M} = 17770;
-    $nfmsr{batch_cmd} = "$gapbin  -dir $nfmsr{loc} -m $nfmsr{M} -n $nfmsr{N} -k %d -rfreq $batch_rfreq -rating-threshold 1";
-    $nfmsr{gen_ranking_cmd} = "$gapbin -dir $nfmsr{loc} -m $nfmsr{M} -n $nfmsr{N} -k %d -gen-ranking -rating-threshold 1";
-
-    # competing methods
-    $nfmsr{lda_write_cmd} = "$gapbin -dir $nfmsr{loc} -m $nfmsr{M} -n $nfmsr{N} -k %d -lda -write-training -rating-threshold 1";
-    $nfmsr{lda_cp_cmd} = "cp $lda_settings_file n$nfmsr{N}-m$nfmsr{M}-k%d-$binstr;";
-    $nfmsr{lda_cmd} = "cd n$nfmsr{N}-m$nfmsr{M}-k%d-$binstr; $ldabin est %0.3f %d settings.txt ldatrain.tsv random lda-output";
-    $nfmsr{lda_precision_cmd} = "cd n$nfmsr{N}-m$nfmsr{M}-k%d-$binstr; cp lda-output/%s.gamma gamma.tsv; cp lda-output/%s.beta beta.tsv;".
-	"$gapbin -dir $nfmsr{loc} -m $nfmsr{M} -n $nfmsr{N} -k %d -lda -rating-threshold 1";
-    $nfmsr{nmf_cmd} = "$gapbin  -dir $nfmsr{loc} -m $nfmsr{M} -n $nfmsr{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmf";
-    $nfmsr{nmf_precision_cmd} = "$gapbin  -dir $nfmsr{loc} -m $nfmsr{M} -n $nfmsr{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmfload -nmf";
+    $nf{mle_user_cmd} = "$gapbin  -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -mle-user";
+    $nf{mle_item_cmd} = "$gapbin  -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -mle-item";
+    $nf{canny_cmd} = "$gapbin  -dir $nf{loc} -m $nf{M} -n $nf{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -canny";
 
     $nyt{loc} = "$dataloc/nyt";
     $nyt{N} = 1615675;
@@ -101,8 +92,18 @@ sub init() {
     $nyt{lda_cmd} = "cd n$nyt{N}-m$nyt{M}-k%d-$binstr; $ldabin est %0.3f %d settings.txt ldatrain.tsv random lda-output";
     $nyt{lda_precision_cmd} = "cd n$nyt{N}-m$nyt{M}-k%d-$binstr; cp lda-output/%s.gamma gamma.tsv; cp lda-output/%s.beta beta.tsv;".
 	"$gapbin -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -lda -rating-threshold 1";
-    $nyt{nmf_cmd} = "$gapbin -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmf";
+
+    #$nyt{nmf_cmd} = "$gapbin -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmf";
     $nyt{nmf_precision_cmd} = "$gapbin -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmfload -nmf";
+
+    $nyt{climf_cmd} = "$gapbin  -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -chi -climf";
+    $nyt{nmf_cmd} = "$gapbin  -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -chi -chinmf";
+    $nyt{als_cmd} = "$gapbin  -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -chi -als";
+
+    $nyt{mle_item_cmd} = "$gapbin  -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -mle-item";
+    $nyt{mle_user_cmd} = "$gapbin  -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -mle-user";
+    $nyt{canny_cmd} = "$gapbin  -dir $nyt{loc} -m $nyt{M} -n $nyt{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -canny";
+
 
     $ml{loc} = "$dataloc/movielens";
     $ml{N} = 6040;
@@ -116,8 +117,19 @@ sub init() {
     $ml{lda_cmd} = "cd n$ml{N}-m$ml{M}-k%d-$binstr; $ldabin est %0.3f %d settings.txt ldatrain.tsv random lda-output";
     $ml{lda_precision_cmd} = "cd n$ml{N}-m$ml{M}-k%d-$binstr; cp lda-output/%s.gamma gamma.tsv; cp lda-output/%s.beta beta.tsv;".
 	"$gapbin -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -lda -rating-threshold 4";
-    $ml{nmf_cmd} = "$gapbin  -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -nmf";
-    $ml{nmf_precision_cmd} = "$gapbin  -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -nmfload -nmf";
+    $nf{wals_cmd} = "$gapbin  -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -wals";
+    #$ml{nmf_cmd} = "$gapbin  -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -nmf";
+    #$ml{nmf_precision_cmd} = "$gapbin  -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -nmfload -nmf";
+
+    $ml{climf_cmd} = "$gapbin  -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -chi -climf";
+    $ml{nmf_cmd} = "$gapbin  -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -chi -chinmf";
+    $ml{als_cmd} = "$gapbin  -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -chi -als";
+
+    $ml{mle_item_cmd} = "$gapbin  -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -mle-item";
+    $ml{mle_user_cmd} = "$gapbin  -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -mle-user";
+    $ml{canny_cmd} = "$gapbin  -dir $ml{loc} -m $ml{M} -n $ml{N} -k %d -rfreq $batch_rfreq -rating-threshold 4 -canny";
+
+
 
     $dy{loc} = "$dataloc/mendeley";
     $dy{N} = 80278;
@@ -131,8 +143,16 @@ sub init() {
     $dy{lda_cmd} = "cd n$dy{N}-m$dy{M}-k%d-$binstr; $ldabin est %0.3f %d settings.txt ldatrain.tsv random lda-output";
     $dy{lda_precision_cmd} = "cd n$dy{N}-m$dy{M}-k%d-$binstr; cp lda-output/%s.gamma gamma.tsv; cp lda-output/%s.beta beta.tsv;".
 	"$gapbin -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -lda -rating-threshold 1";
-    $dy{nmf_cmd} = "$gapbin -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmf";
-    $dy{nmf_precision_cmd} = "$gapbin -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmfload -nmf";
+    #$dy{nmf_cmd} = "$gapbin -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmf";
+    #$dy{nmf_precision_cmd} = "$gapbin -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmfload -nmf";
+
+    $dy{climf_cmd} = "$gapbin  -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -chi -climf";
+    $dy{nmf_cmd} = "$gapbin  -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -chi -chinmf";
+    $dy{als_cmd} = "$gapbin  -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -chi -als";
+
+    $dy{mle_item_cmd} = "$gapbin  -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -mle-item";
+    $dy{mle_user_cmd} = "$gapbin  -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -mle-user";
+    $dy{canny_cmd} = "$gapbin  -dir $dy{loc} -m $dy{M} -n $dy{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -canny";
 
     $en{loc} = "$dataloc/echonest";
     $en{N} = 1019318;
@@ -146,8 +166,16 @@ sub init() {
     $en{lda_cmd} = "cd n$en{N}-m$en{M}-k%d-$binstr; $ldabin est %0.3f %d settings.txt ldatrain.tsv random lda-output";
     $en{lda_precision_cmd} = "cd n$en{N}-m$en{M}-k%d-$binstr; cp lda-output/%s.gamma gamma.tsv; cp lda-output/%s.beta beta.tsv;". 
 	"$gapbin -dir $en{loc} -m $en{M} -n $en{N} -k %d -lda -rating-threshold 1";
-    $en{nmf_cmd} = "$gapbin  -dir $en{loc} -m $en{M} -n $en{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmf";
-    $en{nmf_precision_cmd} = "$gapbin  -dir $en{loc} -m $en{M} -n $en{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmfload -nmf";
+    #$en{nmf_cmd} = "$gapbin  -dir $en{loc} -m $en{M} -n $en{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmf";
+    #$en{nmf_precision_cmd} = "$gapbin  -dir $en{loc} -m $en{M} -n $en{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -nmfload -nmf";
+
+    $en{climf_cmd} = "$gapbin  -dir $en{loc} -m $en{M} -n $en{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -chi -climf";
+    $en{nmf_cmd} = "$gapbin  -dir $en{loc} -m $en{M} -n $en{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -chi -chinmf";
+    $en{als_cmd} = "$gapbin  -dir $en{loc} -m $en{M} -n $en{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -chi -als";
+
+    $en{mle_item_cmd} = "$gapbin  -dir $en{loc} -m $en{M} -n $en{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -mle-item";
+    $en{mle_user_cmd} = "$gapbin  -dir $en{loc} -m $en{M} -n $en{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -mle-user";
+    $en{canny_cmd} = "$gapbin  -dir $en{loc} -m $en{M} -n $en{N} -k %d -rfreq $batch_rfreq -rating-threshold 1 -canny";
 }
 
 my $label = "";
@@ -161,6 +189,11 @@ my $ldaprec = 0;
 my $logl = 0;
 my $nmf = 0;
 my $nmfload = 0;
+my $als = 0;
+my $climf = 0;
+my $mle_item = 0;
+my $mle_user = 0;
+my $canny = 0;
 
 sub run($) {
     my $a = shift @_;
@@ -200,7 +233,12 @@ sub main()
 		'orig' => \$orig,
 		'logl' => \$logl,
 		'nmf' => \$nmf,
-		'nmfload' => \$nmfload);
+		'nmfload' => \$nmfload,
+		'als' => \$als,
+		'climf' => \$climf,
+		'mleuser' => \$mle_user,
+		'mleitem' => \$mle_item,
+		'canny' => \$canny);
 
     if ($orig) {
 	$gapbin = "/scratch/pgopalan/gaprec/src/gaprec";
@@ -230,6 +268,27 @@ sub main()
 	my $cmd = sprintf $m->{nmf_cmd}, $K;
 	$cmd = process($cmd);
 	run($cmd);
+    } elsif ($als) {
+	my $cmd = sprintf $m->{als_cmd}, $K;
+	$cmd = process($cmd);
+	run($cmd);
+    } elsif ($climf) {
+	my $cmd = sprintf $m->{climf_cmd}, $K;
+	$cmd = process($cmd);
+	run($cmd);
+    } elsif ($mle_user) {
+	print "mle user\n";
+	my $cmd = sprintf $m->{mle_user_cmd}, $K;
+	$cmd = process($cmd);
+	run($cmd);
+    } elsif ($mle_item) {
+	my $cmd = sprintf $m->{mle_item_cmd}, $K;
+	$cmd = process($cmd);
+	run($cmd);
+    } elsif ($canny) {
+	my $cmd = sprintf $m->{canny_cmd}, $K;
+	$cmd = process($cmd);
+	run($cmd);	
     } elsif ($ldaprec) {
 	my $cmd = sprintf $m->{lda_precision_cmd}, $K, "final", "final", $K;
 	$cmd = process($cmd);

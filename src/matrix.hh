@@ -1270,7 +1270,7 @@ D2Array<double>::mm_load_rowmajor(string name) const
   assert(f);
 
   double **md = _data;
-  int sz = 4096;
+  int sz = 102400;
   char line[sz];
   uint32_t l = 0, skiprows = 3;
   uint32_t n = 0, m = 0;
@@ -1283,6 +1283,7 @@ D2Array<double>::mm_load_rowmajor(string name) const
       continue;
     }
     char *p = line;
+    uint32_t c = 0;
     do {
       char *q = NULL;
       double d = strtod(p, &q);
@@ -1290,19 +1291,21 @@ D2Array<double>::mm_load_rowmajor(string name) const
 	break;
       }
       p = q;
-      md[m][n] = d;
+      md[m][n++] = d;
       l++;
+      c++;
     } while (p != NULL);
-    n++;
-    if (m == _m - 1 && n == _n)
+    debug("processed %d tokens", c);
+    if (m == _m - 1 && n == _n) {
+      debug("m = %d, n = %d, _m = %d, _n = %d, breaking", m, n, _m, _n);
       break;
-    else if (n == _n) {
+    } else if (n == _n) {
       n = 0;
       m++;
     }
     memset(line, 0, sz);
   }
-  lerr("l = %d, n = %d, m = %d", l, n, m);
+  debug("l = %d, n = %d, m = %d", l, n, m);
   //assert (n == _n && m == _m);
   fclose(f);
 }

@@ -63,8 +63,9 @@ public:
       bool bias, bool hier, bool explore, bool vb, 
       bool nmf, bool nmfload, bool lda, bool vwlda, 
       bool write_training, uint32_t rating_threshold,
-      bool graphchi);
-
+      bool graphchi, bool wals, double wals_l, uint32_t wals_C,
+      bool als, bool chinmf, bool climf,
+      bool mle_item, bool mle_user, bool canny);
   ~Env() { fclose(_plogf); }
 
   static string prefix;
@@ -119,6 +120,16 @@ public:
   bool write_training;
   uint32_t rating_threshold;
   bool graphchi;
+  bool wals;
+  double wals_l;
+  uint32_t wals_C;
+  bool als;
+  bool chinmf;
+  bool climf;
+
+  bool mle_item;
+  bool mle_user;
+  bool canny;
 
   template<class T> static void plog(string s, const T &v);
   static string file_str(string fname);
@@ -212,7 +223,9 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
 	 bool explore, bool vbv, bool nmfv, bool nmfloadv, 
 	 bool ldav, bool vwldav, 
 	 bool write_trainingv, uint32_t rating_thresholdv,
-	 bool graphchiv)
+	 bool graphchiv, bool walsv, double l, uint32_t C,
+	 bool alsv, bool chinmfv, bool climfv,
+	 bool mle_itemv, bool mle_userv, bool cannyv)
   : dataset(datasetv),
     n(N),
     m(M),
@@ -254,7 +267,16 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
     vwlda(vwldav),
     write_training(write_trainingv),
     rating_threshold(rating_thresholdv),
-    graphchi(graphchiv)
+    graphchi(graphchiv),
+    wals(walsv),
+    wals_l(l),
+    wals_C(C),
+    als(alsv),
+    chinmf(chinmfv),
+    climf(climfv),
+    mle_user(mle_userv),
+    mle_item(mle_itemv),
+    canny(cannyv)
 {
   ostringstream sa;
   sa << "n" << n << "-";
@@ -318,9 +340,27 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
   if (write_training)
     sa << "-write-training";
 
-  //if (rating_threshold)
-  //sa << "-rthresh" << rating_threshold;
-  
+  if (graphchi) {
+    if (chinmf)
+      sa << "-nmf";
+    else if (als)
+      sa << "-als";
+    else if (wals) {
+      sa << "-wals";
+      sa << "-wl-" << wals_l; 
+      sa << "-wC-" << wals_C; 
+    } else if (climf) {
+      sa << "-climf";
+    }
+  }
+
+  if (mle_userv)
+    sa << "-mle-user";
+  else if (mle_itemv)
+    sa << "-mle-item";
+  else if (canny)
+    sa << "-canny";
+
   prefix = sa.str();
   level = Logger::TEST;
 
@@ -351,6 +391,10 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
   plog("hier", hier);
   plog("nmf", nmf);
   plog("lda", lda);
+  plog("wals_l", wals_l);
+  plog("wals_C", wals_C);
+  plog("mle_user", mle_user);
+  plog("mle_item", mle_item);
   
   //string ndatfname = file_str("/network.dat");
   //unlink(ndatfname.c_str());

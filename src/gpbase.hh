@@ -28,7 +28,10 @@ template<class T> inline  void
 GPBase<T>::make_nonzero(double av, double bv,
 			double &a, double &b) const
 {
-  assert (av >= 0 && bv >= 0);
+  if (!(av >= 0 && bv >= 0)) {
+    lerr("av = %f, bv = %f", av, bv);
+    assert(0);
+  }
   if (!(bv > .0)) 
     b = 1e-30;
   else
@@ -394,14 +397,21 @@ GPMatrix::save_state(const IDMap &m) const
   _Ev.save(Env::file_str(expv_fname), m);
 }
 
+// inline void
+// GPMatrix::load()
+// {
+//   string shape_fname = name() + "_shape.tsv";
+//   string rate_fname = name() + "_rate.tsv";
+//   _scurr.load(shape_fname);
+//   _rcurr.load(rate_fname);
+//   compute_expectations();
+// }
+
 inline void
 GPMatrix::load()
 {
-  string shape_fname = name() + "_shape.tsv";
-  string rate_fname = name() + "_rate.tsv";
-  _scurr.load(shape_fname);
-  _rcurr.load(rate_fname);
-  compute_expectations();
+  string fname = name() + ".tsv";
+  _Ev.load(fname);
 }
 
 inline void

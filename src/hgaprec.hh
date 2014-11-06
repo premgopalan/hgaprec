@@ -13,6 +13,9 @@ public:
   void vb();
   void vb_bias();
   void vb_hier();
+  void vb_mle_user();
+  void vb_mle_item();
+  void vb_canny();
 
 #ifdef HAVE_NMFLIB
   void nmf();
@@ -23,14 +26,19 @@ public:
   void run_chi_nmf();
   void run_chi_sgd();
   void run_chi_als();
+  void run_chi_wals(double l);
+  void run_chi_climf();
   
   void gen_ranking_for_users(bool load_model_state);
   void gen_msr_csv();
 
+  double compute_rmse();
+  double compute_itemrank();
+
   void write_lda_training_matrix();
   void write_vwlda_training_matrix();
   void write_nmf_training_matrix();
-  void write_chi_training_matrix();
+  void write_chi_training_matrix(double C = 1);
 
   void load_nmf_beta_and_theta();
   void load_lda_beta_and_theta();
@@ -49,6 +57,13 @@ private:
   void get_phi(GPBase<Matrix> &a, uint32_t ai, 
 	       GPBase<Matrix> &b, uint32_t bi, 
 	       double biasa, double biasb,
+	       Array &phi);
+  void get_phi(Matrix &a, uint32_t ai, 
+	       GPBase<Matrix> &b, uint32_t bi, 
+	       Array &phi);
+  
+  void get_phi(GPBase<Matrix> &a, uint32_t ai, 
+	       Matrix &b, uint32_t bi, 
 	       Array &phi);
 
   void load_validation_and_test_sets();
@@ -93,6 +108,11 @@ private:
 
   GPArray _thetarate;
   GPArray _betarate;
+
+  Matrix _theta_mle;
+  Matrix _beta_mle;
+  Matrix _old_theta_mle;
+  Matrix _old_beta_mle;
   
   CountMap _validation_map;
   CountMap _test_map;
@@ -121,6 +141,7 @@ private:
   FILE *_af;
   FILE *_pf;
   FILE *_df;
+  FILE *_rf;
 
   double _prev_h;
   uint32_t _nh;
@@ -128,6 +149,9 @@ private:
   bool _use_rate_as_score;
   uint32_t _topN_by_user;
   uint32_t _maxval, _minval;
+
+  bool _mle_user;
+  bool _mle_item;
 };
 
 inline uint32_t

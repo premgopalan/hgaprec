@@ -73,6 +73,7 @@ main(int argc, char **argv)
   bool hier = false;
   bool explore = false;
   bool gen_ranking_for_users = false;
+  bool rmse = false;
   bool nmf = false;
   bool nmfload = false;
   bool vwload = false;
@@ -82,6 +83,17 @@ main(int argc, char **argv)
   bool write_training = false;
   uint32_t rating_threshold = 1;
   bool chi = false;
+  bool wals = false;
+  double wals_l = 0.1;
+  uint32_t wals_C = 10;
+
+  bool als = false;
+  bool chinmf = false;
+  bool climf = false;
+
+  bool mle_item = false;
+  bool mle_user = false;
+  bool canny = false;
 
   uint32_t i = 0;
   while (i <= argc - 1) {
@@ -167,8 +179,16 @@ main(int argc, char **argv)
       bias = true;
     } else if (strcmp(argv[i], "-hier") == 0) {
       hier = true;
+    } else if (strcmp(argv[i], "-mle-user") == 0) {
+      mle_user = true;
+    } else if (strcmp(argv[i], "-mle-item") == 0) {
+      mle_item = true;
+    } else if (strcmp(argv[i], "-canny") == 0) {
+      canny = true;
     } else if (strcmp(argv[i], "-gen-ranking") == 0) {
       gen_ranking_for_users = true;
+    } else if (strcmp(argv[i], "-rmse") == 0) {
+      rmse = true;
     } else if (strcmp(argv[i], "-novb") == 0) {
       vb = false;
     } else if (strcmp(argv[i], "-msr") == 0) {
@@ -187,6 +207,18 @@ main(int argc, char **argv)
       write_training = true;
     } else if (strcmp(argv[i], "-chi") == 0) {
       chi = true;
+    } else if (strcmp(argv[i], "-chinmf") == 0) {
+      chinmf = true;
+    } else if (strcmp(argv[i], "-als") == 0) {
+      als = true;
+    } else if (strcmp(argv[i], "-wals") == 0) {
+      wals = true;
+    } else if (strcmp(argv[i], "-wals_l") == 0) {
+      wals_l = atof(argv[++i]);
+    } else if (strcmp(argv[i], "-wals_C") == 0) {
+      wals_C = atoi(argv[++i]);
+    } else if (strcmp(argv[i], "-climf") == 0) {
+      climf = true;
     } else if (strcmp(argv[i], "-rating-threshold") == 0) {
       rating_threshold = atoi(argv[++i]);
     } else if (i > 0) {
@@ -203,9 +235,11 @@ main(int argc, char **argv)
 	  batch, binary_data, bias, hier, 
 	  explore, vb, nmf, nmfload, lda, vwlda, 
 	  write_training, rating_threshold, 
-	  chi);
+	  chi, wals, wals_l, wals_C,
+	  als, chinmf, climf, 
+	  mle_item, mle_user, canny);
   env_global = &env;
-
+  
   Ratings ratings(env);
   if (ratings.read(fname.c_str()) < 0) {
     fprintf(stderr, "error reading dataset from dir %s; quitting\n", 
@@ -213,10 +247,25 @@ main(int argc, char **argv)
     return -1;
   }
 
+
+  if (rmse) {
+    HGAPRec hgaprec(env, ratings);
+    hgaprec.compute_rmse();
+    exit(0);
+  }
+
+
   if (chi) {
     HGAPRec hgaprec(env, ratings);
-    hgaprec.write_chi_training_matrix();
-    hgaprec.run_chi_nmf();
+    hgaprec.write_chi_training_matrix(wals_C);
+    if (env.chinmf)
+      hgaprec.run_chi_nmf();
+    else if (env.als)
+      hgaprec.run_chi_als();
+    else if (env.wals)
+      hgaprec.run_chi_wals(wals_l);
+    else if (env.climf)
+      hgaprec.run_chi_climf();
     exit(0);
   }
   
@@ -293,6 +342,12 @@ main(int argc, char **argv)
       hgaprec.vb_bias();
     else if (hier)
       hgaprec.vb_hier();
+    else if (mle_item)
+      hgaprec.vb_mle_item();
+    else if (mle_user)
+      hgaprec.vb_mle_user();
+    else if (canny)
+      hgaprec.vb_canny();
     else
       hgaprec.vb();
   } else {

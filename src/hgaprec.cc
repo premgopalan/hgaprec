@@ -2033,6 +2033,10 @@ HGAPRec::load_beta_and_theta()
     _betabias.load();
     _thetabias.load();
   }
+  if (_env.canny || _env.mle_user || _env.mle_item) {
+    _theta_mle.load("/theta_mle.tsv");
+    _beta_mle.load("/beta_mle.tsv");
+  }
 }
 
 void
@@ -2051,6 +2055,10 @@ HGAPRec::save_model()
   if (_env.bias) {
     _betabias.save_state(_ratings.seq2movie());
     _thetabias.save_state(_ratings.seq2user());
+  }
+  if (_env.canny || _env.mle_user || _env.mle_item) {
+    _theta_mle.save(Env::file_str("/theta_mle.tsv"), _ratings.seq2user());
+    _beta_mle.save(Env::file_str("/beta_mle.tsv"), _ratings.seq2movie());
   }
 }
 

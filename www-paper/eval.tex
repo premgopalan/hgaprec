@@ -27,8 +27,7 @@ with an exploratory analysis of preferences and attributes on several
 of the data sets.
 
 {\bf Data Sets.} We study the HPF algorithm in Figure~\ref{fig:batch}
-on several data sets of user behavior, including both implicit and
-explicit feedback:
+on several data sets of user behavior:
 \begin{itemize}
 \item The {\bf Mendeley} data set~\cite{Jack:2010} of scientific
   articles is a binary matrix of 80,000 users and 260,000 articles,
@@ -59,7 +58,7 @@ data sets.
 Furthermore, the intent signaled by an observed rating varies
 significantly across these data sets. For instance, the Netflix data
 set gives the most direct measure of stated preferences for items, as
-users provide an explicit star rating for movies they have watched. In
+users provide an star rating for movies they have watched. In
 contrast, article click counts in the New York Times data are a less
 clear measure of how much a user likes a given article---most articles
 are read only once, and a click through is only a weak indicator of
@@ -73,11 +72,10 @@ where an observed positive rating indicates that a user likes a
 particular item, but the rating value itself is ignored. The Mendeley
 data are already of this simple binary form. For the Echo Nest and New
 York Times data, we consider any song play or article click as a
-positive rating, regardless of the play or click count. We also
-consider two versions of the Netflix data---the original, explicit
-ratings, and an implicit version in which only 4 and 5 star ratings
-are retained as observations~\cite{Paquet:2013p9197}.
-
+positive rating, regardless of the play or click count. As in previous
+work, we consider an implicit version of the Netflix data where only 4
+and 5 star ratings are retained as
+observations~\cite{Paquet:2013p9197}.
 
 {\bf Competing methods.} We compare Poisson factorization against an array of
 competing methods:

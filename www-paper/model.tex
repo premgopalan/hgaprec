@@ -11,10 +11,10 @@ recommendation, and discuss its statistical properties.
 We are given data about users and items, where each user has consumed
 and possibly rated a set of items.  The observation $y_{ui}$ is the
 rating that user $u$ gave to item $i$, or zero if no rating was given.
-(In so-called ``implicit'' consumer data, $y_{ui}$ equals one if user
-$u$ consumed item $i$ and zero otherwise.)  User behavior data, such
-as purchases, ratings, clicks, or views, are typically sparse.  Most
-of the values of the matrix $y$ are zero.
+In so-called ``implicit'' consumer data that we consider here,
+$y_{ui}$ equals one if user $u$ consumed item $i$ and zero otherwise.
+User behavior data, such as purchases, clicks, or views, are typically
+sparse.  Most of the values of the matrix $y$ are zero.
 
 We model these data with factorized Poisson
 distributions~\cite{Canny:2004}, where each item $i$ is represented by

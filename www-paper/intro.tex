@@ -11,94 +11,87 @@ characterize various types of users and the kinds of items they tend
 to like.  Then, we exploit these discovered patterns to recommend
 future items to its users.
 
-In this paper, we develop Poisson factorization (PF) algorithms for
-recommendation.  Our algorithms easily scale to massive data and
-significantly outperform the existing methods.  We show that
+In this paper, we develop Hierarchical Poisson factorization (HPF)
+algorithms for recommendation.  Our algorithms easily scale to massive
+data and significantly outperform the existing methods.  We show that
 Poisson factorization for recommendation is tailored to real-world
 properties of user behavior data: the heterogenous interests of users,
 the varied types of items, and a realistic distribution of the finite
 resources that users have to consume items.
 
-%% recys-prem !!! remove fig 1
+\begin{figure*}[th]
+\centering
+\vspace{0.1cm}
+\small
+\begin{tabular}{c}
+\bf{``Action''}\\
+\midrule
+The Matrix\\
+The Matrix: Reloaded\\
+Spider-Man\\
+X2: X-Men United\\
+\bottomrule
+\end{tabular}
+\begin{tabular}{c}
+\bf{``Indie Comedy, Romance''}\\
+\midrule
+Grosse Pointe Blank\\
+Four Weddings and a Funeral\\
+High Fidelity\\
+Much Ado About Nothing\\
+\bottomrule
+\end{tabular}
+\begin{tabular}{c}
+\bf{``80's Science Fiction''}\\
+\midrule
+Star Wars: Episode IV: A New Hope\\
+Star Wars: Episode VI: Return of the Jedi\\
+Star Wars: Episode V: The Empire Strikes Back\\
+Back to the Future Part II\\
+\bottomrule
+\end{tabular}
 
+\vspace{0.5cm}
 
-%% \begin{figure*}[th]
-%% \centering
-%% \vspace{0.1cm}
-%% \small
-%% \begin{tabular}{c}
-%% \bf{``Action''}\\
-%% \midrule
-%% The Matrix\\
-%% The Matrix: Reloaded\\
-%% Spider-Man\\
-%% X2: X-Men United\\
-%% \bottomrule
-%% \end{tabular}
-%% \begin{tabular}{c}
-%% \bf{``Indie Comedy, Romance''}\\
-%% \midrule
-%% Grosse Pointe Blank\\
-%% Four Weddings and a Funeral\\
-%% High Fidelity\\
-%% Much Ado About Nothing\\
-%% \bottomrule
-%% \end{tabular}
-%% \begin{tabular}{c}
-%% \bf{``80's Science Fiction''}\\
-%% \midrule
-%% Star Wars: Episode IV: A New Hope\\
-%% Star Wars: Episode VI: Return of the Jedi\\
-%% Star Wars: Episode V: The Empire Strikes Back\\
-%% Back to the Future Part II\\
-%% \bottomrule
-%% \end{tabular}
+\centering
+\includegraphics[width=0.8\textwidth]{figures/netflix-exploratory.pdf}\\
+\caption{ The top panel shows the top movies in 3 components for a
+  user from the Netflix data set. The bottom panel is an illustration
+  showing a subset of the highly rated movies by this user, and the
+  right panel shows movies recommended to the user by our
+  algorithm. The expected user's $K$-vector of weights $\theta_u$,
+  inferred by our algorithm is shown in the middle panel.}
+\label{fig:netflix-illustration}
+\end{figure*}
 
-%% \vspace{0.5cm}
+\myfig{netflix-illustration} illustrates Poisson factorization on data
+from Netflix.  The Netflix data contains the ratings of 480,000 users
+on 17,000 movies, organized in a matrix of 8.16B cells (and containing
+250M ratings).  From these data, we extract the patterns of users'
+interests and the movies that are associated with those interests.
+The left panel illustrates some of those patterns---the algorithm has
+uncovered action movies, independent comedies, and 1980s science
+fiction.
 
-%% \centering
-%% \includegraphics[width=0.8\textwidth]{figures/netflix-exploratory.pdf}\\
-%% \caption{ The top panel shows the top movies in 3 components for a
-%%   user from the Netflix data set. The bottom panel is an illustration
-%%   showing a subset of the highly rated movies by this user, and the
-%%   right panel shows movies recommended to the user by our
-%%   algorithm. The expected user's $K$-vector of weights $\theta_u$,
-%%   inferred by our algorithm is shown in the middle panel.}
-%% \label{fig:netflix-illustration}
-%% \end{figure*}
+The top panel illustrates how we can use these patterns to form
+recommendations for an (imaginary) user.  This user enjoys various
+types of movies, including fantasy (``Lord of the Rings''), classic
+science fiction (``Star Wars: Episode V''), and independent comedies
+(``Clerks'', ``High Fidelity'').  Of course, she has only seen a
+handful of the available movies.  PF first uses the movies she has
+seen to infer what kinds of movies she is interested in, and then uses
+these inferred interests to suggest new movies.  The
+list of movies at the bottom of the figure was suggested by our
+algorithm. It includes other comedies (such as ``The Big Lebowski'') and
+other science fiction (such as ``Star Wars: Episode II'').
 
-%% recys-prem !!! removed following two paragraphs (reference fig 1)
-
-%% \myfig{netflix-illustration} illustrates Poisson factorization on data
-%% from Netflix.  The Netflix data contains the ratings of 480,000 users
-%% on 17,000 movies, organized in a matrix of 8.16B cells (and containing
-%% 250M ratings).  From these data, we extract the patterns of users'
-%% interests and the movies that are associated with those interests.
-%% The left panel illustrates some of those patterns---the algorithm has
-%% uncovered action movies, independent comedies, and 1980s science
-%% fiction.
-
-%% The top panel illustrates how we can use these patterns to form
-%% recommendations for an (imaginary) user.  This user enjoys various
-%% types of movies, including fantasy (``Lord of the Rings''), classic
-%% science fiction (``Star Wars: Episode V''), and independent comedies
-%% (``Clerks'', ``High Fidelity'').  Of course, she has only seen a
-%% handful of the available movies.  PF first uses the movies she has
-%% seen to infer what kinds of movies she is interested in, and then uses
-%% these inferred interests to suggest new movies.  The
-%% list of movies at the bottom of the figure was suggested by our
-%% algorithm. It includes other comedies (such as ``The Big Lebowski'') and
-%% other science fiction (such as ``Star Wars: Episode II'').
-
-%%In more detail, 
-
-Poisson factorization is a probabilistic model of users and items.  It
-associates each user with a latent vector of preferences, each item
-with a latent vector of attributes, and constrains both sets of
-vectors to be sparse and non-negative. The model assumes that each
-cell of the observed behavior matrix is drawn from a Poisson
-distribution---an exponential family distribution over non-negative
-integers---whose parameter is a linear combination of the
+In more detail, Hierarchical Poisson factorization is a probabilistic
+model of users and items.  It associates each user with a latent
+vector of preferences, each item with a latent vector of attributes,
+and constrains both sets of vectors to be sparse and non-negative. The
+model assumes that each cell of the observed behavior matrix is drawn
+from a Poisson distribution---an exponential family distribution over
+non-negative integers---whose parameter is a linear combination of the
 corresponding user preferences and item attributes.  The main
 computational problem is posterior inference: given an observed matrix
 of user behavior, we would like to discover the latent attributes that
@@ -115,19 +108,15 @@ can then use to make predictions and recommendations.
 %% vector implies that the user tends to like items with the
 %% corresponding latent attribute.
 
-This general procedure is common to many variants of matrix factorization.
-We found,
-however, that PF enjoys significant quantitative advantages over
-classical methods and for a wide variety of data sets, including those
-with implicit feedback (a binary matrix indicating which items users
-consumed) and those with explicit feedback (a matrix of integer
-ratings).  \myfig{precision_recall} shows that PF, and its
-hierarchical variant HPF, perform significantly better than
-existing methods---including the industry standard of matrix
-factorization with user and item biases (MF)---for large data sets of
-Netflix users watching movies, Last.FM users listening to music,
-scientists reading papers, and \textit{New York Times} readers
-clicking on articles.
+This general procedure is common to many variants of matrix
+factorization.  We found, however, that HPF enjoys significant
+quantitative advantages over classical methods and for a wide variety
+of data sets. \myfig{precision_recall} shows that HPF performs
+significantly better than existing methods---including the industry
+standard of matrix factorization with user and item biases (MF)---for
+large data sets of Netflix users watching movies, Last.FM users
+listening to music, scientists reading papers, and \textit{New York
+  Times} readers clicking on articles.
 
 % dmb: above, add a cite for the industry standard.
 
@@ -152,7 +141,7 @@ them~\cite{Hu:2008p9402,Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.
 Poisson factorization does not need to be modified in this way.
 
 
-The second advantage of PF algorithms is that they need only iterate over the
+The second advantage of HPF algorithms is that they need only iterate over the
 viewed items in the observed matrix of user behavior, i.e., the non-zero
 elements, and this is true even for implicit or ``positive only'' data sets.
 (This follows from the mathematical form of the Poisson distribution.)  Thus,

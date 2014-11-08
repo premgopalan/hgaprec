@@ -568,7 +568,7 @@ HGAPRec::run_chi_nmf()
   char chicmd[4096];
   sprintf(chicmd, "cd %s; GRAPHCHI_ROOT=/scratch/pgopalan/graphchi-cpp "\
 	  "/scratch/pgopalan/graphchi-cpp/toolkits/collaborative_filtering/nmf "\
-	  "--training=%s --minval=%d --maxval=%d --max_iter=200 --quiet=1 "\
+	  "--training=%s --minval=%d --maxval=%d --max_iter=500 --quiet=1 "\
 	  "--D=%d> %s 2>&1",
 	  Env::file_str("").c_str(),
 	  "chifull.tsv", _minval, _maxval,

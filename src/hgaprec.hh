@@ -33,7 +33,7 @@ public:
   void gen_msr_csv();
 
   double compute_rmse();
-  double compute_itemrank();
+  double compute_itemrank(bool final);
 
   void write_lda_training_matrix();
   void write_vwlda_training_matrix();

@@ -461,7 +461,7 @@ HGAPRec::load_chi_beta_and_theta()
   fclose(f);
   compute_precision(true);
   printf("DONE writing ranking.tsv in output directory\n");
-  compute_rmse();
+  //compute_rmse();
   fflush(stdout);
   
   delete _chi_gamma;
@@ -900,9 +900,10 @@ HGAPRec::vb()
       // approx_log_likelihood();
       compute_likelihood(true);
       compute_likelihood(false);
-      compute_rmse();
+      //compute_rmse();
       save_model();
       compute_precision(false);
+      compute_itemrank(false);
       //gen_ranking_for_users(false);
       if (_env.logl)
 	logl();
@@ -1139,8 +1140,7 @@ HGAPRec::vb_canny()
       compute_likelihood(true);
       compute_likelihood(false);
       compute_precision(false);
-      if (_n < 10000 && _m < 10000)
-	compute_itemrank();
+      compute_itemrank(false);
       if (_env.logl)
 	logl();
     }
@@ -1240,7 +1240,7 @@ HGAPRec::vb_bias()
     if (_iter % _env.reportfreq == 0) {
       compute_likelihood(true);
       compute_likelihood(false);
-      compute_rmse();
+      //compute_rmse();
       save_model();
       compute_precision(false);
       //gen_ranking_for_users(false);
@@ -1357,9 +1357,10 @@ HGAPRec::vb_hier()
     if (_iter % _env.reportfreq == 0) {
       compute_likelihood(true);
       compute_likelihood(false);
-      compute_rmse();
+      //compute_rmse();
       save_model();
       compute_precision(false);
+      compute_itemrank(false);
       //gen_ranking_for_users(false);
       if (_env.logl)
 	logl();
@@ -1543,8 +1544,14 @@ HGAPRec::compute_rmse()
 
 
 double
-HGAPRec::compute_itemrank()
+HGAPRec::compute_itemrank(bool final)
 {
+  if (_iter % 100 == 0 && _iter > 0)
+    final = true;
+
+  if (!final)
+    return .0;
+
   uint32_t total_users = 0;
   FILE *f = 0;
   f = fopen(Env::file_str("/itemrank.tsv").c_str(), "w");
@@ -1635,6 +1642,8 @@ HGAPRec::compute_itemrank()
 void
 HGAPRec::compute_precision(bool save_ranking_file)
 {
+  if (_iter % 100 == 0 && _iter > 0)
+    save_ranking_file = true;
   double mhits10 = 0, mhits100 = 0;
   double cumndcg10 = 0, cumndcg100 = 0;
   uint32_t total_users = 0;
@@ -2010,8 +2019,9 @@ HGAPRec::gen_ranking_for_users(bool load)
   _sampled_users.clear();
   _ratings.read_test_users(f, &_sampled_users);
   fclose(f);
+  
   compute_precision(true);
-  compute_itemrank();
+  compute_itemrank(true);
   printf("DONE writing ranking.tsv in output directory\n");
   fflush(stdout);
 }
@@ -2034,8 +2044,8 @@ HGAPRec::load_beta_and_theta()
     _thetabias.load();
   }
   if (_env.canny || _env.mle_user || _env.mle_item) {
-    _theta_mle.load("/theta_mle.tsv");
-    _beta_mle.load("/beta_mle.tsv");
+    _theta_mle.load("theta_mle.tsv");
+    _beta_mle.load("beta_mle.tsv");
   }
 }
 

@@ -138,21 +138,23 @@ user/item pairs.
 
 To address this limitation of Gaussian MF, researchers have patched it
 in complex ways. There are two main approaches. The first approach,
-proposed by \cite{Hu:2008p9402} is to treat the zero observations with
-low confidence values, i.e., greater uncertainty, and increase the
-confidence as the rating for an item increases. This transfers the raw
-observations into two separate quantities with distinct
-interpretations: user preferences and confidence levels. Hu et
-al.~\cite{Hu:2008p9402} present an alternating least squares algorithm
-per-iteration complexity that considers all observations but is still
-linear in the number of non-zero observations. A main disadvantage of
-this method is that the assignment of confidence weights requires
-exhaustive search via cross-validation, or other model selection
-methods. Further, for practicality, the method assigns a single
-confidence level for all zero observations. This simplistic treatment
-does not capture that the vast majority of observations are zero
-because the user has limited resources to consume these items, and
-renders all zero observations as having high uncertainty.
+proposed by \cite{Hu:2008p9402}, is to treat the unconsumed items with
+greater uncertainty and increase confidence as the rating for an item
+increases. This transfers the raw observations into two separate
+quantities with distinct interpretations: user preferences and
+confidence levels. Hu et al.~\cite{Hu:2008p9402} present an
+alternating least squares algorithm that considers all observations
+but whose per-iteration complexity is still linear in the number of
+non-zero observations. A main disadvantage of this method is that the
+assignment of per-observation confidence weights requires exhaustive
+search via cross-validation, or other model selection methods. This is
+impractical on massive data sets. For scalability, the method assigns
+a single confidence level parameter for all zero observations. This
+simplistic treatment does not capture that the vast majority of
+observations are zero because the user has limited resources to
+consume these items -- the user did not even consider the item.
+Instead, this approach renders all zero observations as having high
+uncertainty around them.
 
 The second approach is to randomly synthesize negative
 examples~\cite{Dror:2012a, Paquet:2013p9197, Gantner:2012p9364}. In

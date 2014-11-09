@@ -153,8 +153,6 @@ a single confidence level parameter for all zero observations. This
 simplistic treatment does not capture that the vast majority of
 observations are zero because the user has limited resources to
 consume these items -- the user did not even consider the item.
-Instead, this approach renders all zero observations as having high
-uncertainty around them.
 
 The second approach is to randomly synthesize negative
 examples~\cite{Dror:2012a, Gantner:2012p9364, Paquet:2013p9197}. In
@@ -169,7 +167,14 @@ approaches to using Gaussian models on implicit data do not capture
 that users have limited resources to consume, view or rate a vast
 number of items.
 
-Poisson factorization captures real consumption data, specifically
+The problem with these approaches is they either render all zero
+observations as having high uncertainty around them -- conflating
+zeros due to limited user resources and zeros due to disliking an item
+-- or, they consider zero observations as a hack to learn a balanced
+user profile.
+
+Poisson factorization avoids these problems with missing data using a
+natural assumption. It captures real consumption data, specifically
 that users have finite (and varied) resources with which to consume
 items.  To see this, we can rewrite the model as a two stage process
 where a user first decides on a budget of movies to watch and then

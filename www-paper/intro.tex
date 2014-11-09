@@ -121,10 +121,11 @@ papers, and \textit{New York Times} readers clicking on articles.
 \subsection{Comparison to Gaussian MF}
 Many of the leading MF methods are based on Gaussian likelihoods
 (i.e., squared loss). When applied to explicit data, Gaussian models
-are fit only to the observed ratings~\cite{Koren:2009}, inferring
+are fit only to the observed ratings~\cite{Koren:2009} and infer
 distributions over user preference. For each user, the items she did
 not consume, i.e., the zero observations, are treated as ``missing
-data''. Gaussian models make up the state of the art in this setting.
+data''. Gaussian models make up the state of the art in this
+setting~\cite{Salakhutdinov:2008, Salakhutdinov:2008a,Koren:2009}.
 
 In implicit data sets of user consumption, there is a fundamental
 asymmetry that allows one to infer which items a user consumed, and

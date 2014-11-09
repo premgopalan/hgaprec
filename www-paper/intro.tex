@@ -169,24 +169,24 @@ limited resources to consume, view or rate a vast number of items.
 The problem with these approaches is they either render all zero
 observations as having high uncertainty around them -- conflating
 zeros due to limited user resources and zeros due to disliking an item
--- or, they consider zero observations as a hack to learn a balanced
-user profile.
+-- or, they subsample zero observations to learn a balanced user
+profile. Neither approach treats the zero observations as a signal for
+the limited rate at which each user consumes items.
 
-Poisson factorization avoids these problems with missing data using a
-natural assumption. It captures real consumption data, specifically
-that users have finite (and varied) resources with which to consume
-items.  To see this, we can rewrite the model as a two stage process
-where a user first decides on a budget of movies to watch and then
-spends this budget watching movies that she is interested in. If the
-model accurately captures the distribution of budgets then consumed
-items carry more weight than unconsumed items, because unconsumed
-items can be partially explained by a lack of resources. We conjecture
-that matrix factorization methods based on the Gaussian model
-systematically overestimate the users' budgets, and we confirm this
-hypothesis in \mysec{eval} using a posterior predictive
-check~\cite{Gelman:1996}. This misfit leads to an overweighting of the
-zeros, which explains why practitioners require complex methods for
-downweighting
+In contrast, Poisson factorization captures real consumption data,
+specifically that users have finite (and varied) resources with which
+to consume items.  To see this, we can rewrite the model as a two
+stage process where a user first decides on a budget of movies to
+watch and then spends this budget watching movies that she is
+interested in. If the model accurately captures the distribution of
+budgets then consumed items carry more weight than unconsumed items,
+because unconsumed items can be partially explained by a lack of
+resources. We conjecture that matrix factorization methods based on
+the Gaussian model systematically overestimate the users' budgets, and
+we confirm this hypothesis in \mysec{eval} using a posterior
+predictive check~\cite{Gelman:1996}. This misfit leads to an
+overweighting of the zeros, which explains why practitioners require
+complex methods for downweighting
 them~\cite{Hu:2008p9402,Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.
 Poisson factorization does not need to be modified in this way.
 

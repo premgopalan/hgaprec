@@ -108,7 +108,8 @@ can then use to make predictions and recommendations.
 %% vector implies that the user tends to like items with the
 %% corresponding latent attribute.
 
-This general procedure is common to many variants of matrix
+\subsection{Comparison to Gaussian models.}
+The inferential procedure is common to many variants of matrix
 factorization.  We found, however, that HPF enjoys significant
 quantitative advantages over classical methods over a variety of
 \emph{implicit feedback} data sets. \myfig{precision_recall} shows
@@ -120,11 +121,10 @@ papers, and \textit{New York Times} readers clicking on articles.
 
 When applied to explicit data, Gaussian models are fit only to the
 observed ratings~\cite{Koren:2009}, inferring distributions over user
-preference. For each user, the items she did not consumed, i.e., the
+preference. For each user, the items she did not consume, i.e., the
 zero observations, are treated as ``missing data''. Gaussian models
 make up the state of the art in this setting.
 
-\subsection{Comparison to Gaussian models.}
 In implicit data sets of user consumption, there is a fundamental
 asymmetry that allows one to infer which items a user consumed, and
 therefore liked, but not which items a user did not

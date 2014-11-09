@@ -165,6 +165,17 @@ distribution of user activity.  (We note that this is true for the
 item popularities as well, and for the other data sets.) This
 indicates that HPF better represents real data when measured by its
 ability to capture distributions of user activity and item popularity.
+In fact, this is encoded in its assumptions. We can rewrite the
+Poisson observation model as a two stage process where a user $u$
+first decides on a budget $b_u$ she has to spend on items, and then
+spends this budget rating items that she is interested in:
+\begin{align}
+b_u & \sim \poisson(\theta_u^T \sum_i \beta_i)\nonumber\\
+[y_{u1},\cdots,y_{uM}] & \sim \mult(b_u, \frac{\theta_u^T \beta_i}{\theta_u^T \sum_i \beta_i}).\nonumber
+\end{align}
+This shows that learning a PF model for user-item ratings is
+effectively the same as learning user budgets and how they choose to
+spend their budgets.
 
 % Figure 3 shows the distributions of user activity on large,
 % real-world ratings data sets. Under BPF and HPF, the

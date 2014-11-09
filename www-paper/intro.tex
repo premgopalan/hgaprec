@@ -186,19 +186,19 @@ downweighting
 them~\cite{Hu:2008p9402,Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.
 Poisson factorization does not need to be modified in this way.
 
-Further, HPF algorithms retain the linear-scaling of
-downweighting-based Gaussian MF methods~\cite{Hu:2008p9402}: PF
-algorithms only need to iterate over the consumed items in the
-observed matrix of user behavior, i.e., the non-zero elements in both
-the implicit and explicit setting. (This follows from the mathematical
-form of the Poisson distribution.) In constrast to the downweighting
-methods, PF algorithms do not use the restrictive and incorrect
-assumption of distinct confidence levels with consumed and unconsumed
-items. With fewer assumptions, PF algorithms are robust off-the-shelf
-tools that scale to massive data sets. Thus, Poisson factorization
-takes advantage of the natural sparsity of user behavior data and can
-easily analyze massive real-world data.  In contrast, the
-subsampling-based Gaussian MF methods~\cite{Gantner:2012p9364,
+Further, HPF algorithms retain the linear-scaling of Gaussian MF based
+on downweighting zeros~\cite{Hu:2008p9402}. HPF algorithms only need
+to iterate over the consumed items in the observed matrix of user
+behavior, i.e., the non-zero elements in both the implicit and
+explicit setting. (This follows from the mathematical form of the
+Poisson distribution.) In constrast to the downweighting methods, PF
+algorithms do not use the restrictive and incorrect assumption of
+distinct confidence levels with consumed and unconsumed items. With
+fewer assumptions, PF algorithms are robust off-the-shelf tools that
+scale to massive data sets. Thus, Poisson factorization takes
+advantage of the natural sparsity of user behavior data and can easily
+analyze massive real-world data.  In contrast, the subsampling-based
+Gaussian MF methods~\cite{Gantner:2012p9364,
   Dror:2012a,Paquet:2013p9197} must iterate over both positive and
 negative examples in the implicit setting. Thus it cannot take
 advantage of data sparsity, which makes computation difficult for even

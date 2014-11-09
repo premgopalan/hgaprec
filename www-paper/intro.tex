@@ -156,16 +156,15 @@ consume these items -- the user did not even consider the item.
 
 The second approach is to randomly synthesize negative
 examples~\cite{Dror:2012a, Gantner:2012p9364, Paquet:2013p9197}. In
-this approach, unconsumsed items are subsampled for each user to
-balance out the consumed items. As Dror et al.~\cite{Dror:2012a}
-remark, it is unclear how to balance these two sets of items: Do we
-use an equal number of consumed and consumed items, or do we use the
-full set of unconsumed items~\cite{Cremonesi:2010, Hu:2008p9402}?
-Further, the subsampling of negative or unconsumed items is often
-expensive, and results in algorithms that do not scale easily. Both
-approaches to using Gaussian models on implicit data do not capture
-that users have limited resources to consume, view or rate a vast
-number of items.
+this approach, unconsumed items are subsampled for each user to
+balance out the consumed items. As Dror et al.~\cite{Dror:2012a} note,
+it is unclear how to balance these two sets of items. Do we use an
+equal number of consumed and consumed items, or do we use the full set
+of unconsumed items~\cite{Cremonesi:2010, Hu:2008p9402}?  Further, the
+subsampling of negative or unconsumed items is often expensive, and
+results in algorithms that do not scale easily. Both approaches to
+using Gaussian models on implicit data do not capture that users have
+limited resources to consume, view or rate a vast number of items.
 
 The problem with these approaches is they either render all zero
 observations as having high uncertainty around them -- conflating

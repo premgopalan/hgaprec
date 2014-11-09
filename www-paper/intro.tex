@@ -108,8 +108,7 @@ can then use to make predictions and recommendations.
 %% vector implies that the user tends to like items with the
 %% corresponding latent attribute.
 
-\subsection{Comparison to Gaussian models.}
-The inferential procedure is common to many variants of matrix
+The inferential computation is common to many variants of matrix
 factorization.  We found, however, that HPF enjoys significant
 quantitative advantages over classical methods over a variety of
 \emph{implicit feedback} data sets. \myfig{precision_recall} shows
@@ -119,20 +118,22 @@ user and item biases (MF)---for large data sets of Netflix users
 watching movies, Last.FM users listening to music, scientists reading
 papers, and \textit{New York Times} readers clicking on articles.
 
-When applied to explicit data, Gaussian models are fit only to the
-observed ratings~\cite{Koren:2009}, inferring distributions over user
-preference. For each user, the items she did not consume, i.e., the
-zero observations, are treated as ``missing data''. Gaussian models
-make up the state of the art in this setting.
+\subsection{Comparison to Gaussian models.}
+Many of the leading MF methods are based on Gaussian likelihoods
+(i.e., squared loss). When applied to explicit data, Gaussian models
+are fit only to the observed ratings~\cite{Koren:2009}, inferring
+distributions over user preference. For each user, the items she did
+not consume, i.e., the zero observations, are treated as ``missing
+data''. Gaussian models make up the state of the art in this setting.
 
 In implicit data sets of user consumption, there is a fundamental
 asymmetry that allows one to infer which items a user consumed, and
 therefore liked, but not which items a user did not
-like~\cite{Hu:2008p9402}. In this setting, the models based on
-Gaussian likelihoods (i.e., squared loss), give equal weight to
-consumed and unconsumed items.  Consequently, when faced with a sparse
-matrix and implicit feedback, matrix factorization places more total
-emphasis on the unconsumed user/item pairs.
+like~\cite{Hu:2008p9402}. In this setting, Gaussian MF applied to all
+observations gives equal weight to consumed and unconsumed items.
+Consequently, when faced with a sparse matrix and implicit feedback,
+matrix factorization places more total emphasis on the unconsumed
+user/item pairs.
 
 To address this limitation of Gaussian MF, researchers have patched it
 in complex ways. There are two main approaches. The first approach,

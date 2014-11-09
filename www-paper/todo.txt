@@ -15,3 +15,6 @@
    Probabilistic Matrix Factorization with Non-random Missing Data (2014)
    Hernandez-Lobato JMH, Houlsby NMT, and Ghahramani Z
    31st International Conference on Machine Learning (ICML)   (to appear)
+
+4. merge 1.1 (comparison to Gaussian MF) with second-last para in
+   related?

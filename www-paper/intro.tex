@@ -157,15 +157,14 @@ Instead, this approach renders all zero observations as having high
 uncertainty around them.
 
 The second approach is to randomly synthesize negative
-examples~\cite{Dror:2012a, Paquet:2013p9197, Gantner:2012p9364}. In
-this approach, zero observations are subsampled for each user to
-balance out the non-zero ratings. As Dror et al.~\cite{Dror:2012a}
-remark, it is unclear how to balance the watched ratings of a user
-with unwatched ratings: Do we use an equal number of watched and
-unwatched ratings, or do we use the full set of unwatched
-ratings~\cite{Cremonesi:2010, Hu:2008p9402}? Further, the subsampling
-of negative or zero observations is expensive, and results in
-algorithms that do not scale easily.
+examples~\cite{Dror:2012a, Gantner:2012p9364, Paquet:2013p9197}. In
+this approach, unconsumsed items are subsampled for each user to
+balance out the consumed items. As Dror et al.~\cite{Dror:2012a}
+remark, it is unclear how to balance these two sets of items: Do we
+use an equal number of consumed and consumed items, or do we use the
+full set of unconsumed items~\cite{Cremonesi:2010, Hu:2008p9402}?
+Further, the subsampling of negative or unconsumed items is often
+expensive, and results in algorithms that do not scale easily.
 
 % dmb: above, add a cite for the industry standard.
 
@@ -173,7 +172,7 @@ Poisson factorization methods have advantages over the Gaussian models
 of implicit data that contribute to its superior empirical
 performance. First, it better captures real consumption data,
 specifically that users have finite (and varied) resources with which
-to view items.  To see this, we can rewrite the model as a two stage
+to consume items.  To see this, we can rewrite the model as a two stage
 process where a user first decides on a budget of movies to watch and
 then spends this budget watching movies that she is interested in. If
 the model accurately captures the distribution of budgets then watched
@@ -189,7 +188,7 @@ them~\cite{Hu:2008p9402,Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.
 Poisson factorization does not need to be modified in this way.
 
 The second advantage of HPF algorithms is that they need only iterate
-over the viewed items in the observed matrix of user behavior, i.e.,
+over the consumed items in the observed matrix of user behavior, i.e.,
 the non-zero elements, and this is true even for implicit or
 ``positive only'' data sets.  (This follows from the mathematical form
 of the Poisson distribution.)  Thus, Poisson factorization takes

@@ -110,48 +110,92 @@ can then use to make predictions and recommendations.
 
 This general procedure is common to many variants of matrix
 factorization.  We found, however, that HPF enjoys significant
-quantitative advantages over classical methods and for a wide variety
-of data sets. \myfig{precision_recall} shows that HPF performs
-significantly better than existing methods---including the industry
-standard of matrix factorization with user and item biases (MF)---for
-large data sets of Netflix users watching movies, Last.FM users
-listening to music, scientists reading papers, and \textit{New York
-  Times} readers clicking on articles.
+quantitative advantages over classical methods over a variety of
+\emph{implicit feedback} data sets. \myfig{precision_recall} shows
+that HPF performs significantly better than existing
+methods---including the industry standard of matrix factorization with
+user and item biases (MF)---for large data sets of Netflix users
+watching movies, Last.FM users listening to music, scientists reading
+papers, and \textit{New York Times} readers clicking on articles.
+
+When applied to explicit data, Gaussian models are fit only to the
+observed ratings~\cite{Koren:2009}, inferring distributions over user
+preference. For each user, the items she did not consumed, i.e., the
+zero observations, are treated as ``missing data''. Gaussian models
+make up the state of the art in this setting.
+
+\subsection{Comparison to Gaussian models.}
+In implicit data sets of user consumption, there is a fundamental
+asymmetry that allows one to infer which items a user consumed, and
+therefore liked, but not which items a user did not
+like~\cite{Hu:2008p9402}. In this setting, the models based on
+Gaussian likelihoods (i.e., squared loss), give equal weight to
+consumed and unconsumed items.  Consequently, when faced with a sparse
+matrix and implicit feedback, matrix factorization places more total
+emphasis on the unconsumed user/item pairs.
+
+To address this limitation of Gaussian MF, researchers have patched it
+in complex ways. There are two main approaches. The first approach,
+proposed by \cite{Hu:2008p9402} is to treat the zero observations with
+low confidence values, i.e., greater uncertainty, and increase the
+confidence as the rating for an item increases. This transfers the raw
+observations into two separate quantities with distinct
+interpretations: user preferences and confidence levels. Hu et
+al.~\cite{Hu:2008p9402} present an alternating least squares algorithm
+per-iteration complexity that considers all observations but is still
+linear in the number of non-zero observations. A main disadvantage of
+this method is that the assignment of confidence weights requires
+exhaustive search via cross-validation, or other model selection
+methods. Further, for practicality, the method assigns a single
+confidence level for all zero observations. This simplistic treatment
+does not capture that the vast majority of observations are zero
+because the user has limited resources to consume these items, and
+renders all zero observations as having high uncertainty.
+
+The second approach is to randomly synthesize negative
+examples~\cite{Dror:2012a, Paquet:2013p9197, Gantner:2012p9364}. In
+this approach, zero observations are subsampled for each user to
+balance out the non-zero ratings. As Dror et al.~\cite{Dror:2012a}
+remark, it is unclear how to balance the watched ratings of a user
+with unwatched ratings: Do we use an equal number of watched and
+unwatched ratings, or do we use the full set of unwatched
+ratings~\cite{Cremonesi:2010, Hu:2008p9402}? Further, the subsampling
+of negative or zero observations is expensive, and results in
+algorithms that do not scale easily.
 
 % dmb: above, add a cite for the industry standard.
 
-There are two main advantages of Poisson factorization over
-traditional methods, both of which contribute to its superior
-empirical performance.  First, it better captures real consumption
-data, specifically that users have finite (and varied) resources with
-which to view items.  To see this, we can rewrite the model as a two
-stage process where a user first decides on a budget of movies to
-watch and then spends this budget watching movies that she is
-interested in.  If the model accurately captures the distribution of
-budgets then watched items carry more weight than unwatched items,
-because unwatched items can be partially explained by a lack of
-resources. We conjecture that classical matrix factorization
-systematically overestimates the users' budgets, and we confirm this
+Poisson factorization methods have advantages over the Gaussian models
+of implicit data that contribute to its superior empirical
+performance. First, it better captures real consumption data,
+specifically that users have finite (and varied) resources with which
+to view items.  To see this, we can rewrite the model as a two stage
+process where a user first decides on a budget of movies to watch and
+then spends this budget watching movies that she is interested in. If
+the model accurately captures the distribution of budgets then watched
+items carry more weight than unwatched items, because unwatched items
+can be partially explained by a lack of resources. We conjecture that
+matrix factorization methods based on the Gaussian model
+systematically overestimate the users' budgets, and we confirm this
 hypothesis in \mysec{eval} using a posterior predictive
-check~\cite{Gelman:1996}.  This misfit leads to an overweighting of
-the zeros, which explains why practitioners require complex methods
-for downweighting
+check~\cite{Gelman:1996}. This misfit leads to an overweighting of the
+zeros, which explains why practitioners require complex methods for
+downweighting
 them~\cite{Hu:2008p9402,Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.
-%(We used one such method in the study of \myfig{eval}.)
 Poisson factorization does not need to be modified in this way.
 
-
-The second advantage of HPF algorithms is that they need only iterate over the
-viewed items in the observed matrix of user behavior, i.e., the non-zero
-elements, and this is true even for implicit or ``positive only'' data sets.
-(This follows from the mathematical form of the Poisson distribution.)  Thus,
-Poisson factorization takes advantage of the natural sparsity of user behavior
-data and can easily analyze massive real-world data. In contrast, classical
-matrix factorization based on the Gaussian
-distribution~\cite{Salakhutdinov:2008} must iterate over both positive and
-negative examples in the implicit setting. Thus it cannot take advantage of
-data sparsity, which makes computation difficult for even modestly sized
-problems.
+The second advantage of HPF algorithms is that they need only iterate
+over the viewed items in the observed matrix of user behavior, i.e.,
+the non-zero elements, and this is true even for implicit or
+``positive only'' data sets.  (This follows from the mathematical form
+of the Poisson distribution.)  Thus, Poisson factorization takes
+advantage of the natural sparsity of user behavior data and can easily
+analyze massive real-world data.  In contrast, the subsampling-based
+Gaussian MF methods~\cite{Gantner:2012p9364,
+  Dror:2012a,Paquet:2013p9197} must iterate over both positive and
+negative examples in the implicit setting. Thus it cannot take
+advantage of data sparsity, which makes computation difficult for even
+modestly sized problems.
 
 %% recys-prem !!! removed paragraph below (references fig 1)
 
@@ -163,9 +207,9 @@ problems.
 
 % dmb: add paper organization
 
-We review related work below before discussing details of the Poisson
-factorization model, including its statistical properties and methods
-for scalable inference.
+We review other related work below before discussing details of the
+Poisson factorization model, including its statistical properties and
+methods for scalable inference.
 
 
 %%

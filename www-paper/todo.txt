@@ -32,3 +32,5 @@
 
 8. add CLiMF and Hu et al. to competing methods
    - Hu et al. data points are being generated
+
+9. discuss flexibility/extensibility of HPF

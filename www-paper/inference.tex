@@ -168,6 +168,9 @@ user/item observations $y_{ui}$.  In steps 2 and 3, the sums over
 users and items need only to consider non-zero observations.  This
 efficiency is thanks the likelihood of the full matrix only depending
 on the non-zero observations, as we discussed in the previous section.
+Both HPF and BPF enjoy this property and have the same computational
+overhead, but HPF allows for more flexibility in modeling the variation
+in activity and popularity across users and items, respectively.
 
 % We note that fitting classical matrix factorization with squared loss
 % must iteratively consider every cell of the matrix, both zeros and
@@ -195,7 +198,7 @@ probability that a user consumed an item using the variational
 approximations to posterior expectations of $\theta_u$ and $\beta_i$,
 and compute the average predictive log likelihood of the validation
 ratings. The HPF algorithm stops when the change in log likelihood is
-less than 0.0001\%. For the HPF and the BPF we find that the algorithm
+less than 0.0001\%. We find that the algorithm
 is largely insensitive to small changes in the hyper-parameters. To
 enforce sparsity, we set the shape hyperparameters $a'$, $a$, $c$ and
 $c'$ to provide exponentially shaped prior \gam~distributions. We

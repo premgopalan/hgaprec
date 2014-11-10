@@ -4,8 +4,8 @@
 \includegraphics[width=\textwidth]{newfigs/mean_recall_at_20.pdf}\\
 \caption{Predictive performance on data sets. The top and bottom plots
   show normalized mean precision and mean recall at 20
-  recommendations, respectively. While competing method performance varies
-  across data sets, HPF and BPF consistently outperform competing
+  recommendations, respectively. While competing method performance
+  varies across data sets, HPF consistently outperforms competing
   methods.}
 \label{fig:precision_recall}
 \end{figure*}
@@ -14,10 +14,10 @@
 \section{Empirical Study}
 \label{sec:eval}
 We evaluate the performance of the Hierarchical Poisson factorization
-(HPF) algorithm and its non-hierarchical variant (BPF) on a variety of
+(HPF) algorithm on a variety of
 large-scale user behavior data sets: users listening to music, users
 watching movies, users reading scientific articles, and users reading
-the newspaper.  We find that HPF and BPF give significantly better
+the newspaper.  We find that HPF provides significantly better
 recommendations than competing methods.
 
 We first discuss the details of each data set and of the competing
@@ -120,7 +120,7 @@ competing methods:
     Factorization~\cite{Salakhutdinov:2008a}.
 \end{itemize}
 
-We note that while HPF, BPF, and LDA take only the non-zero observed
+We note that while HPF and LDA take only the non-zero observed
 ratings as input, traditional matrix factorization requires that we
 provide explicit zeros in the ratings matrix as negative examples for
 the implicit feedback setting. In practice, this amounts to either
@@ -160,7 +160,7 @@ attempting to use BPR with the data sets considered here.
 comprised of items that the user has consumed. Additionally, we set
 aside 1\% of the training ratings as a validation set and use it to
 determine algorithm convergence and to tune free parameters. We used
-the BPF and HPF settings described in \mysec{inference} across all
+the HPF settings described in \mysec{inference} across all
 data sets, and set the number of latent components $K$ to $100$.
 
 During testing, we generate the top $M$ recommendations for each user
@@ -181,19 +181,19 @@ recommendations.
 %% \end{equation*}
 
 \myfig{precision_recall} shows the normalized mean precision at 20
-recommendations for each method and data sets. We see that HPF and BPF
-outperform other methods on all data sets by a sizeable margin---as
-much as 8 percentage points. Poisson factorization provides high-quality
-recommendations---a relatively high fraction of items recommended
-by HPF are found to be relevant, and many relevant items are
-recommended. While not shown in these plots, the relative performance
-of methods within a data set is consistent as we vary the number of
-recommendations shown to users. We also note that while Poisson
-factorization dominates across all of these data sets, the relative
-quality of recommendations from competing methods varies substantially
-from one data set to the next. For instance, LDA performs quite well on
-the Echo Nest data, but fails to beat classical matrix factorization
-for the implicit Netflix data set.
+recommendations for each method and data sets. We see that HPF
+outperforms other methods on all data sets by a sizeable margin---as
+much as 8 percentage points. Poisson factorization provides
+high-quality recommendations---a relatively high fraction of items
+recommended by HPF are found to be relevant, and many relevant items
+are recommended. While not shown in these plots, the relative
+performance of methods within a data set is consistent as we vary the
+number of recommendations shown to users. We also note that while
+Poisson factorization dominates across all of these data sets, the
+relative quality of recommendations from competing methods varies
+substantially from one data set to the next. For instance, LDA
+performs quite well on the Echo Nest data, but fails to beat classical
+matrix factorization for the implicit Netflix data set.
 
 We also study precision and recall as a function of user activity to
 investigate how performance varies across users of different types. In

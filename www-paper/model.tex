@@ -75,10 +75,9 @@ the graphical model in Figure~\ref{fig:hpf}, is as follows:
   \poisson(\theta_u^\top \beta_i).$$
 \end{enumerate*}
 This process describes the statistical assumptions behind the model.
-Note that we also study a sub-class of HPF where we fix the rate
-parameters for all users and items to the same pair of
-hyperparameters. We call this model Bayesian Poisson Factorization
-(BPF).
+We note that this contains, as a sub-class, a factorization model
+where with fixed rate parameters for all users. We call this model
+Bayesian Poisson Factorization (BPF).
 
 The central computational problem is posterior inference, which is
 akin to ``reversing'' the generative process.  Given a user behavior
@@ -265,7 +264,7 @@ increases the Poisson model's predictive score that a user who watches
 explains why HPF outperforms other methods.
 
 {\bf Fast inference with sparse matrices.}  Finally, the likelihood of
-the observed data under HPF (and BPF) depends only on the consumed
+the observed data under HPF depends only on the consumed
 items, that is, the non-zero elements of the user/item matrix $y$.
 This facilates computation for the kind of sparse matrices we
 observe in real-world data.

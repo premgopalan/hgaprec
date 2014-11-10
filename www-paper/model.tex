@@ -35,6 +35,13 @@ matrix factorization~\cite{Salakhutdinov:2008a} but where each user
 and item's weights are positive~\cite{Lee:1999} and where the Poisson
 replaces the Gaussian.
 
+While a Bernoulli distribution may seem more appropriate for modeling
+binary data, we demonstrate in \mysec{properties} that the additivity
+of independent Poissons results in models that fit the user, item
+marginal distributions well.~\footnote{Our ongoing work considers
+  censored Poisson distributions. Our initial results indicate that it
+  is computationally expensive but does not give better performance.}
+
 Beyond the basic data generating distribution, we place Gamma priors
 on the latent attributes and latent preferences, which encourage the
 model towards sparse representations of the users and items.
@@ -101,6 +108,7 @@ presently unconsumed items each user will likely consume in the
 future.
 
 \subsection{Properties of HPF}
+\label{sec:properties}
 With the modeling details in place, we highlight several statistical
 properties of hierarchical Poisson factorization.  These properties
 provide advantages over classical (Gaussian) matrix

@@ -22,3 +22,11 @@
 5. discuss ranking-based methods in related work
    BPR, CLiMF, and 
    Kapicioglu et al., Collaborative Ranking for Local Preferences
+
+6. in related work (last para): emphasize that we outperform both
+   types of MF (subsampling based, down-weighting based)
+
+7. sec 3, para 2: why do we prefer Poisson distribution over Bernoulli
+   and censored Poisson even though we are modeling binary data?
+
+8. 

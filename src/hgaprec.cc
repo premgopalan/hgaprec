@@ -1794,20 +1794,14 @@ HGAPRec::compute_precision(bool save_ranking_file)
 	    hits10++;
 	    hits100++;
 	  }
-	  if (v_ > 0) { //has non-zero relevance
-	    dcg10 += (pow(2.,v_) - 1)/log(j+2);
-	    dcg100 += (pow(2.,v_) - 1)/log(j+2);
-	  }
 	} else if (j < 100) {
 	  if (v > 0)
 	    hits100++;
-	  if (v_ > 0)
-	    dcg100 += (pow(2.,v_) - 1)/log(j+2);
 	}
 
 	if (save_ranking_file) {
 	  if (_ratings.r(n, m) == .0)  {
-	    double hol = _env.hier ? rating_likelihood_hier(n,m,v) : rating_likelihood(n,m,v);
+	    //double hol = _env.hier ? rating_likelihood_hier(n,m,v) : rating_likelihood(n,m,v);
 	    //fprintf(f, "%d\t%d\t%.5f\t%d\t%.5f\n", n2, m2, pred, v,
 	    //(pow(2.,v_) - 1)/log(j+2));
 	    fprintf(f, "%d\t%d\t%.5f\t%d\n", n2, m2, pred, v);
@@ -1816,7 +1810,7 @@ HGAPRec::compute_precision(bool save_ranking_file)
       } else {
 	if (save_ranking_file) {
 	  if (_ratings.r(n, m) == .0) {
-	    double hol = _env.hier ? rating_likelihood_hier(n,m,0) : rating_likelihood(n,m,0);
+	    //double hol = _env.hier ? rating_likelihood_hier(n,m,0) : rating_likelihood(n,m,0);
 	    //fprintf(f, "%d\t%d\t%.5f\t%d\t%.5f\n", n2, m2, pred, 0, .0);
 	    fprintf(f, "%d\t%d\t%.5f\t%d\n", n2, m2, pred, 0);
 	  }
@@ -1837,18 +1831,7 @@ HGAPRec::compute_precision(bool save_ranking_file)
               user_has_test_ratings = false; 
           break;
         }
-
-        if (j < 10) { 
-            dcg10_gt += (pow(2.,v) - 1)/log(j+2);
-            dcg100_gt += (pow(2.,v) - 1)/log(j+2);
-        } else if (j < 100) {
-            dcg100_gt += (pow(2.,v) - 1)/log(j+2);
-        }
     }
-    if(user_has_test_ratings) { 
-        cumndcg10 += dcg10/dcg10_gt;
-        cumndcg100 += dcg100/dcg100_gt;
-    } 
   }
   if (save_ranking_file)
     fclose(f);
@@ -1857,9 +1840,10 @@ HGAPRec::compute_precision(bool save_ranking_file)
 	  (double)mhits10 / total_users, 
 	  (double)mhits100 / total_users);
   fflush(_pf);
-  fprintf(_df, "%.5f\t%.5f\n", 
-  	  cumndcg10 / total_users, 
-  	  cumndcg100 / total_users);
+  
+  //fprintf(_df, "%.5f\t%.5f\n", 
+  //cumndcg10 / total_users, 
+  //cumndcg100 / total_users);
   fflush(_df);
 }
 

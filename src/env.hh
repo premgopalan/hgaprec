@@ -65,7 +65,7 @@ public:
       bool write_training, uint32_t rating_threshold,
       bool graphchi, bool wals, double wals_l, uint32_t wals_C,
       bool als, bool chinmf, bool climf,
-      bool mle_item, bool mle_user, bool canny);
+      bool mle_item, bool mle_user, bool canny, bool ctr);
   ~Env() { fclose(_plogf); }
 
   static string prefix;
@@ -130,6 +130,7 @@ public:
   bool mle_item;
   bool mle_user;
   bool canny;
+  bool ctr;
 
   template<class T> static void plog(string s, const T &v);
   static string file_str(string fname);
@@ -225,7 +226,7 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
 	 bool write_trainingv, uint32_t rating_thresholdv,
 	 bool graphchiv, bool walsv, double l, uint32_t C,
 	 bool alsv, bool chinmfv, bool climfv,
-	 bool mle_itemv, bool mle_userv, bool cannyv)
+	 bool mle_itemv, bool mle_userv, bool cannyv, bool ctrv)
   : dataset(datasetv),
     n(N),
     m(M),
@@ -276,7 +277,8 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
     climf(climfv),
     mle_user(mle_userv),
     mle_item(mle_itemv),
-    canny(cannyv)
+    canny(cannyv),
+    ctr(ctrv)
 {
   ostringstream sa;
   sa << "n" << n << "-";
@@ -333,6 +335,9 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
 
   if (graphchi)
     sa << "-chi";
+
+  if (ctr)
+    sa << "-ctr";
 
   if (seed)
     sa << "-seed" << seed;

@@ -24,6 +24,7 @@ HGAPRec::HGAPRec(Env &env, Ratings &ratings)
     _old_beta_mle(_m, _k),
     _lda_gamma(NULL), _lda_beta(NULL), 
     _nmf_theta(NULL), _nmf_beta(NULL),
+    _ctr_theta(NULL), _ctr_beta(NULL),
     _prev_h(.0), _nh(.0),
     _save_ranking_file(false),
     _use_rate_as_score(true),
@@ -415,6 +416,66 @@ HGAPRec::write_chi_training_matrix(double wals_C)
 }
 
 void
+HGAPRec::load_ctr_beta_and_theta()
+{
+  char buf[4096];
+  _ctr_theta = new Matrix(_n, _k);
+  _ctr_beta = new Matrix(_m, _k);
+
+  lerr("loading final-U.dat");
+  _ctr_theta->load("final-U.dat", 0, false, 0);
+  lerr("loading final-V.dat");
+  _ctr_beta->load("final-V.dat", 0, false, 0);
+
+  FILE *g = fopen("user_map.dat", "r");
+  uint32_t a, b;
+  assert(g);
+  while(!feof(g)) {
+    if (fscanf(g, "%d,%d\n", &a, &b) < 0){ 
+      printf("error: unexpected lines in file\n");
+      fclose(g);
+      exit(-1);
+    }
+    _ctr_user_to_idx[a] = b;
+  }
+  fclose(g);
+
+
+  g = fopen("item_map.dat", "r");
+  assert(g);
+  while(!feof(g)) {
+    if (fscanf(g, "%d,%d\n", &a, &b) < 0){ 
+      printf("error: unexpected lines in file\n");
+      fclose(g);
+      exit(-1);
+    }
+    _ctr_item_to_idx[a] = b;
+  }
+  fclose(g);
+
+  FILE *f = fopen(Env::file_str("/user-map.csv").c_str(), "w");
+  for (uint32_t n = 0; n < _n; ++n) {
+    IDMap::const_iterator it = _ratings.seq2user().find(n);
+    assert (it != _ratings.seq2user().end());
+    fprintf(f, "%d,%d\n", it->second,_ctr_user_to_idx[it->second]);
+  }
+  fclose(f);
+
+  f = fopen(Env::file_str("/item-map.csv").c_str(), "w");
+  for (uint32_t n = 0; n < _m; ++n) {
+    IDMap::const_iterator it = _ratings.seq2movie().find(n);
+    assert (it != _ratings.seq2movie().end());
+    fprintf(f, "%d,%d\n", it->second,_ctr_item_to_idx[it->second]);
+  }
+  fclose(f);
+  
+  lerr("saving ctr_theta.tsv");
+  _ctr_theta->save(Env::file_str("/ctr_theta.tsv").c_str(), _ratings.seq2user());
+  lerr("saving ctr_beta.tsv");
+  _ctr_beta->save(Env::file_str("/ctr_beta.tsv").c_str(), _ratings.seq2movie());
+}
+
+void
 HGAPRec::load_chi_beta_and_theta()
 {
   char buf[4096];
@@ -512,7 +573,7 @@ HGAPRec::run_chi_climf()
   char chicmd[4096];
   sprintf(chicmd, "cd %s; GRAPHCHI_ROOT=/scratch/pgopalan/graphchi-cpp " \
 	  "/scratch/pgopalan/graphchi-cpp/toolkits/collaborative_filtering/climf " \
-	  "--training=%s --validation=%s --binary_relevance_thresh=1 "	\
+	  "--training=%s --validation=%s --binary_relevance_thresh=4 "	\
 	  "--quiet=1 --sgd_gamma=1e-6 --D=%d --max_iter=500 --sgd_step_dec=0.9999 "\
 	  "--sgd_lambda=1e-6 > %s 2>&1",
 	  Env::file_str("").c_str(),
@@ -1682,6 +1743,8 @@ HGAPRec::compute_precision(bool save_ranking_file)
 	u = prediction_score_lda(n, m);
       else if (_env.graphchi) {
 	u = prediction_score_chi(n, m);
+      } else if (_env.ctr) {
+	u = prediction_score_ctr(n, m);
       } else
 	u = _env.hier ? prediction_score_hier(n, m) : prediction_score(n, m);
 
@@ -1840,6 +1903,41 @@ HGAPRec::prediction_score_nmf(uint32_t user, uint32_t movie) const
   double s = .0;
   for (uint32_t k = 0; k < _k; ++k)
     s += etheta[user][k] * ebeta[movie][k];
+  return s;
+}
+
+double
+HGAPRec::prediction_score_ctr(uint32_t user, uint32_t movie) const
+{
+  const double **etheta = _ctr_theta->const_data();
+  const double **ebeta = _ctr_beta->const_data();
+
+  IDMap::const_iterator it = _ratings.seq2user().find(user);
+  assert (it != _ratings.seq2user().end());
+	
+  IDMap::const_iterator mt = _ratings.seq2movie().find(movie);
+  assert (mt != _ratings.seq2movie().end());
+
+  uint32_t n = it->second;      
+  uint32_t m = mt->second;
+
+  IDMap::const_iterator it2 = _ctr_user_to_idx.find(n);
+  assert (it2 != _ctr_user_to_idx.end());
+	
+  IDMap::const_iterator mt2 = _ctr_item_to_idx.find(m);
+  assert (mt2 != _ctr_item_to_idx.end());
+
+  uint32_t n2 = it2->second;
+  uint32_t m2 = mt2->second;
+
+  if (n2 >= _ctr_theta->m() || m2 >= _ctr_beta->m()) {
+    lerr("asking score for nonexistent user or item: (%d,%d)", n2, m2);
+    return .0;
+  }
+
+  double s = .0;
+  for (uint32_t k = 0; k < _k; ++k)
+    s += etheta[n2][k] * ebeta[m2][k];
   return s;
 }
 
@@ -2005,11 +2103,15 @@ HGAPRec::gen_msr_csv()
 void
 HGAPRec::gen_ranking_for_users(bool load)
 {
-  if (load)
+  if (_env.ctr) {
+    lerr("loading CTR files");
+    load_ctr_beta_and_theta();
+  } else if (load)
     load_beta_and_theta();
 
   char buf[4096];
   sprintf(buf, "%s/test_users.tsv", _env.datfname.c_str());
+  lerr("loading test users from %s", buf);
   FILE *f = fopen(buf, "r");
   if (!f) { 
     lerr("cannot open %s", buf);
@@ -2022,8 +2124,7 @@ HGAPRec::gen_ranking_for_users(bool load)
   
   compute_precision(true);
   compute_itemrank(true);
-  printf("DONE writing ranking.tsv in output directory\n");
-  fflush(stdout);
+  lerr("DONE writing ranking.tsv in output directory\n");
 }
 
 void

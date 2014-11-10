@@ -1208,10 +1208,15 @@ D2Array<double>::load(string name,
 
   double **md = _data;
   uint32_t m = 0;
-  int sz = transpose ? 1024 *_m : 1024*_n;
+  int sz = transpose ? 10240 *_m : 10240 *_n;
+  lerr("skipcols = %d, transpose = %d, skiprows = %d", skipcols, transpose, skiprows);
+  lerr("m = %d, n = %d, sz = %d", _m, _n, sz);
+       
   char *line = (char *)malloc(sz);
   uint32_t l = 0, skipped = 0;
   while (!feof(f)) {
+    printf("%s\n", line);
+    fflush(stdout);
     if (fgets(line, sz, f) == NULL)
       break;
     if (l < skiprows) { //skip header, if any (e.g., vowpal wabbit output)
@@ -1240,10 +1245,11 @@ D2Array<double>::load(string name,
     } while (p != NULL);
     if (transpose) {
       //if (n != _m)
-      lerr("n = %d, _m = %d\n", n, _m);
+      //lerr("n = %d, _m = %d\n", n, _m);
       if (m >= _n - 1)
 	break;
-    } else if (n != _n) {
+    } else {
+      //if (n != _n) {
       //lerr("n = %d, _n = %d\n", n, _n);
       //assert (n == _n);
       if (m >= _m - 1) 

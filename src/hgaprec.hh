@@ -44,6 +44,7 @@ public:
   void load_lda_beta_and_theta();
   void load_vwlda_beta_and_theta();
   void load_chi_beta_and_theta();
+  void load_ctr_beta_and_theta();
   void test();
   
 private:
@@ -79,6 +80,7 @@ private:
   double prediction_score_nmf(uint32_t user, uint32_t movie) const;
   double prediction_score_lda(uint32_t user, uint32_t movie) const;
   double prediction_score_chi(uint32_t user, uint32_t movie) const;
+  double prediction_score_ctr(uint32_t user, uint32_t movie) const;
 
   void load_beta_and_theta();
   void save_model();
@@ -119,11 +121,16 @@ private:
   FreqMap _validation_users_of_movie;
   IDMap _leave_one_out;
 
+  IDMap _ctr_user_to_idx;
+  IDMap _ctr_item_to_idx;
+
   UserMap _sampled_users;
   UserMap _sampled_movies;
 
   Matrix *_nmf_theta;
   Matrix *_nmf_beta;
+  Matrix *_ctr_theta;
+  Matrix *_ctr_beta;
   Matrix *_lda_gamma;
   Matrix *_lda_beta;
   Matrix *_chi_gamma;

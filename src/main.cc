@@ -94,6 +94,7 @@ main(int argc, char **argv)
   bool mle_item = false;
   bool mle_user = false;
   bool canny = false;
+  bool ctr = false;
 
   uint32_t i = 0;
   while (i <= argc - 1) {
@@ -219,6 +220,8 @@ main(int argc, char **argv)
       wals_C = atoi(argv[++i]);
     } else if (strcmp(argv[i], "-climf") == 0) {
       climf = true;
+    } else if (strcmp(argv[i], "-ctr") == 0) {
+      ctr = true;
     } else if (strcmp(argv[i], "-rating-threshold") == 0) {
       rating_threshold = atoi(argv[++i]);
     } else if (i > 0) {
@@ -237,7 +240,7 @@ main(int argc, char **argv)
 	  write_training, rating_threshold, 
 	  chi, wals, wals_l, wals_C,
 	  als, chinmf, climf, 
-	  mle_item, mle_user, canny);
+	  mle_item, mle_user, canny, ctr);
   env_global = &env;
   
   Ratings ratings(env);
@@ -330,6 +333,12 @@ main(int argc, char **argv)
     exit(0);
   }
 
+  // if (ctr) {
+  //   HGAPRec hgaprec(env, ratings);
+  //   hgaprec.load_ctr_beta_and_theta();
+  //   exit(0);
+  // }
+  
   if (gen_ranking_for_users) {
     HGAPRec hgaprec(env, ratings);
     hgaprec.gen_ranking_for_users(true);

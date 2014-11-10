@@ -16,10 +16,10 @@ preferences and item attributes. The Probabilistic Factor Model
 item weights as well, and using multiplicative update rules to infer
 an approximate maximum a posteriori estimate of the latent factors.
 In contrast, as explained below, our model uses a hierarchical prior
-structure of Gamma priors on user and item weights, and Gamma priors
-over the rate parameters from which these weights are drawn. This
-enables us to accurately model the skew in user activity and item
-popularity, which contributes to good predictive
+structure of Gamma priors on both user and item weights, and Gamma
+priors over the rate parameters from which these weights are
+drawn. This enables us to accurately model the skew in user activity
+and item popularity, which contributes to good predictive
 performance. Furthermore, we approximate the full posterior over all
 latent factors using a scalable variational inference algorithm.
 

@@ -3,20 +3,23 @@ We have demonstrated that Poisson factorization is an efficient and
 effective means of generating high quality recommendations across a
 variety of data sets ranging from movie views to scientific article
 libraries. It significantly outperforms existing recommendation
-methods on both explicit rating data and implicit behavior data,
-without the need for ad hoc modifications.  Poisson factorization
-algorithms scale to massive data and differ from traditional methods
-in their ability to capture the heterogeneity amongst users and items,
-accounting for the wide range of activity and popularity amongst them,
-respectively.
+methods in modeling implicit behavior data without the need for ad hoc
+modifications. Variational inference for HPF scales to massive data
+and differs from traditional methods in its ability to capture the
+heterogeneity amongst users and items, accounting for the wide range
+of activity and popularity amongst them, respectively.
 
 %%% recsys-prem !!! added note about SVI here (removed from intro)
 
-Future work includes extensions to HPF, to provide cold-start recommendations
-using text data~\cite{Wang:2011b}, and to infer the number of latent components
-using Bayesian nonparametric assumptions~\cite{Zhou:2012}; and stochastic
-variational inference~\cite{Hoffman:2013}, to analyze data sets larger than
-those we studied.
+Finally, we emphasize that HPF is more than just one method---it is
+the simplest in a class of probabilistic models with these properties,
+and is easily modified to include more complex structure and
+assumptions.  Future work includes extensions to HPF to provide
+cold-start recommendations using text data~\cite{Wang:2011b}, and to
+infer the number of latent components using Bayesian nonparametric
+assumptions~\cite{Zhou:2012}; and stochastic variational
+inference~\cite{Hoffman:2013}, to analyze data sets larger than those
+we studied.
 
 %% exploring modifications to BPF to incorporate
 %% additional features---e.g., user and item metadata---as well as

@@ -160,7 +160,7 @@ We optimize the variational parameters with a coordinate ascent
 algorithm, iteratively optimizing each parameter while holding the
 others fixed.  The algorithm is illustrated in \myfig{batch}. We
 denote shape with the superscript ``shp'' and rate with the
-superscript ``rte''.  (We omit a detailed derivation due to space constraints.)
+superscript ``rte''. We provide a detailed derivation in the Appendix.
 
 Note that our algorithm is very efficient on sparse matrices. In step
 1, we need only update variational multinomials for the non-zero

@@ -4,20 +4,20 @@ Recommendation systems are a vital component of the modern Web.  They
 help readers effectively navigate otherwise unwieldy archives of
 information and help websites direct users to items---movies,
 articles, songs, products---that they will like.
-A recommendation system is built from user behavior data, historical
+A recommendation system is built from historical
 data about which items each user has consumed, be it clicked, viewed,
-rated, or purchased. First, we uncover the behavioral patterns that
+rated, or purchased. First, it uncovers the behavioral patterns that
 characterize various types of users and the kinds of items they tend
-to like.  Then, we exploit these discovered patterns to recommend
+to like.  Then, it exploits these discovered patterns to recommend
 future items to its users.
 
-In this paper, we develop Hierarchical Poisson factorization (HPF)
-algorithms for recommendation.  Our algorithms easily scale to massive
-data and significantly outperform the existing methods.  We show that
-Poisson factorization for recommendation is tailored to real-world
-properties of user behavior data: the heterogenous interests of users,
-the varied types of items, and a realistic distribution of the finite
-resources that users have to consume items.
+In this paper, we develop Hierarchical Poisson factorization (HPF) for
+generating high-quality recommendations. Our algorithms easily scale
+to massive data and significantly outperform the existing methods. We
+show HPF is tailored to real-world properties of user behavior data:
+the heterogeneous interests of users, the varied types of items, and a
+realistic distribution of the finite resources that users have to
+consume these items.
 
 \begin{figure*}[th]
 \centering
@@ -66,13 +66,12 @@ Back to the Future Part II\\
 
 \myfig{netflix-illustration} illustrates Poisson factorization on data
 from Netflix.  The Netflix data contains the ratings of 480,000 users
-on 17,000 movies, organized in a matrix of 8.16B cells (and containing
+on 17,000 movies, organized in a sparse matrix of 8.16B cells (and containing
 250M ratings).  From these data, we extract the patterns of users'
 interests and the movies that are associated with those interests.
 The left panel illustrates some of those patterns---the algorithm has
 uncovered action movies, independent comedies, and 1980s science
 fiction.
-
 The top panel illustrates how we can use these patterns to form
 recommendations for an (imaginary) user.  This user enjoys various
 types of movies, including fantasy (``Lord of the Rings''), classic
@@ -108,7 +107,7 @@ can then use to make predictions and recommendations.
 %% vector implies that the user tends to like items with the
 %% corresponding latent attribute.
 
-The inferential computation is common to many variants of matrix
+This inferential computation is common to many variants of matrix
 factorization.  We found, however, that HPF enjoys significant
 quantitative advantages over classical methods over a variety of
 \emph{implicit feedback} data sets. \myfig{precision_recall} shows
@@ -140,19 +139,19 @@ To address this limitation of Gaussian MF, researchers have patched it
 in complex ways. There are two main approaches. The first approach,
 proposed by \cite{Hu:2008p9402}, is to treat the unconsumed items with
 greater uncertainty and increase confidence as the rating for an item
-increases. This transfers the raw observations into two separate
+increases. This converts the raw observations into two separate
 quantities with distinct interpretations: user preferences and
 confidence levels. Hu et al.~\cite{Hu:2008p9402} present an
 alternating least squares algorithm that considers all observations
 but whose per-iteration complexity is still linear in the number of
 non-zero observations. A main disadvantage of this method is that the
 assignment of per-observation confidence weights requires exhaustive
-search via cross-validation, or other model selection methods. This is
+search via cross-validation, or other model selection methods, which is
 impractical on massive data sets. For scalability, the method assigns
 a single confidence level parameter for all zero observations. This
-simplistic treatment does not capture that the vast majority of
-observations are zero because the user has limited resources to
-consume these items -- the user did not even consider the item.
+simplistic treatment fails to capture that the vast majority of
+observations are zero not because the user disliked them, but because
+they have not even considered them.
 
 The second approach is to randomly synthesize negative
 examples~\cite{Dror:2012a, Gantner:2012p9364, Paquet:2013p9197}. In
@@ -162,50 +161,51 @@ it is unclear how to balance these two sets of items. Do we use an
 equal number of consumed and consumed items, or do we use the full set
 of unconsumed items~\cite{Cremonesi:2010, Hu:2008p9402}?  Further, the
 subsampling of negative or unconsumed items is often expensive, and
-results in algorithms that do not scale easily. Both approaches to
-using Gaussian models on implicit data do not capture that users have
-limited resources to consume, view or rate a vast number of items.
+can account for a substantial fraction of resources devoted to model
+fitting.
 
-The problem with these approaches is they either render all zero
-observations as having high uncertainty around them -- conflating
-zeros due to limited user resources and zeros due to disliking an item
--- or, they subsample zero observations to learn a balanced user
-profile. Neither approach treats the zero observations as a signal for
-the limited rate at which each user consumes items.
+The fundamental problem with these and other Gaussian models is they
+do not capture that users have limited resources to consume, view, or
+rate items from a vast number of options.  Instead, they either
+interpret all unconsumed observations as having high uncertainty
+around them---conflating zeros due to limited user resources and zeros
+due to disliking an item---or they subsample unconsumed items to
+learn a balanced user profile. Neither approach treats the zero
+observations as a signal for the limited rate at which each user
+consumes items.
 
 In contrast, Poisson factorization captures real consumption data,
 specifically that users have finite (and varied) resources with which
 to consume items.  To see this, we can rewrite the model as a two
-stage process where a user first decides on a budget of movies to
-watch and then spends this budget watching movies that she is
-interested in. If the model accurately captures the distribution of
-budgets then consumed items carry more weight than unconsumed items,
-because unconsumed items can be partially explained by a lack of
-resources. We conjecture that matrix factorization methods based on
-the Gaussian model systematically overestimate the users' budgets, and
-we confirm this hypothesis in \mysec{eval} using a posterior
-predictive check~\cite{Gelman:1996}. This misfit leads to an
-overweighting of the zeros, which explains why practitioners require
-complex methods for downweighting
+stage process where a user first decides on a budget of how many
+movies to watch and then spends this budget on movies of interest. If
+the model accurately captures the distribution of budgets then
+consumed items carry more weight than unconsumed items, because
+unconsumed items can be partially explained by a lack of resources. We
+conjecture that matrix factorization methods based on the Gaussian
+model systematically overestimate the users' budgets, and we confirm
+this hypothesis in \mysec{eval} using a posterior predictive
+check~\cite{Gelman:1996}. This misfit leads to an overweighting of the
+zeros, which explains why practitioners require complex methods for
+downweighting
 them~\cite{Hu:2008p9402,Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.
 Poisson factorization does not need to be modified in this way.
 
 Further, HPF algorithms retain the linear-scaling of Gaussian MF based
 on downweighting zeros~\cite{Hu:2008p9402}. HPF algorithms only need
 to iterate over the consumed items in the observed matrix of user
-behavior, i.e., the non-zero elements in both the implicit and
-explicit setting. (This follows from the mathematical form of the
-Poisson distribution.) In constrast to the downweighting methods, PF
-algorithms do not use the restrictive and incorrect assumption of
-distinct confidence levels with consumed and unconsumed items. With
-fewer assumptions, PF algorithms are robust off-the-shelf tools that
-scale to massive data sets. Thus, Poisson factorization takes
-advantage of the natural sparsity of user behavior data and can easily
-analyze massive real-world data.  In contrast, the subsampling-based
-Gaussian MF methods~\cite{Gantner:2012p9364,
-  Dror:2012a,Paquet:2013p9197} must iterate over both positive and
-negative examples in the implicit setting. This makes it difficult to
-take advantage of data sparsity to scale to massive data sets.
+behavior. This follows from the mathematical form of the Poisson
+distribution. In constrast to the downweighting methods, PF algorithms
+do not use the restrictive and incorrect assumption of distinct
+confidence levels with consumed and unconsumed items. With fewer
+assumptions, PF algorithms are robust off-the-shelf tools that scale
+to massive data sets. Thus, Poisson factorization takes advantage of
+the natural sparsity of user behavior data and can easily analyze
+massive real-world data.  In contrast, the subsampling-based Gaussian
+MF methods~\cite{Gantner:2012p9364, Dror:2012a,Paquet:2013p9197} must
+iterate over both positive and negative examples in the implicit
+setting. This makes it difficult to take advantage of data sparsity to
+scale to massive data sets.
 
 %% recys-prem !!! removed paragraph below (references fig 1)
 

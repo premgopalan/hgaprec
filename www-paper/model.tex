@@ -27,14 +27,13 @@ sparse.  Most of the values of the matrix $y$ are zero.
 We model these data with factorized Poisson
 distributions~\cite{Canny:2004}, where each item $i$ is represented by
 a vector of $K$ latent attributes $\beta_i$ and each user $u$ by a
-vector of $K$ latent preferences $\beta_u$.  The observations $y_{ui}$
+vector of $K$ latent preferences $\theta_u$.  The observations $y_{ui}$
 are modeled with a Poisson, parameterized by the inner product of
 the user preferences and item attributes, $y_{ui} \sim
 \poisson(\theta_u^\top \beta_i)$.  This is a variant of probabilistic
 matrix factorization~\cite{Salakhutdinov:2008a} but where each user
 and item's weights are positive~\cite{Lee:1999} and where the Poisson
 replaces the Gaussian.
-
 While a Bernoulli distribution may seem more appropriate for modeling
 binary data, we demonstrate in \mysec{properties} that the additivity
 of independent Poissons result in models that capture the marginal
@@ -54,7 +53,8 @@ literature on recommendation systems suggests that a good model must
 capture such heterogeneity across users and items~\cite{Koren:2009}.
 
 Putting this together, the generative process of the hierarchical
-Poisson factorization model (HPF) is as follows:
+Poisson factorization model (HPF), illustrated in
+the graphical model in Figure~\ref{fig:hpf}, is as follows:
 \begin{enumerate*}
 \item For each user $u$:
   \begin{enumerate*}
@@ -129,6 +129,21 @@ will be large.
 % looking at it, citing johnson and kotz (continuous multivariate
 % distributions) is probably safe.
 
+\begin{figure}[t!]
+  \centering
+  \includegraphics[width=0.4\textwidth]{figures/user_activity_sim_netflix.pdf}
+  \caption{A posterior predictive check of the distribution of total
+    ratings for the Netflix data set.  The pink curve shows the
+    empirical count of the number of users who have rated a given
+    number of items, while the green and blue curves show the
+    simulated totals from fitted Poisson and traditional matrix
+    factorization models, respectively. The Poisson marginal closely
+    matches the empirical, whereas classical matrix factorization fits
+    a large mean to account for skew in the distribution and the
+    missing ratings.}
+\label{fig:marginals}
+\end{figure}
+
 {\bf HPF models the long-tail of users and items}.  One statistical
 characteristic of real-world user behavior data is the distribution of
 user activity (i.e., how many items a user consumed) and item
@@ -182,8 +197,8 @@ b_u & \sim \poisson(\theta_u^T \sum_i \beta_i)\nonumber\\
 [y_{u1},\cdots,y_{uM}] & \sim \mult(b_u, \frac{\theta_u^T \beta_i}{\theta_u^T \sum_i \beta_i}).\nonumber
 \end{align}
 This shows that learning a PF model for user-item ratings is
-effectively the same as learning user budgets and how they choose to
-spend their budgets.
+effectively the same as learning a budget for each user while
+also learning that budget is distributed across items.
 
 % Figure 3 shows the distributions of user activity on large,
 % real-world ratings data sets. Under BPF and HPF, the
@@ -212,30 +227,15 @@ spend their budgets.
 % focused on user activity here, the same is true for the marginal
 % distribution of item popularities under Poisson factorization.
 
-\begin{figure}[t!]
-  \centering
-  \includegraphics[width=0.4\textwidth]{figures/user_activity_sim_netflix.pdf}
-  \caption{A posterior predictive check of the distribution of total
-    ratings for the Netflix data set.  The pink curve shows the
-    empirical count of the number of users who have rated a given
-    number of items, while the green and blue curves show the
-    simulated totals from fitted Poisson and traditional matrix
-    factorization models, respectively. The Poisson marginal closely
-    matches the empirical, whereas classical matrix factorization fits
-    a large mean to account for skew in the distribution and the
-    missing ratings.}
-\label{fig:marginals}
-\end{figure}
-
 {\bf HPF downweights the effect of zeros.}  Another advantage of HPF
 is that it implicitly down-weights the contribution of the items that
 each user did not consume.  With an appropriate fit to user activity,
 the model has two ways of explaining an unconsumed item: either the
-user is not interested in it or she would be interested in it but is
-likely to not be further active. In contrast, a user that consumes an
-item must be interested in it.  Thus, the model benefits more from
-making a consumed user/item pair more similar than making an
-unconsumed user/item pair less similar.
+user is not interested in it or she would be interested in if she the
+opportunity to consider it. In contrast, a user that consumes an item
+must be interested in it.  Thus, the model benefits more from making
+latent factors for a consumed user/item pair more similar compared to
+making them less similar for an unconsumed user/item pair.
 
 Classical MF is based on Gaussian likelihoods (i.e., squared loss),
 which gives equal weight to consumed and unconsumed items.
@@ -243,11 +243,12 @@ Consequently, when faced with a sparse matrix and implicit feedback,
 i.e., binary consumption data, matrix factorization places more total
 emphasis on the unconsumed user/item pairs.  (This too can be seen to
 stem from classical MF's overestimation of the distribution of user
-activity.)  To address this, researchers have patched MF in
-complex ways, for example, by including per-observation
+activity.)  To address this, researchers have patched MF in complex
+ways, for example, by including per-observation
 confidences~\cite{Koren:2009} or considering all zeroes to be hidden
 variables~\cite{Paquet:2013p9197}.  Poisson factorization more
-naturally solves this problem by better capturing user activity.
+naturally solves this problem with a more realistic model of user
+activity.
 
 As an example, consider two similar science fiction movies, ``Star
 Wars'' and ``The Empire Strikes Back'', and consider a user who has
@@ -260,7 +261,8 @@ however, will prefer to bring the user's latent weights closer to the
 movies' weights because it favors the information from the user
 watching ``Star Wars''. Further, because the movies are similar, this
 increases the Poisson model's predictive score that a user who watches
-``Star Wars'' will also watch ``The Empire Strikes Back''.
+``Star Wars'' will also watch ``The Empire Strikes Back''. This
+explains why HPF outperforms other methods.
 
 {\bf Fast inference with sparse matrices.}  Finally, the likelihood of
 the observed data under HPF (and BPF) depends only on the consumed
@@ -276,8 +278,8 @@ $\beta_i$, the Poisson distribution of the rating $y_{ui}$ is
   \left(\theta_u^\top \beta_i\right)^y
   \exp\left\{-\theta_u^\top \beta_i \right\} / y_{ui}!
 \end{equation}
-Recall the elementary fact that $0! = 1$.  The log probability of the
-complete matrix $y$ is
+Recall the elementary fact that $0! = 1$.  With this, the log
+probability of the complete matrix $y$ can be written as
 \begin{align}
   \log p(y \g \theta, \beta) =
   & \left(\textstyle \sum_{\{y_{ui} > 0\}}
@@ -287,10 +289,10 @@ complete matrix $y$ is
   \left(\textstyle\sum_{u} \theta_u\right)^\top \left(\textstyle
     \sum_{i} \beta_i\right). \nonumber
 \end{align}
-
-Classical MF does not enjoy this property. These methods, especially
-when applied to massive data sets of implicit feedback, must (in
-theory) iterate over all the cells of the matrix.  Practitioners
-require solutions such as sub-sampling~\cite{Dror:2012a}
+%Classical MF does not enjoy this property. These methods, especially
+%when applied to massive data sets of implicit feedback, must (in
+%theory) iterate over all the cells of the matrix.  Practitioners
+%require solutions such as
+This avoids the need for sub-sampling~\cite{Dror:2012a},
 approximation~\cite{Hu:2008p9402}, or stochastic
-optimization~\cite{Mairal:2010}.
+optimization~\cite{Mairal:2010} that complicate other approaches.

@@ -28,5 +28,7 @@
 
 7. sec 3, para 2: why do we prefer Poisson distribution over Bernoulli
    and censored Poisson even though we are modeling binary data?
+   - (prem) i added text; needs revision
 
-8. 
+8. add CLiMF and Hu et al. to competing methods
+   - Hu et al. data points are being generated

@@ -371,9 +371,7 @@ NormPRec::vb()
       save_model();
       elbo();
       compute_precision(false);
-    } else
-      elbo();
-
+    } 
 
     if (_env.save_state_now) {
       lerr("Saving state at iteration %d duration %d secs", _iter, duration());

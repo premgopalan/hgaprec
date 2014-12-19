@@ -4,6 +4,9 @@
 #include "env.hh"
 #include "normbase.hh"
 #include "ratings.hh"
+#if 0
+#include <time.h>
+#endif
 
 class NormPRec {
 public:

@@ -504,8 +504,8 @@ NormMatrix::update_mean_next(uint32_t n, const Array &phi, const Array &other)
 
     // starting value
     const gsl_multimin_fdfminimizer_type * T;
-    T = gsl_multimin_fdfminimizer_conjugate_fr;
-    //T = gsl_multimin_fdfminimizer_vector_bfgs2;
+    //T = gsl_multimin_fdfminimizer_conjugate_fr;
+    T = gsl_multimin_fdfminimizer_vector_bfgs2;
     s = gsl_multimin_fdfminimizer_alloc(T, _k);
 
     gsl_vector* x = gsl_vector_calloc(_k);
@@ -657,9 +657,9 @@ NormMatrix::update_var_next(uint32_t n, const Array &other)
 
     // starting value
     const gsl_multimin_fdfminimizer_type * T;
-    // T = gsl_multimin_fdfminimizer_vector_bfgs;
-    T = gsl_multimin_fdfminimizer_conjugate_fr;
-    // T = gsl_multimin_fdfminimizer_steepest_descent;
+    // bfgs2 seems (empirically) as good and faster
+    //T = gsl_multimin_fdfminimizer_conjugate_fr;
+    T = gsl_multimin_fdfminimizer_vector_bfgs2;
     s = gsl_multimin_fdfminimizer_alloc(T, this->_k);
 
     gsl_vector* x = gsl_vector_calloc(_k);

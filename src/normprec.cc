@@ -261,7 +261,10 @@ NormPRec::vb()
 
 
   while (1) {
-
+    #if 0
+    clock_t start = clock(), diff;
+    #endif
+  
     phi_m->zero(); 
 
     betaexpsum.zero();
@@ -379,6 +382,12 @@ NormPRec::vb()
     }
 
     _iter++;
+    #if 0
+    diff = clock() - start;
+    int msec = diff * 1000 / CLOCKS_PER_SEC;
+    printf("\t(%d.%ds\n", msec/1000, msec%1000);
+    #endif
+
   }
   delete phi_n; 
   delete p; 

@@ -18,6 +18,8 @@ private:
   void save_model(); 
   void compute_precision(bool); 
 
+  double elbo();
+
   void get_phi(NormBase<Matrix> &a, uint32_t ai, 
             NormBase<Matrix> &b, uint32_t bi, 
             Array &phi);

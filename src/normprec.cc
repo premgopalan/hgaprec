@@ -236,6 +236,7 @@ NormPRec::vb()
 {
   lerr("running vb()");
   initialize();
+  printf("+ initialized\n"); 
 
   Array thetaexpsum(_k);
   Array betaexpsum(_k);
@@ -267,9 +268,13 @@ NormPRec::vb()
     betaexpsum.zero();
     _beta.compute_expectations(); 
     _beta.sum_eexp_rows(betaexpsum);
+    printf("+ for all users\t"); 
 
     for (uint32_t n = 0; n < _n; ++n) { // for every user 
-
+      if(n % 1000 == 0) { 
+        printf("+ %d/%d\t\t\t\r", n, _n); 
+        fflush(stdout); 
+      }
       phi_n->zero(); 
       const vector<uint32_t> *movies = _ratings.get_movies(n);
       int nb_rats = movies->size();
@@ -318,7 +323,13 @@ NormPRec::vb()
     _theta.compute_expectations(); 
     _theta.sum_eexp_rows(thetaexpsum);
 
+    printf("+ for all items\t"); 
+
     for (uint32_t m = 0; m < _m; ++m) { // for every item 
+      if(m % 1000 == 0) { 
+          printf("+ %d/%d\t\t\t\r", m, _m); 
+          fflush(stdout); 
+        }
 
       phi_m->slice(0, m, *p); 
       _beta.update_mean_next(m, *p, thetaexpsum); 

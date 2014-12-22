@@ -6,10 +6,10 @@ NormPRec::NormPRec(Env &env, Ratings &ratings)
     _n(env.n), _m(env.m), _k(env.k),
     _iter(0),
     _start_time(time(0)),
-    _theta("theta", 1e-5, 0.075, _n,_k,&_r),
-    _beta("beta", 1e-5, 0.075, _m,_k,&_r),
-    _thetabias("thetabias", 1e-5, 0.075, _n, 1, &_r),
-    _betabias("betabias", 1e-5, 0.075, _m, 1, &_r),
+    _theta("theta", 1e-1, 0.5, _n,_k,&_r),
+    _beta("beta", 1e-1, 0.5, _m,_k,&_r),
+    _thetabias("thetabias", 1e-5, 0.0075, _n, 1, &_r),
+    _betabias("betabias", 1e-5, 0.0075, _m, 1, &_r),
     //_thetarate("thetarate", 0.3, 0.3, _n, &_r),
     //_betarate("betarate", 0.3, 0.3, _m, &_r),
     //_save_ranking_file(false),
@@ -103,8 +103,10 @@ NormPRec::elbo()
 
   Array betaexpsum(_k, true);
   betaexpsum.zero();
+  _beta.compute_expectations(); 
   _beta.sum_eexp_rows(betaexpsum);
   Array thetaexpsum(_k, true);
+  _theta.compute_expectations(); 
   thetaexpsum.zero();
   _theta.sum_eexp_rows(thetaexpsum);
 
@@ -161,7 +163,7 @@ NormPRec::elbo()
     //s += _betabias.elbo();
   }
 
-  printf("\n\t\t\tELBO: %f (train ll: %f)", s, train_ll/train_ll_k);
+  printf("\t\t\tELBO: %f (train ll: %f)\n", s, train_ll/train_ll_k);
 
   fprintf(_af, "%.5f\n", s);
   fflush(_af);
@@ -242,13 +244,16 @@ NormPRec::vb()
   Array betaexpsum(_k);
 
   Array *phi; 
-  Matrix *phi_m; 
+  //Matrix *phi_m; 
+  Array *phi_m; 
   if (_env.bias) {
       phi = new Array(_k+2);
-      phi_m = new Matrix(_m,_k+2); 
+      //phi_m = new Matrix(_m,_k+2); 
+      phi_m = new Array(_k+2); 
   } else {
       phi = new Array(_k);
-      phi_m = new Matrix(_m,_k); 
+      //phi_m = new Matrix(_m,_k); 
+      phi_m = new Array(_k); 
   }
 
   Array *phi_n, *p; 
@@ -262,11 +267,13 @@ NormPRec::vb()
 
 
   while (1) {
-
-    phi_m->zero(); 
+    #if TIME
+    clock_t start = clock(), diff;
+    #endif
+  
+    //phi_m->zero(); 
 
     betaexpsum.zero();
-    _beta.compute_expectations(); 
     _beta.sum_eexp_rows(betaexpsum);
     printf("+ for all users\t"); 
 
@@ -294,11 +301,11 @@ NormPRec::vb()
           phi->scale(y);
 
         phi_n->add_to(*phi); 
-        phi_m->add_slice(m,*phi);
+        //phi_m->add_slice(m,*phi);
       }
 
-      _theta.update_mean_next(n, *phi_n, betaexpsum);
       _theta.update_var_next(n, betaexpsum); 
+      _theta.update_mean_next(n, *phi_n, betaexpsum);
       #if 0
       printf("\n-elbo theta before (user has %d ratings)\n", nb_rats);
       double e = elbo();
@@ -319,8 +326,11 @@ NormPRec::vb()
       }
     }
 
-    thetaexpsum.zero();
+    _theta.swap(); 
     _theta.compute_expectations(); 
+    _theta.set_next_to_zero();
+
+    thetaexpsum.zero();
     _theta.sum_eexp_rows(thetaexpsum);
 
     printf("+ for all items\t"); 
@@ -331,8 +341,29 @@ NormPRec::vb()
           fflush(stdout); 
         }
 
-      phi_m->slice(0, m, *p); 
-      _beta.update_mean_next(m, *p, thetaexpsum); 
+      phi_m->zero(); 
+
+      const vector<uint32_t> *users = _ratings.get_users(m);
+      int nb_rats = users->size();
+      for (uint32_t j = 0; j < users->size(); ++j) {
+        uint32_t n = (*users)[j];
+        yval_t y = _ratings.r(n,m);
+
+        if (!_env.bias)
+            get_phi(_theta, n, _beta, m, *phi);
+        else { 
+            const double **tbias = _thetabias.expected_v().const_data();
+            const double **bbias = _betabias.expected_v().const_data();
+            get_phi(_theta, n, _beta, m, tbias[n][0], bbias[m][0], *phi);
+        }
+
+        if (y > 1)
+          phi->scale(y);
+
+        phi_m->add_to(*phi); 
+      }
+
+      _beta.update_mean_next(m, *phi_m, thetaexpsum); 
       _beta.update_var_next(m, thetaexpsum); 
       if (_env.bias) {
         // TODO 
@@ -365,9 +396,6 @@ NormPRec::vb()
     _beta.swap(); 
     _beta.compute_expectations(); 
     _beta.set_next_to_zero();
-    _theta.swap(); 
-    _theta.compute_expectations(); 
-    _theta.set_next_to_zero();
 
     if (_env.bias) { 
         _thetabias.swap();
@@ -390,6 +418,12 @@ NormPRec::vb()
     }
 
     _iter++;
+    #if TIME
+    diff = clock() - start;
+    int msec = diff * 1000 / CLOCKS_PER_SEC;
+    printf("\t(%d.%ds)\n", msec/1001, msec%1000);
+    #endif
+
   }
   delete phi_n; 
   delete p; 
@@ -403,8 +437,10 @@ NormPRec::save_model()
   _beta.save_state(_ratings.seq2movie());
   _theta.save_state(_ratings.seq2user());
 
-  _betabias.save_state(_ratings.seq2movie());
-  _thetabias.save_state(_ratings.seq2user());
+  if(_env.bias) {
+    _betabias.save_state(_ratings.seq2movie());
+    _thetabias.save_state(_ratings.seq2user());
+  }
 }
 
 void
@@ -663,8 +699,8 @@ NormPRec::compute_likelihood(bool validation)
 double
 NormPRec::score(uint32_t p, uint32_t q) const
 {
-  const double **etheta = _theta.expected_v().const_data();
-  const double **ebeta = _beta.expected_v().const_data();
+  const double **etheta = _theta.expected_expv().const_data();
+  const double **ebeta = _beta.expected_expv().const_data();
   
   double s = .0;
   for (uint32_t k = 0; k < _k; ++k)
@@ -672,8 +708,8 @@ NormPRec::score(uint32_t p, uint32_t q) const
   
   // TODO: biases!!! 
   if (_env.bias) {
-    const double **ethetabias = _thetabias.expected_v().const_data();
-    const double **ebetabias = _betabias.expected_v().const_data();
+    const double **ethetabias = _thetabias.expected_expv().const_data();
+    const double **ebetabias = _betabias.expected_expv().const_data();
     s += ethetabias[p][0] + ebetabias[q][0];
   } 
   

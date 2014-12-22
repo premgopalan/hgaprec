@@ -1,11 +1,12 @@
 #ifndef NORMBASE_HH
 #define NORMBASE_HH
 
-// #include "env.hh"
-
 #include <gsl/gsl_multimin.h>
 #include <gsl/gsl_rng.h>
 #include <cmath> 
+
+#define CHECK_GRADIENTS 0
+
 
 template <class T>
 class NormBase { 
@@ -45,7 +46,8 @@ public:
     _r(r) { } 
   virtual ~NormMatrix() {} 
 
-  void pvec(const gsl_vector *x);
+  void vprint(const gsl_vector *x);
+  double vnorm(const gsl_vector *x);
 
   uint32_t n() const { return _n;}
   uint32_t k() const { return _k;}
@@ -76,7 +78,7 @@ public:
   double elbo();
   void compute_expectations();
 
-  void save_state(const IDMap &m) const {}
+  void save_state(const IDMap &m) const;
   void load() {}
 
   double f_user(void *params);
@@ -116,6 +118,18 @@ typedef struct bundle {
     const Array *phi, *other;
     uint32_t id; 
 } bundle;
+
+inline void
+NormMatrix::save_state(const IDMap &m) const
+{
+  string mean_fname = string("/") + name() + "_mean.tsv";
+  string var_fname = string("/") + name() + "_variance.tsv";
+  string Eexp_fname = string("/") + name() + ".tsv";
+  _mcurr.save(Env::file_str(mean_fname), m);
+  _vcurr.save(Env::file_str(var_fname), m);
+  _Eexpv.save(Env::file_str(Eexp_fname), m);
+
+}
 
 inline void
 NormMatrix::compute_expectations()
@@ -169,10 +183,10 @@ NormMatrix::elbo()
       // sigma in derivation -> _vprior here.
       // -log(d\sqrt(2*pi)) -d^2\nu^2
       //s += - log(_vprior * sqrt(2*M_PI)) - _vprior*_vprior * vsquared;
-      s += - _vprior*_vprior * vsquared;
+      s += - _vprior * vsquared;
 
       // - (mu - mu_t-1)^2 / (2*d^2)
-      s -= std::pow(md[n][k] - _mprior, 2) / (2 * _vprior*_vprior);
+      s -= std::pow(md[n][k] - _mprior, 2) / (2 * _vprior);
 
       // 1/2 * ( log \nu^2 + log 2\pi + 1)
       //s += 0.5 * ( log(vsquared) + log(2*M_PI) + 1);
@@ -253,7 +267,7 @@ NormMatrix::f_user(void *params)
     //gsl_vector_memcpy(tmp, x);
     gsl_vector_add_constant(tmp, -obj._mprior);
     gsl_vector_mul(tmp, tmp);
-    gsl_vector_scale(tmp, 1/(2*obj._vprior*obj._vprior));  // OK
+    gsl_vector_scale(tmp, 1/(2*obj._vprior));  // OK
 
     const double ** const vd = obj._vcurr.const_data();
     const double * const pd = b.phi->const_data();
@@ -264,7 +278,7 @@ NormMatrix::f_user(void *params)
         f -= gsl_vector_get(tmp, k);
         f -= exp(md[id][k] + vd[id][k]/2) * od[k]; // - exp(x + nu^2/2) * exp(other + nu^2_other/2)
         f += pd[k] * md[id][k]; // \phi_mn * x
-        f -= vd[id][k]*(obj._vprior*obj._vprior);
+        f -= vd[id][k]*(obj._vprior);
         f += 0.5*log(vd[id][k]);
     }
 
@@ -289,7 +303,7 @@ NormMatrix::f_mean(const gsl_vector *x, void * params)
     gsl_vector_memcpy(tmp, x);
     gsl_vector_add_constant(tmp, -obj._mprior);
     gsl_vector_mul(tmp, tmp);
-    gsl_vector_scale(tmp, 1/(2*obj._vprior*obj._vprior));
+    gsl_vector_scale(tmp, 1/(2*obj._vprior));
 
     const double ** const vd = obj._vcurr.const_data();
     const double * const pd = b.phi->const_data();
@@ -322,7 +336,7 @@ NormMatrix::df_mean(const gsl_vector * x, void * params, gsl_vector * df)
     // - (x_k-c) / d^2 
     gsl_vector_memcpy(df, x);
     gsl_vector_add_constant(df, -obj._mprior);
-    gsl_vector_scale(df, -1/(obj._vprior*obj._vprior));
+    gsl_vector_scale(df, -1/(obj._vprior));
 
     const double ** const vd = obj._vcurr.const_data();
     const double * const pd = b.phi->const_data(); 
@@ -377,18 +391,16 @@ NormMatrix::initialize()
 
   double **ad = _mcurr.data();
   double **bd = _vcurr.data();
-  for (uint32_t i = 0; i < _n; ++i)
-    for (uint32_t k = 0; k < _k; ++k)
-      ad[i][k] = _mprior + 0.1 * gsl_rng_uniform(*_r);
+  for (uint32_t i = 0; i < _n; ++i) 
+    for (uint32_t k = 0; k < _k; ++k) 
+      ad[i][k] = _mprior + gsl_rng_uniform(*_r);
+
       //gsl_ran_gaussian_ziggurat(*_r, _vprior)
 
-  for (uint32_t k = 0; k < _k; ++k)
-    bd[0][k] = _vprior + 0.1 * gsl_rng_uniform(*_r);
-  
   for (uint32_t i = 0; i < _n; ++i)
     for (uint32_t k = 0; k < _k; ++k)
-      bd[i][k] = bd[0][k];
-  set_to_prior();
+      bd[i][k] = _vprior + 0.1 * gsl_rng_uniform(*_r);
+  set_next_to_zero();
 }
 
 inline void
@@ -405,11 +417,19 @@ NormMatrix::initialize2(double v)
   set_to_prior();
 }
 
-inline void 
-NormMatrix::pvec(const gsl_vector *x) {
+inline double
+NormMatrix::vnorm(const gsl_vector *x) {
+  double n=0.;
+  for (uint32_t k=0; k<x->size; ++k)
+    n += gsl_vector_get(x,k) * gsl_vector_get(x,k);
+  return sqrt(n);
+}
+
+inline void
+NormMatrix::vprint(const gsl_vector *x) {
     for (uint32_t k=0; k<x->size; ++k)
         printf("%f ", gsl_vector_get(x, k));
-    printf("\n"); 
+    printf("\n");
 }
 
 inline double 
@@ -418,25 +438,18 @@ NormMatrix::f_var(const gsl_vector *x, void * params)
     NormMatrix& obj = (*((bundle *) params)->NormMatrixObj);
     uint32_t id = ((bundle *) params)->id;
     const double * const od = (((bundle *) params)->other)->const_data();
-
-    double f = .0; 
-
-    //f = - d^2 nu_k^2 + 1/2(log \nu^2) - exp(x + nu^2/2)
-
-    // - d^2 nu_k^2
-    //gsl_vector_memcpy(tmp, x);
-    //gsl_vector_scale(tmp, (obj._vprior*obj._vprior)); 
-
     const double ** const md = obj._mcurr.const_data();
 
-    double x_k; 
+    double f = .0; 
+    double exp_x_k; 
     for(uint32_t k=0; k<obj._k; ++k) { 
 
-        x_k = exp(gsl_vector_get(x, k)); // variance must be positive
+        exp_x_k = exp(gsl_vector_get(x, k)); // variance must be positive
         // -d^2 \nu_k^2 + 0.5 * log(\nu^2) - exp(x + nu^2/2)
-        f -= x_k*(obj._vprior*obj._vprior);
-        f += 0.5*gsl_vector_get(x, k);
-        f -= exp(md[id][k] + x_k/2) * od[k];
+        f -= exp_x_k*obj._vprior;
+        //f += 0.5*gsl_vector_get(x, k);
+        f += 0.5*log(exp_x_k);
+        f -= exp(md[id][k] + exp_x_k/2) * od[k];
     }
 
     return -f; // maximize
@@ -454,10 +467,13 @@ NormMatrix::df_var(const gsl_vector * x, void * params, gsl_vector * df)
     const double ** const md = obj._mcurr.const_data();
     const double * const od = (((bundle *) params)->other)->const_data();
 
-    double x_k, nu_k; 
+    double exp_x_k; 
     for(uint32_t k=0; k<obj._k; ++k) { 
-        x_k = exp(gsl_vector_get(x, k)); 
-        gsl_vector_set(df, k, -x_k*obj._vprior*obj._vprior + 0.5 - x_k*0.5*exp(md[id][k] + x_k/2)*od[k]);
+        exp_x_k = exp(gsl_vector_get(x, k)); 
+        gsl_vector_set(df, k, -exp_x_k*obj._vprior
+                              + 0.5 
+                              - 0.5*exp(md[id][k] + gsl_vector_get(x,k) + exp_x_k/2)*od[k]);
+                              //- exp_x_k*0.5*exp(md[id][k] + exp_x_k/2)*od[k]);
     }
     gsl_vector_scale(df, -1.); // maximize
 }
@@ -473,6 +489,7 @@ NormMatrix::fdf_var(const gsl_vector * x, void * params, double * f, gsl_vector 
 inline float
 NormMatrix::update_mean_next(uint32_t n, const Array &phi, const Array &other)
 {
+        const double * const pd = phi.const_data(); 
 
     // update the K-vector mean of a particular user/item
     // involves 
@@ -504,8 +521,8 @@ NormMatrix::update_mean_next(uint32_t n, const Array &phi, const Array &other)
 
     // starting value
     const gsl_multimin_fdfminimizer_type * T;
-    T = gsl_multimin_fdfminimizer_conjugate_fr;
-    //T = gsl_multimin_fdfminimizer_vector_bfgs2;
+    //T = gsl_multimin_fdfminimizer_conjugate_fr;
+    T = gsl_multimin_fdfminimizer_vector_bfgs2;
     s = gsl_multimin_fdfminimizer_alloc(T, _k);
 
     gsl_vector* x = gsl_vector_calloc(_k);
@@ -517,32 +534,43 @@ NormMatrix::update_mean_next(uint32_t n, const Array &phi, const Array &other)
     gsl_vector_memcpy(xt, x); 
     #endif
 
-    // check gradient 
-    #if 0
-    gsl_vector *xg = gsl_vector_alloc(_k); 
-    gsl_vector *dfh  = gsl_vector_alloc(_k); 
+    #if CHECK_GRADIENTS
+    gsl_vector *xg = gsl_vector_alloc(_k);
+    gsl_vector *dfh  = gsl_vector_alloc(_k);
     double eps = 1e-5;
-    double f1, f2; 
-    for(uint32_t k=0; k < _k; ++k) { 
+    double f1, f2;
+    for(uint32_t k=0; k < _k; ++k) {
       gsl_vector_memcpy(xg, x);
-      gsl_vector_set(xg, k, gsl_vector_get(xg, k) + eps); 
-      f1 = wrap_f_mean(xg, (void *)&b); 
-      gsl_vector_set(xg, k, gsl_vector_get(xg, k) - 2*eps); 
-      f2 = wrap_f_mean(xg, (void *)&b); 
-      gsl_vector_set(dfh, k, (f1-f2)/(2*eps)); 
-    } 
-    gsl_vector* df = gsl_vector_calloc(_k); 
-    wrap_df_mean(x, (void *)&b, df); 
-    for(uint32_t k=0; k < _k; ++k) { 
-      if(abs(gsl_vector_get(df,k)-gsl_vector_get(dfh,k)) > 1e-5)
-          printf("gradient doesn't match (%.10f,%.10f)\n", gsl_vector_get(df,k), gsl_vector_get(dfh,k)); 
-      //else
-      //    printf("gradient matches (%f, %f)\n", gsl_vector_get(df,k), gsl_vector_get(dfh,k)); 
+      gsl_vector_set(xg, k, gsl_vector_get(xg, k) + eps);
+      f1 = wrap_f_mean(xg, (void *)&b);
+      gsl_vector_set(xg, k, gsl_vector_get(xg, k) - 2*eps);
+      f2 = wrap_f_mean(xg, (void *)&b);
+      gsl_vector_set(dfh, k, (f1-f2)/(2*eps));
     }
-    #endif
-    /// 
+    gsl_vector* df = gsl_vector_calloc(_k);
+    wrap_df_mean(x, (void *)&b, df);
+    gsl_vector *t1 = gsl_vector_calloc(_k);
+    gsl_vector *t2 = gsl_vector_calloc(_k);
+    gsl_vector_memcpy(t1,dfh);
+    gsl_vector_sub(t1,df);
+    gsl_vector_memcpy(t2,dfh);
+    gsl_vector_add(t2,df);
+   
+    //norm(dh-dy)/norm(dh+dy);
+    if(vnorm(t1)/vnorm(t2) > 1e-5) {
+        vprint(x);
+        printf("mean gradient doesn't match %e", vnorm(t1)/vnorm(t2));
+        for(uint32_t k=0; k<_k;++k)
+          printf(" (%.10f,%.10f)", gsl_vector_get(df,k), gsl_vector_get(dfh,k));
+        printf("\n");
+    }
+    gsl_vector_free(t1);
+    gsl_vector_free(t2);
 
-    gsl_multimin_fdfminimizer_set(s, &mu_obj, x, 0.01, 1e-3);
+    #endif
+
+    //gsl_multimin_fdfminimizer_set(s, &nu_obj, x, 0.01, 1e-3);
+    gsl_multimin_fdfminimizer_set(s, &mu_obj, x, 0.01, 0.1);
 
     do
     {
@@ -559,8 +587,8 @@ NormMatrix::update_mean_next(uint32_t n, const Array &phi, const Array &other)
     // ((PARAMS.cg_max_iter < 0) || (iter < PARAMS.cg_max_iter)));
     if (iter == _cg_max_iter) {
         printf("warning: cg didn't converge (mu) %d\n", _cg_max_iter);
-        printf("x\n"); 
-        pvec(s->x); 
+        printf("x\n");
+        vprint(s->x);
         printf("nu^2\n"); 
         const double ** const vd = _vcurr.const_data();
         for (uint32_t k=0; k<_k; ++k)
@@ -579,9 +607,9 @@ NormMatrix::update_mean_next(uint32_t n, const Array &phi, const Array &other)
     if(iter < 2 && status != GSL_SUCCESS && status != GSL_CONTINUE) {
         printf("\nmean opt. iter %d, status %d, id %d\n", iter, status, n);
         printf("mean begin\n");
-        pvec(xt);
+        vprint(xt);
         printf("mean\n");
-        pvec(s->x);
+        vprint(s->x);
         const double *const od = other.const_data();
         printf("od\n");
         for(int k=0; k<_k; ++k)
@@ -595,13 +623,13 @@ NormMatrix::update_mean_next(uint32_t n, const Array &phi, const Array &other)
         gsl_vector* df = gsl_vector_calloc(_k);
         wrap_df_var(x, (void *)&b, df);
         printf("df\n");
-        pvec(df);
+        vprint(df);
         exit(-1);
     }
     #endif
 
     //printf("x mean after optimization:\n");
-    //pvec(s->x, _k);
+    //vprint(s->x, _k);
 
     Array mean(_k);
     for (uint32_t k = 0; k < _k; ++k)
@@ -647,53 +675,62 @@ NormMatrix::update_var_next(uint32_t n, const Array &other)
     b.id = n; 
     b.other = &other; 
 
-    //printf("optimizing var %d/%d\n", n, _n); 
-
     nu_obj.f = &NormMatrix::wrap_f_var;
     nu_obj.df = &NormMatrix::wrap_df_var;
     nu_obj.fdf = &NormMatrix::wrap_fdf_var;
     nu_obj.n = _k;
     nu_obj.params = (void *)&b;
 
-    // starting value
     const gsl_multimin_fdfminimizer_type * T;
-    // T = gsl_multimin_fdfminimizer_vector_bfgs;
-    T = gsl_multimin_fdfminimizer_conjugate_fr;
-    // T = gsl_multimin_fdfminimizer_steepest_descent;
+    // bfgs2 seems (empirically) as good and faster
+    //T = gsl_multimin_fdfminimizer_conjugate_fr;
+    T = gsl_multimin_fdfminimizer_vector_bfgs2;
     s = gsl_multimin_fdfminimizer_alloc(T, this->_k);
 
     gsl_vector* x = gsl_vector_calloc(_k);
     const double **vd = _vcurr.const_data();
     for (uint32_t k = 0; k < _k; ++k) gsl_vector_set(x, k, log(vd[n][k]));
-    gsl_multimin_fdfminimizer_set(s, &nu_obj, x, 0.01, 1e-3);
 
-    #if 0
+    gsl_multimin_fdfminimizer_set(s, &nu_obj, x, 0.01, 1e-3);
+    //gsl_multimin_fdfminimizer_set(s, &nu_obj, x, 0.01, 0.1);
+
+    #if 1
     gsl_vector* xt = gsl_vector_calloc(_k);
     gsl_vector_memcpy(xt, x);
     #endif
 
-    // check gradient
-    #if 0
+    #if CHECK_GRADIENTS
     gsl_vector *xg = gsl_vector_alloc(_k);
     gsl_vector *dfh  = gsl_vector_alloc(_k);
     double eps = 1e-5;
     double f1, f2;
     for(uint32_t k=0; k < _k; ++k) {
       gsl_vector_memcpy(xg, x);
-      gsl_vector_set(xg, k, gsl_vector_get(xg, k) + eps);
+      gsl_vector_set(xg, k, gsl_vector_get(xg, k) + eps/2);
       f1 = wrap_f_var(xg, (void *)&b);
-      gsl_vector_set(xg, k, gsl_vector_get(xg, k) - 2*eps);
+      gsl_vector_set(xg, k, gsl_vector_get(xg, k) - eps);
       f2 = wrap_f_var(xg, (void *)&b);
-      gsl_vector_set(dfh, k, (f1-f2)/(2*eps));
+      gsl_vector_set(dfh, k, (f1-f2)/eps);
     }
     gsl_vector* df = gsl_vector_calloc(_k);
     wrap_df_var(x, (void *)&b, df);
-    for(uint32_t k=0; k < _k; ++k) {
-      if(abs(gsl_vector_get(df,k)-gsl_vector_get(dfh,k)) > 1e-5)
-          printf("gradient doesn't match (%.10f,%.10f)\n", gsl_vector_get(df,k), gsl_vector_get(dfh,k));
-      //else
-      //printf("gradient matches (%f, %f)\n", gsl_vector_get(df,k), gsl_vector_get(dfh,k));
+    gsl_vector *t1 = gsl_vector_calloc(_k); 
+    gsl_vector *t2 = gsl_vector_calloc(_k); 
+    gsl_vector_memcpy(t1,dfh); 
+    gsl_vector_sub(t1,df); 
+    gsl_vector_memcpy(t2,dfh); 
+    gsl_vector_add(t2,df); 
+    
+    //norm(dh-dy)/norm(dh+dy);
+    if(vnorm(t1)/vnorm(t2) > 1e-4) {
+        vprint(x);
+        printf("var gradient doesn't match %e", vnorm(t1)/vnorm(t2)); 
+        for(uint32_t k=0; k<_k;++k) 
+          printf(" (%.10f,%.10f)", gsl_vector_get(df,k), gsl_vector_get(dfh,k));
+        printf("\n"); 
     }
+    gsl_vector_free(t1); 
+    gsl_vector_free(t2); 
     #endif
     ///
 
@@ -704,7 +741,7 @@ NormMatrix::update_var_next(uint32_t n, const Array &other)
         status = gsl_multimin_fdfminimizer_iterate(s);
         converged = fabs((f_old - s->f) / f_old);
         //printf("f(nu) = %5.17e ; conv = %5.17e\n", s->f, converged);
-        //pvec(s->x, _k); 
+        //vprint(s->x, _k);
         if (status) break;
         status = gsl_multimin_test_gradient(s->gradient, _cg_convergence);
     }
@@ -714,7 +751,7 @@ NormMatrix::update_var_next(uint32_t n, const Array &other)
     if (iter == _cg_max_iter) {
         printf("warning: cg didn't converge (nu) %d\n", _cg_max_iter);
         printf("x\n");
-        pvec(s->x);
+        vprint(s->x);
         printf("mu\n");
         const double ** const md = _mcurr.const_data();
         for (uint32_t k=0; k<_k; ++k)
@@ -733,7 +770,7 @@ NormMatrix::update_var_next(uint32_t n, const Array &other)
         var[k] = exp(gsl_vector_get(s->x, k));
     _vnext.add_slice(n, var);
 
-    #if 0
+    #if 1
     if(wrap_f_var(xt, (void *)&b) < wrap_f_var(s->x, (void *)&b)) {
       printf("f_var before: %.10f\t", wrap_f_var(xt, (void *)&b));
       printf("f_var after: %.10f\n", wrap_f_var(s->x, (void *)&b));
@@ -746,7 +783,6 @@ NormMatrix::update_var_next(uint32_t n, const Array &other)
     return 0.; 
 
 }
-
 
 #endif 
 

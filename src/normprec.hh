@@ -4,7 +4,9 @@
 #include "env.hh"
 #include "normbase.hh"
 #include "ratings.hh"
-#if 0
+#define TIME 0
+
+#if TIME
 #include <time.h>
 #endif
 

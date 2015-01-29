@@ -597,8 +597,8 @@ NormPRec::get_phi(NormBase<Matrix> &a, uint32_t ai,
   const double  **elogb = b.expected_v().const_data();
   phi.zero();
   for (uint32_t k = 0; k < _k; ++k)
-    phi[k] = eloga[ai][k] + elogb[bi][k];
-  phi.lognormalize();
+    phi[k] = ::exp(eloga[ai][k] + elogb[bi][k] -1);
+  phi.normalize();
 }
 
 void

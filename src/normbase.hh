@@ -680,7 +680,7 @@ NormMatrix::update_mean_next(uint32_t n, const Array &phi, const Array &other)
     Array mean(_k);
     for (uint32_t k = 0; k < _k; ++k)
         mean[k] = gsl_vector_get(s->x, k);
-    _mnext.add_slice(n, mean);
+    _mnext.set_slice(n, mean);
 
     #if 0
     if(wrap_f_mean(xt, (void *)&b) < wrap_f_mean(s->x, (void *)&b)) {
@@ -814,7 +814,7 @@ NormMatrix::update_var_next(uint32_t n, const Array &other)
     Array var(_k); 
     for (uint32_t k = 0; k < _k; ++k)
         var[k] = exp(gsl_vector_get(s->x, k));
-    _vnext.add_slice(n, var);
+    _vnext.set_slice(n, var);
 
     #if 1
     if(wrap_f_var(xt, (void *)&b) < wrap_f_var(s->x, (void *)&b)) {

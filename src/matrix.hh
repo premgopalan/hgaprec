@@ -859,6 +859,7 @@ public:
   void zero(uint32_t a);
   int copy_from(const D2Array<T> &a);
   int add_to(const D2Array<T> &a);
+  void set_slice(uint32_t p, const D1Array<T> &u);
   void add_slice(uint32_t p, const D1Array<T> &u);
   void add_slice(uint32_t p, const D1Array<uint32_t> &u);
   void sub_slice(uint32_t p, const D1Array<T> &u);
@@ -1055,6 +1056,15 @@ D2Array<T>::colsum(uint32_t p) const
   for (uint32_t j = 0; j < _m; ++j)
     s += _data[j][p];
   return s;
+}
+
+template<class T> inline void
+D2Array<T>::set_slice(uint32_t p, const D1Array<T> &u)
+{
+  assert (_n <= u.n());
+  const T * const ud = u.data();  
+  for (uint32_t i = 0; i < _n; ++i)
+    _data[p][i] = ud[i];
 }
 
 template<class T> inline void

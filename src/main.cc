@@ -83,6 +83,7 @@ main(int argc, char **argv)
   bool write_training = false;
   uint32_t rating_threshold = 1;
   bool chi = false;
+  bool gmf_init = false;
 
   bool normal_priors = false; 
 
@@ -194,6 +195,8 @@ main(int argc, char **argv)
       rating_threshold = atoi(argv[++i]);
     } else if (strcmp(argv[i], "-normal-priors") == 0) {
       normal_priors = true;
+    } else if (strcmp(argv[i], "-gmf-init") == 0) {
+      gmf_init = true;
     } else if (i > 0) {
       fprintf(stdout,  "error: unknown option %s\n", argv[i]);
       assert(0);
@@ -208,7 +211,7 @@ main(int argc, char **argv)
 	  batch, binary_data, bias, hier, 
 	  explore, vb, nmf, nmfload, lda, vwlda, 
 	  write_training, rating_threshold, 
-	  chi, normal_priors);
+	  chi, normal_priors, gmf_init);
   env_global = &env;
 
   Ratings ratings(env);

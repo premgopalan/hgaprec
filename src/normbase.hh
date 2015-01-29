@@ -80,6 +80,7 @@ public:
 
   void save_state(const IDMap &m) const;
   void load() {}
+  void load_from_gmf(string, uint32_t, string);
 
   double f_user(void *params);
   double f_mean(const gsl_vector * p, void * params); 
@@ -118,6 +119,51 @@ typedef struct bundle {
     const Array *phi, *other;
     uint32_t id; 
 } bundle;
+
+inline void
+NormMatrix::load_from_gmf(string dir, uint32_t K, string name="")
+{ 
+  char buf_mean[1024], buf_var[1024];
+  
+  if(name=="")
+    name = this->name();
+  
+  sprintf(buf_mean, "%s/gmf-fits/%s_mean-k%d.tsv", dir.c_str(), name.c_str(), K);
+  lerr("loading from %s", buf_mean);
+  sprintf(buf_var, "%s/gmf-fits/%s_var-k%d.tsv", dir.c_str(), name.c_str(), K);
+  lerr("loading from %s", buf_var);
+  
+  _mcurr.load(buf_mean, 0);
+  // gmf keeps a single variance for all entities (users/items) 
+  Array var(1); 
+  var.load(buf_var);
+
+  double **md = _mcurr.data();
+  double **vd = _vcurr.data();
+  double **ed = _Eexpv.data();
+
+  // go from normal to log-normal parameters
+  //double mean2, var;
+  double tmp2;
+  for (uint32_t i = 0; i < _n; ++i) {
+    for (uint32_t k = 0; k < _k; ++k) {
+
+      //md[i][k] = exp(md[i][k] + var[0]*var[0]/2);
+      //vd[i][k] = md[i][k]*md[i][k] * (exp(var[0]*var[0]) -1);
+      tmp2 = md[i][k]*md[i][k]; 
+      md[i][k] = log(md[i][k] / sqrt(1 + var[0]/tmp2));
+      vd[i][k] = sqrt(log(1+ var[0]/tmp2));
+
+    }
+  }
+
+  this->compute_expectations();
+
+  IDMap m;
+  string expv_fname = string("/") + name + "_exp.tsv";
+  _Eexpv.save(Env::file_str(expv_fname), m);
+}
+
 
 inline void
 NormMatrix::save_state(const IDMap &m) const
@@ -369,8 +415,8 @@ NormMatrix::set_next_to_zero()
 inline void
 NormMatrix::set_to_prior()
 {
-  _mnext.set_elements(_mprior);
-  _vnext.set_elements(_vprior);
+  _mnext.set_elements(0.);
+  _vnext.set_elements(0.);
 }
 
 inline void
@@ -586,7 +632,7 @@ NormMatrix::update_mean_next(uint32_t n, const Array &phi, const Array &other)
     // while ((converged > PARAMS.cg_convergence) &&
     // ((PARAMS.cg_max_iter < 0) || (iter < PARAMS.cg_max_iter)));
     if (iter == _cg_max_iter) {
-        printf("warning: cg didn't converge (mu) %d\n", _cg_max_iter);
+        printf("warning: cg didn't converge (mu) after %d iterations \n\t(status: %s)\n", _cg_max_iter, gsl_strerror(status));
         printf("x\n");
         vprint(s->x);
         printf("nu^2\n"); 
@@ -600,7 +646,7 @@ NormMatrix::update_mean_next(uint32_t n, const Array &phi, const Array &other)
         for (uint32_t k=0; k<_k; ++k)
             printf("%f ", pd[k]); 
         printf("\n"); 
-        exit(-1); 
+        //exit(-1); 
     }
 
     #if 0

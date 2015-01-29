@@ -218,17 +218,30 @@ NormPRec::load_validation_and_test_sets()
 void
 NormPRec::initialize()
 {
-  _beta.initialize();
-  _theta.initialize();
-  _beta.compute_expectations();
-  _theta.compute_expectations();
-
-  if (_env.bias) {
-    _thetabias.initialize2(_m);
-    //_thetabias.compute_expectations();
+  if(_env.gmf_init) {
+    _theta.load_from_gmf(_env.datfname, _k);
+    _theta.set_to_prior();
+    _theta.compute_expectations();
     
-    _betabias.initialize2(_n);
-    //_betabias.compute_expectations();
+    _beta.load_from_gmf(_env.datfname, _k);
+    _beta.set_to_prior();
+    _beta.compute_expectations();
+
+
+
+  } else {
+    _beta.initialize();
+    _theta.initialize();
+    _beta.compute_expectations();
+    _theta.compute_expectations();
+
+    if (_env.bias) {
+      _thetabias.initialize2(_m);
+      //_thetabias.compute_expectations();
+        
+      _betabias.initialize2(_n);
+      //_betabias.compute_expectations();
+    }
   }
 }
 
@@ -275,11 +288,10 @@ NormPRec::vb()
 
     betaexpsum.zero();
     _beta.sum_eexp_rows(betaexpsum);
-    printf("+ for all users\t"); 
 
     for (uint32_t n = 0; n < _n; ++n) { // for every user 
       if(n % 1000 == 0) { 
-        printf("+ %d/%d\t\t\t\r", n, _n); 
+        printf("+ iter %d\tfor all users %d/%d\t\t\t\r", _iter, n, _n); 
         fflush(stdout); 
       }
       phi_n->zero(); 
@@ -333,11 +345,9 @@ NormPRec::vb()
     thetaexpsum.zero();
     _theta.sum_eexp_rows(thetaexpsum);
 
-    printf("+ for all items\t"); 
-
     for (uint32_t m = 0; m < _m; ++m) { // for every item 
       if(m % 1000 == 0) { 
-          printf("+ %d/%d\t\t\t\r", m, _m); 
+          printf("+ iter %d\tfor all items %d/%d\t\t\t\r", _iter, m, _m); 
           fflush(stdout); 
         }
 
@@ -371,23 +381,6 @@ NormPRec::vb()
         //_betabias.update_var_next(m); 
       }
 
-      // TMP 
-      #if 0
-      printf("\n-elbo beta before\n"); 
-      double e = elbo(); 
-      _beta.swap(); _beta.compute_expectations();
-      printf("\n elbo after\n"); 
-      double f = elbo(); 
-      if(e >= f) { 
-        printf("error %f >= %f \n", e, f); 
-        exit(-1); 
-      } 
-      _beta.swap(); _beta.compute_expectations();
-      #endif 
-      // TMP 
-
-
-
     }
     //for(uint32_t k=0;k<_k;++k)
     //  val += - thetaexpsum[k] * betaexpsum[k];
@@ -402,7 +395,6 @@ NormPRec::vb()
         _betabias.swap();
     }
 
-    printf("\r iteration %d", _iter);
     fflush(stdout);    
     if (_iter % _env.reportfreq == 0) {
       compute_likelihood(true);

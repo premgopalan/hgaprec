@@ -63,7 +63,7 @@ public:
       bool bias, bool hier, bool explore, bool vb, 
       bool nmf, bool nmfload, bool lda, bool vwlda, 
       bool write_training, uint32_t rating_threshold,
-      bool graphchi, bool normal_priors);
+      bool graphchi, bool normal_priors, bool gmf_init);
 
   ~Env() { fclose(_plogf); }
 
@@ -120,6 +120,7 @@ public:
   uint32_t rating_threshold;
   bool graphchi;
   bool normal_priors; 
+  bool gmf_init;
 
   template<class T> static void plog(string s, const T &v);
   static string file_str(string fname);
@@ -213,7 +214,7 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
 	 bool explore, bool vbv, bool nmfv, bool nmfloadv, 
 	 bool ldav, bool vwldav, 
 	 bool write_trainingv, uint32_t rating_thresholdv,
-	 bool graphchiv, bool normal_priorsv)
+	 bool graphchiv, bool normal_priorsv, bool gmf_initv)
   : dataset(datasetv),
     n(N),
     m(M),
@@ -256,7 +257,8 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
     write_training(write_trainingv),
     rating_threshold(rating_thresholdv),
     graphchi(graphchiv),
-    normal_priors(normal_priorsv)
+    normal_priors(normal_priorsv),
+    gmf_init(gmf_initv)
 {
   ostringstream sa;
   sa << "n" << n << "-";
@@ -298,6 +300,9 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
 
   if (normal_priors)
     sa << "-normpriors";
+
+  if (gmf_init)
+    sa << "-gmf_inif";
 
   if (explore)
     sa << "-explore";
@@ -357,6 +362,7 @@ Env::Env(uint32_t N, uint32_t M, uint32_t K, string fname,
   plog("nmf", nmf);
   plog("lda", lda);
   plog("normal_priors", normal_priors);
+  plog("gmf_init", gmf_init);
   
   //string ndatfname = file_str("/network.dat");
   //unlink(ndatfname.c_str());

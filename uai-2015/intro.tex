@@ -162,15 +162,15 @@ subsampling of negative or unconsumed items is often expensive, and
 can account for a substantial fraction of resources devoted to model
 fitting.
 
-The fundamental problem with these and other Gaussian models is they
-do not capture that users have limited resources to consume, view, or
-rate items from a vast number of options.  They either interpret all
-unconsumed observations as having high uncertainty around
-them---conflating zeros due to limited user resources and zeros due to
-disliking an item---or they subsample unconsumed items to learn a
-balanced user profile. Neither approach treats the zero observations
-as a signal for the limited rate at which each user consumes items.
-
+One problem with most Gaussian models is they do not capture that
+users have limited resources to consume, view, or rate items from a
+vast number of options. 
+%% They either interpret all unconsumed observations as having high
+%% uncertainty around them---conflating zeros due to limited user
+%% resources and zeros due to disliking an item---or they subsample
+%% unconsumed items to learn a balanced user profile. Neither approach
+%% treats the zero observations as a signal for the limited rate at which
+%% each user consumes items.
 In contrast, Poisson factorization (PF) captures real consumption
 data, specifically that users have finite (and varied) resources with
 which to consume items.  To see this, we can rewrite the model as a
@@ -207,6 +207,7 @@ preferences and item attributes that we place in the HPF model of
 \mysec{model}.
 
 \subsection{Recent extensions}
+\vspace{-0.1in}
 Building on the HPF model and algorithm we present in this paper,
 recent work has proposed a joint model of article text and reader
 preferences~\cite{gopalan2014content}. This model takes advantage of

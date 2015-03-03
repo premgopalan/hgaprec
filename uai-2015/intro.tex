@@ -171,38 +171,38 @@ disliking an item---or they subsample unconsumed items to learn a
 balanced user profile. Neither approach treats the zero observations
 as a signal for the limited rate at which each user consumes items.
 
-In contrast, Poisson factorization captures real consumption data,
-specifically that users have finite (and varied) resources with which
-to consume items.  To see this, we can rewrite the model as a two stage
-process where a user first decides on a budget of how many movies to
-watch and then spends this budget on movies of interest. If the model
-accurately captures the distribution of budgets then consumed items
-carry more weight than unconsumed items, because unconsumed items can
-be partially explained by a lack of resources. We conjecture that
-matrix factorization methods based on the Gaussian model
-systematically overestimate the users' budgets, and we confirm this
-hypothesis in \mysec{eval} using a posterior predictive
+In contrast, Poisson factorization (PF) captures real consumption
+data, specifically that users have finite (and varied) resources with
+which to consume items.  To see this, we can rewrite the model as a
+two stage process where a user first decides on a budget of how many
+movies to watch and then spends this budget on movies of interest. If
+the model accurately captures the distribution of budgets then
+consumed items carry more weight than unconsumed items, because
+unconsumed items can be partially explained by a lack of resources. We
+conjecture that matrix factorization methods based on the Gaussian
+model systematically overestimate the users' budgets, and we confirm
+this hypothesis in \mysec{eval} using a posterior predictive
 check~\cite{Gelman:1996}. This misfit leads to an overweighting of the
 zeros, which explains why practitioners require complex methods for
 downweighting
 them~\cite{Hu:2008p9402,Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.
 Poisson factorization does not need to be modified in this way.
 
-Further, HPF algorithms retain the linear-scaling of Gaussian MF with
-downweighted zeros~\cite{Hu:2008p9402}. HPF algorithms only need to
-iterate over the consumed items in the observed matrix of user
+Further, the HPF algorithm retains the linear-scaling of Gaussian MF
+with downweighted zeros~\cite{Hu:2008p9402}. HPF algorithms only need
+to iterate over the consumed items in the observed matrix of user
 behavior. This follows from the mathematical form of the Poisson
-distribution.  In constrast to the Gaussian MF with downweighted
-zeros, the HPF does not build in confidence level parameters that need
-to be learned for each data set. As we demonstrate in \mysec{eval},
-the PF algorithms provide high accuracy even with fixed hyperparameter
-settings. With fewer assumptions, PF algorithms are robust
-off-the-shelf tools that take advantage of the natural sparsity of
-user behavior data and scale to massive data sets.  In contrast, the
-subsampling-based Gaussian MF methods~\cite{Gantner:2012p9364,
-  Dror:2012a,Paquet:2013p9197} must iterate over both positive and
-negative examples in the implicit setting. This makes it difficult to
-take advantage of data sparsity to scale to massive data sets.
+distribution.  In contrast, the subsampling-based Gaussian MF
+methods~\cite{Gantner:2012p9364, Dror:2012a,Paquet:2013p9197} must
+iterate over both positive and negative examples in the implicit
+setting. This makes it difficult to take advantage of data sparsity to
+scale to massive data sets.
+
+With fewer assumptions than Gaussian MF, the HPF algorithm is a
+robust, off-the-shelf tool. As we demonstrate in \mysec{eval}, the PF
+algorithms provide high accuracy even with fixed hyperparameter
+settings. For greater flexibility, one of our current extensions is to
+bring the confidence-weighting of ~\cite{Hu:2008p9402} into HPF.
 
 Finally, unlike Gaussian MF which typically provides dense latent
 representations of users and items, PF models provide sparse latent
@@ -213,7 +213,7 @@ preferences and item attributes that we place in the HPF model of
 \mysec{model}.
 
 \subsection{Recent extensions}
-Building on the PF models and algorithms we present in this paper,
+Building on the HPF model and algorithm we present in this paper,
 recent work has proposed a joint model of article text and reader
 preferences~\cite{gopalan2014content}. This model takes advantage of
 the sparse, non-negative representations in PF, which are useful in

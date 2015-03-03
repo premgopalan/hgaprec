@@ -96,7 +96,9 @@ competing methods:
     low-dimensional space. These latent vectors are randomly
     initialized and modified via an alternating multiplicative update
     rule to minimize the Kullback-Leibler divergence between the
-    actual and modeled rating matrices.
+    actual and modeled rating matrices. We use the GraphLab
+    implementation of NMF~\cite{kyrola2012graphchi} to scale to our
+    large data sets.
 
   \item {\bf LDA}: Latent Dirichlet Allocation~\cite{Blei:2003b}. LDA
     is a Bayesian probabilistic generative model where user preferences
@@ -118,6 +120,12 @@ competing methods:
     package~\cite{Weinberger:2009}. This corresponds to maximum
     a-posteriori inference under Probabilistic Matrix
     Factorization~\cite{Salakhutdinov:2008a}.
+
+\item {\bf CliMF}: Collaborative Less-is-More
+  filtering~\cite{shi2012climf} maximizes mean reciprocal rank to
+  improve the top-$n$ predictive performance on binary relevance data
+  sets. We use the GraphLab implementation of
+  CliMF~\cite{kyrola2012graphchi} to scale to our large data sets.
 \end{itemize}
 
 We note that while HPF and LDA take only the non-zero observed
@@ -151,7 +159,9 @@ ranking-based criteria using stochastic gradient descent. The
 algorithm performs an expensive bootstrap sampling step at each
 iteration to generate negative examples from the vast set of
 unobserved. We found time and space constraints to be prohibitive when
-attempting to use BPR with the data sets considered here.
+attempting to use BPR with the data sets considered here. Further, the
+GraphChi implementation of CLiMF~\cite{kyrola2012graphchi} failed with
+an error on the Netflix and New York Times data sets.
 
 %% attempted to get SIGIR code, but failed
 

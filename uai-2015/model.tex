@@ -110,13 +110,15 @@ future.
 \label{sec:properties}
 With the modeling details in place, we highlight several statistical
 properties of hierarchical Poisson factorization.  These properties
-provide advantages over classical (Gaussian) matrix
+provide advantages over classical Gaussian matrix
 factorization.\footnote{Specifically, by classical matrix
-  factorization we mean L2 regularized matrix factorization with
-  bias terms for users and items, fit using stochastic gradient
+  factorization we mean L2 regularized matrix factorization with bias
+  terms for users and items, fit using stochastic gradient
   descent~\cite{Koren:2009}. Without the bias terms, this corresponds
   to maximum a-posteriori inference under Probabilistic Matrix
-  Factorization~\cite{Salakhutdinov:2008a}.}
+  Factorization~\cite{Salakhutdinov:2008a}. We generate negatives by
+  randomly sampling from missing ratings in the training
+  set~\cite{Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.}
 
 {\bf HPF captures sparse factors}.  As we mentioned above, the Gamma
 priors on preferences and attributes encourages sparse representations

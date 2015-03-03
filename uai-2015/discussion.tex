@@ -2,27 +2,28 @@
 We have demonstrated that Poisson factorization is an efficient and
 effective means of generating high quality recommendations across a
 variety of data sets ranging from movie views to scientific article
-libraries. It significantly outperforms a number of leading
-recommendation methods in modeling implicit behavior data without the
-need for ad hoc modifications. Variational inference for HPF scales to
-massive data and differs from traditional methods in its ability to
-capture the heterogeneity amongst users and items, accounting for the
-wide range of activity and popularity amongst them, respectively. The
-HPF algorithm is a robust, off-the-shelf tool, providing high accuracy
+libraries. It significantly outperforms a number of leading methods in
+modeling implicit behavior data without the need for ad hoc
+modifications. Variational inference for HPF scales to massive data
+and differs from traditional methods in its ability to capture the
+heterogeneity amongst users and items, accounting for the wide range
+of activity and popularity amongst them, respectively. The HPF
+algorithm is a robust, off-the-shelf tool, providing high accuracy
 even with fixed hyperparameter settings.
 
 %%% recsys-prem !!! added note about SVI here (removed from intro)
 
 Finally, we emphasize that HPF is more than just one method---it is
 the simplest in a class of probabilistic models with these properties,
-and has already been extended to joint models of text content and user
-ratings~\cite{gopalan2014content}, and a Bayesian nonparametric
-model~\cite{gopalan2014bayesian}. 
+and has already been extended to a combined model of article content
+and reader ratings~\cite{gopalan2014content}, and a Bayesian
+nonparametric model that adapts the dimensionality of the latent
+representations~\cite{gopalan2014bayesian}.
 
-We note that HPF dominates Gaussian MF everywhere, but one innovation
-in Gaussian MF is the algorithm of ~\cite{Hu:2008p9402} that
-explicitly downweights zeros using confidence level parameters. We
-presented the empirical study in this paper focussed on the Gaussian
+We note that HPF dominates Gaussian MF everywhere, but a notable
+innovation in Gaussian MF is the algorithm of ~\cite{Hu:2008p9402}
+that explicitly downweights zeros using confidence parameters. We
+presented the empirical study in this paper comparing to the Gaussian
 MF with subsampled zeros~\cite{Koren:2009}. Our ongoing work includes
 bringing the confidence-weighting of~\cite{Hu:2008p9402} into HPF.
 %% To provide a fair
@@ -35,7 +36,6 @@ performance (measured using the mean rank of recommended items) for
 all but the ``heaviest'' portion of the long tail of items, consisting
 of the least popular items in the data sets.
 
-
 %% we present our empirical study
 %% without hu et al., but discuss the need to downweight the zeros on
 %% even heavier tailed data sets.  we can note that PF dominates gaussian
@@ -44,9 +44,6 @@ of the least popular items in the data sets.
 %% studies'' against hu et al. which found better performance in most
 %% cases, and always for the more popular items.  an area of future work
 %% to bring its intuition into PF.
-
-
-
 
 %% This will allow us to provide a fair comparison to the Gaussian
 %% MF with downweighted zeros~\cite{Hu:2008p9402}. 

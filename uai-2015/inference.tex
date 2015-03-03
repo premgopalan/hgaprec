@@ -123,13 +123,13 @@ weights $\beta_{ik}$, and user-item contributions $z_{uik}$, which we
 represent as a $K$-vector of counts $z_{ui}$.  The \textit{mean-field
   family} considers these variables to be independent and each
 governed by its own distribution,
-\begin{eqnarray*}
+\begin{align}
   \label{eq:q}
-  q(\beta, \theta, \xi, \eta, z) =& \prod_{i,k} q(\beta_{ik} \g \lambda_{ik})
+  q(\beta, \theta, \xi, \eta, z) & =  \prod_{i,k} q(\beta_{ik} \g \lambda_{ik})
   \prod_{u,k} q(\theta_{uk} \g \gamma_{uk}) \nonumber\\
   & \prod_{u} q(\xi_u \g \kappa_u) \prod_{i} q(\eta_i \g \tau_i)
   \prod_{u,i} q(z_{ui} \g \phi_{ui}).
-\end{eqnarray*}
+\end{align}
 Though the variables are independent, this is a flexible family of
 distributions because each variable is governed by its own free
 parameter.  The variational factors for preferences $\theta_{uk}$,

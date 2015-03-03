@@ -43,25 +43,25 @@ We develop hierarchical Poisson matrix factorization (HPF), a novel
 method for providing users with high quality recommendations based on
 implicit feedback, such as views, clicks, or purchases.  In contrast
 to existing recommendation models, HPF has a number of desirable
-theoretical and practical properties.  First, we show that HPF more
-accurately captures the skew in user activity found in most
-consumption data by explicitly considering the fact that users have
-finite attention budgets.  This leads to better estimates of users'
-latent preferences, and therefore superior recommendations, compared
-to existing approaches.  Second, HPF learns these latent factors by
-only explicitly considering positive examples, eliminating the often
-costly step of generating artificial negative examples when fitting to
-implicit data.  Third, HPF is more than just one method---it is the
-simplest in a class of probabilistic models with these properties, and
-is easily extended to include more complex structure and assumptions.
-We develop a variational algorithm for approximate posterior inference
-for HPF that scales up to large data sets, and we demonstrate its
-performance on a wide variety of real-world recommendation
-problems---users rating movies, listening to songs, reading scientific
-papers, and reading news articles.  Our study reveals that
-hierarchical Poisson factorization definitively outperforms previous
-methods, including nonnegative matrix factorization, topic models, and
-probabilistic matrix factorization techniques.
+properties.  First, we show that HPF more accurately captures the
+long-tailed user activity found in most consumption data by explicitly
+considering the fact that users have finite attention budgets.  This
+leads to better estimates of users' latent preferences, and therefore
+superior recommendations, compared to competing methods.  Second, HPF
+learns these latent factors by only explicitly considering positive
+examples, eliminating the often costly step of generating artificial
+negative examples when fitting to implicit data.  Third, HPF is more
+than just one method---it is the simplest in a class of probabilistic
+models with these properties, and can easily be extended to include
+more complex structure and assumptions.  We develop a variational
+algorithm for approximate posterior inference for HPF that scales up
+to large data sets, and we demonstrate its performance on a wide
+variety of real-world recommendation problems---users rating movies,
+listening to songs, reading scientific papers, and reading news
+articles.  Our study reveals that hierarchical Poisson factorization
+definitively outperforms previous methods, including nonnegative
+matrix factorization, topic models, and probabilistic matrix
+factorization techniques.
 \end{abstract}
 
 \input{intro.tex}
@@ -76,8 +76,8 @@ probabilistic matrix factorization techniques.
   \bibliography{bib}
 }
 
-%%\newpage
-%%\appendix
-%%\input{appendix.tex}
+%% \newpage
+%% \appendix
+%% \input{appendix.tex}
 
 \end{document}

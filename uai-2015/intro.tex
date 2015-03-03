@@ -81,13 +81,13 @@ consume these items.
 %% algorithm. It includes other comedies (such as ``The Big Lebowski'')
 %% and other science fiction (such as ``Star Wars: Episode II'').
 
-In more detail, Hierarchical Poisson factorization is a probabilistic
-model of users and items.  It associates each user with a latent
-vector of preferences, each item with a latent vector of attributes,
-and constrains both sets of vectors to be sparse and non-negative. The
-model assumes that each cell of the observed behavior matrix is drawn
-from a Poisson distribution---an exponential family distribution over
-non-negative integers---whose parameter is a linear combination of the
+In more detail, HPF is a probabilistic model of users and items.  It
+associates each user with a latent vector of preferences, each item
+with a latent vector of attributes, and constrains both sets of
+vectors to be sparse and non-negative. The model assumes that each
+cell of the observed behavior matrix is drawn from a Poisson
+distribution---an exponential family distribution over non-negative
+integers---whose parameter is a linear combination of the
 corresponding user preferences and item attributes.  The main
 computational problem is posterior inference: given an observed matrix
 of user behavior, we would like to discover the latent attributes that
@@ -108,20 +108,20 @@ This inferential computation is common to many variants of matrix
 factorization.  We found, however, that HPF enjoys significant
 quantitative advantages over classical methods over a variety of
 \emph{implicit feedback} data sets. \myfig{precision_recall} shows
-that HPF performs significantly better than existing
+that HPF performs significantly better than competing
 methods---including the industry standard of matrix factorization with
 user and item biases (MF)---for large data sets of Netflix users
 watching movies, Last.FM users listening to music, scientists reading
 papers, and \textit{New York Times} readers clicking on articles.
 
-\subsection{Comparison to Gaussian MF}
-Many of the leading MF methods are based on Gaussian likelihoods
-(i.e., squared loss). When applied to explicit data, Gaussian models
-are fit only to the observed ratings~\cite{Koren:2009} and infer
-distributions over user preference. For each user, the items she did
-not consume, i.e., the zero observations, are treated as ``missing
-data''. Gaussian models make up the state of the art in this
-setting~\cite{Salakhutdinov:2008, Salakhutdinov:2008a,Koren:2009}.
+{\bf Comparison to Gaussian MF.} Many of the leading MF methods are
+based on Gaussian likelihoods (i.e., squared loss). When applied to
+explicit data, Gaussian models are fit only to the observed
+ratings~\cite{Koren:2009} and infer distributions over user
+preference. For each user, the items she did not consume, i.e., the
+zero observations, are treated as ``missing data''. Gaussian models
+make up the state of the art in this setting~\cite{Salakhutdinov:2008,
+  Salakhutdinov:2008a,Koren:2009}.
 
 In implicit data sets of user consumption, there is a fundamental
 asymmetry that allows one to infer which items a user consumed, and
@@ -206,8 +206,7 @@ under NMF~\cite{Cemgil:2009}, and from the Gamma priors on user
 preferences and item attributes that we place in the HPF model of
 \mysec{model}.
 
-\subsection{Recent extensions}
-\vspace{-0.1in}
+{\bf Recent extensions.}
 Building on the HPF model and algorithm we present in this paper,
 recent work has proposed a joint model of article text and reader
 preferences~\cite{gopalan2014content}. This model takes advantage of

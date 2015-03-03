@@ -1,3 +1,40 @@
+\section{Exploratory analysis} 
+The fitted HPF model can be explored to discover latent structure
+among items and users and to confirm that the model is capturing the
+components in the data in a reasonable way. For example, in
+\myfig{components} we illustrate the components discovered by our
+algorithm on the news articles in the New York Times. The illustration
+shows the top items---items sorted in decreasing order of their
+expected weight $\beta_i$---from three of the 100 components
+discovered by our algorithm. From these, we see that learned
+components both cut across and differentiate between conventional
+topics and categories. We find that multiple business-related topics
+(e.g., self help and personal finance) comprise separate components,
+whereas other articles that appear across different sections of the
+newspaper (e.g., business and regional news) are unified by their
+content (e.g., airplanes).
+
+%% In \myfig{movielens-illustration} we show a subset of the highly rated
+%% movies of a user from the MovieLens data
+%% set~\cite{Herlocker:1999}. The top 15 movies recommended to this user
+%% using the trained HPF model, are also shown. The user's ratings are
+%% for primarily drama movies. We movies HPF recommends closely resemble
+%% the types of drama movies she is interested in, for example,
+%% ``Children's drama'' or ``War drama''. The expected user's $K$-vector
+%% of weights $\theta_u$, inferred by our algorithm, is shown in
+%% \myfig{movielens-illustration}. In our analysis, $K$ was set to
+%% 100. The $\theta_u$ are not sparse because the user's views span a
+%% range of movies in the small data set.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.4\textwidth]{./figures/attributes-nyt.pdf}
+\caption{The top 10 items by the expected weight $\beta_i$ from three
+  of the 100 components discovered by our algorithm for the New York
+  Times data set.}
+\label{fig:components}
+\end{figure}
+
 \section{Appendix A: The variational algorithm}
 Given an observed matrix of user behavior $y$, we would like to
 compute the posterior distribution of user preferences $\theta_{uk}$,

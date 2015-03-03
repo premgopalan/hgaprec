@@ -1,0 +1,61 @@
+\section{Conclusion}
+We have demonstrated that Poisson factorization is an efficient and
+effective means of generating high quality recommendations across a
+variety of data sets ranging from movie views to scientific article
+libraries. It significantly outperforms existing recommendation
+methods in modeling implicit behavior data without the need for ad hoc
+modifications. Variational inference for HPF scales to massive data
+and differs from traditional methods in its ability to capture the
+heterogeneity amongst users and items, accounting for the wide range
+of activity and popularity amongst them, respectively.
+
+%%% recsys-prem !!! added note about SVI here (removed from intro)
+
+Finally, we emphasize that HPF is more than just one method---it is
+the simplest in a class of probabilistic models with these properties,
+and is easily modified to include more complex structure and
+assumptions.  Future work includes extensions to HPF to provide
+cold-start recommendations using text data~\cite{Wang:2011b}, and to
+infer the number of latent components using Bayesian nonparametric
+assumptions~\cite{Zhou:2012}; and stochastic variational
+inference~\cite{Hoffman:2013}, to analyze data sets larger than those
+we studied.
+
+%% exploring modifications to BPF to incorporate
+%% additional features---e.g., user and item metadata---as well as
+%% stochastic inference to scale to massive data sets and Bayesian
+%% non-parametric extensions~\cite{Zhou:2012}.
+
+
+%% In settings where there are many more items than the typical user
+%% can consume, unobserved consumption is likely explained by finite
+%% attention, as opposed to an active dislike for the associated
+%% content. Likewise, a user's choice in selecting a particular set of
+%% items amongst the many available options is a relatively strong
+%% indicator of her interests. BPF captures these features of sparse user
+%% data via the Poisson likelihood, which appropriately balances strong
+%% signals of consumption with weaker signals of unobserved activity.
+
+%% Conveniently, the same Poisson likelihood also leads to
+%% computationally efficient inference on sparse data sets, as it requires
+%% evaluation of only the consumed user-item pairs, which comprise a
+%% small fraction of all possible observations. This avoids the issue
+%% faced by traditional matrix factorization in down-weighting or sampling
+%% negative examples during training. In addition to this computational
+%% advantage, BPF empirically outperforms classical MF across a wide array
+%% of data sets---from movies to music to scientific articles---in
+%% recommending relevant content to users.
+
+%Future work includes exploring modifications to BPF to incorporate
+%additional features---e.g., user and item metadata---as well as
+%stochastic inference to scale to massive data sets.
+
+
+
+%% There has also been significant research on Bayesian nonparametric
+%% Poisson factor models. Using a Beta-Negative-Binomial process prior
+%% for Poisson factor analysis the authors of ~\cite{Zhou:2012}
+%% demonstrate that NMF, LDA and GaP are special cases of a finite
+%% approximation to their model. Inference for the models
+%% in~\cite{Zhou:2012} do not scale to the size of datasets we consider
+%% here.

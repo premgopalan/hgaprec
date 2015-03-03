@@ -1,0 +1,179 @@
+% Sample LaTeX file for creating a paper in the Morgan Kaufmannn two
+% column, 8 1/2 by 11 inch proceedings format.
+
+\documentstyle[proceed]{article}
+
+\title{Instructions for Authors}
+
+\author{} % LEAVE BLANK FOR ORIGINAL SUBMISSION.
+          % UAI  reviewing is double-blind.
+
+% The author names and affiliations should appear only in the accepted paper.
+%
+%\author{ {\bf Harry Q.~Bovik\thanks{Footnote for author to give an
+%alternate address.}} \\
+%Computer Science Dept. \\
+%Cranberry University\\
+%Pittsburgh, PA 15213 \\
+%\And
+%{\bf Coauthor}  \\
+%Affiliation          \\
+%Address \\
+%\And
+%{\bf Coauthor}   \\
+%Affiliation \\
+%Address    \\
+%(if needed)\\
+%}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+The Abstract paragraph should be indented 0.25 inch (1.5 picas) on
+both left and right-hand margins.  Use 10~point type, with a vertical
+spacing of 11~points.  {\bf Abstract} must be centered, bold, and in
+point size 12. Two line spaces precede the Abstract. The Abstract must
+be limited to one paragraph.
+\end{abstract}
+
+\section{GENERAL FORMATTING INSTRUCTIONS}
+
+Papers are in 2 columns with the overall line width of 6.75~inches
+(41~picas).  Each column is 3.25~inches wide (19.5~picas).  The space
+between the columns is .25~inches wide (1.5~picas).  The left margin
+is 1~inch (6~picas).  Use 10~point type with a vertical spacing of
+11~points.  Times Roman is the preferred typeface throughout.
+
+Paper title is 16~point, caps/lc, bold, centered between 2~horizontal
+rules.  Top rule is 4~points thick and bottom rule is 1~point thick.
+Allow 1/4~inch space above and below title to rules.
+
+Reviewing is double-blind, so do not include author names, affiliations, or any
+other identifying information in the original submission.  If you include urls
+to supplementary material, make sure the urls also do not disclose your identity.
+
+After a paper is accepted, for the camera-ready submission, Authors' names are
+centered, initial caps.  The lead author's name is to be listed first
+(left-most), and the Co-authors' names (if different address) are set to
+follow.  If only one co-author, center both the author and co-author,
+side-by-side.
+
+One-half line space between paragraphs, with no indent.
+
+\section{FIRST LEVEL HEADINGS}
+
+First level headings are all caps, flush left, bold and in point size
+12. One line space before the first level heading and 1/2~line space
+after the first level heading.
+
+\subsection{SECOND LEVEL HEADING}
+
+Second level headings must be flush left, all caps, bold and in point
+size 10. One line space before the second level heading and 1/2~line
+space after the second level heading.
+
+\subsubsection{Third Level Heading}
+
+Third level headings must be flush left, initial caps, bold, and in
+point size 10.  One line space before the third level heading and
+1/2~line space after the third level heading.
+
+\vskip .5pc
+Fourth Level Heading
+
+Fourth level headings must be flush left and initial caps.
+One line space before the fourth level heading and 1/2~line space
+after the fourth level heading.
+
+\subsection{CITATIONS, FIGURES, REFERENCES}
+
+
+\subsubsection{Citations in Text}
+
+Citations within the text should include the author's last name and
+year, e.g., (Cheesman, 1985). Reference style should follow the style
+that you are used to using, as long as the citation style is
+consistent.
+
+For the original submission, take care not to reveal the authors' identity through
+the manner in which one's own previous work is cited.  For example, writing
+``In (Bovik, 1970), we studied the problem of AI'' would be inappropriate, as
+it reveals the author's identity.  Instead, write ``(Bovik, 1970) studied the
+problem of AI.''
+
+\subsubsection{Footnotes}
+
+Indicate footnotes with a number\footnote{Sample of the first
+footnote} in the text. Use 8 point type for footnotes.  Place the
+footnotes at the bottom of the page on which they appear.  Precede the
+footnote with a 0.5 point horizontal rule 1~inch (6~picas)
+long.\footnote{Sample of the second footnote}
+
+\subsubsection{Figures}
+
+All artwork must be centered, neat, clean, and legible. Figure number
+and caption always appear below the figure.  Leave 2 line spaces
+between the figure and the caption. The figure caption is initial caps
+and each figure numbered consecutively.
+
+Make sure that the figure caption does not get separated from the
+figure. Leave extra white space at the bottom of the page rather than
+splitting the figure and figure caption.
+\begin{figure}[h]
+\vspace{1in}
+\caption{Sample Figure Caption}
+\end{figure}
+
+\subsubsection{Tables}
+
+All tables must be centered, neat, clean, and legible. Table number
+and title always appear above the table.  See
+Table~\ref{sample-table}.
+
+One line space before the table title, one line space after the table
+title, and one line space after the table. The table title must be
+initial caps and each table numbered consecutively.
+
+\begin{table}[h]
+\caption{Sample Table Title}
+\label{sample-table}
+\begin{center}
+\begin{tabular}{ll}
+\multicolumn{1}{c}{\bf PART}  &\multicolumn{1}{c}{\bf DESCRIPTION} \\
+\hline \\
+Dendrite         &Input terminal \\
+Axon             &Output terminal \\
+Soma             &Cell body (contains cell nucleus) \\
+\end{tabular}
+\end{center}
+\end{table}
+
+\newpage
+
+\subsubsection*{Acknowledgements}
+
+Use unnumbered third level headings for the acknowledgements title.
+All acknowledgements go at the end of the paper.
+
+
+\subsubsection*{References}
+
+References follow the acknowledgements.  Use unnumbered third level
+heading for the references title.  Any choice of citation style is
+acceptable as long as you are consistent.
+
+
+J.~Alspector, B.~Gupta, and R.~B.~Allen  (1989). Performance of a
+stochastic learning microchip.  In D. S. Touretzky (ed.), {\it Advances
+in Neural Information Processing Systems 1}, 748-760.  San Mateo, Calif.:
+Morgan Kaufmann.
+
+F.~Rosenblatt (1962). {\it Principles of Neurodynamics.} Washington,
+D.C.: Spartan Books.
+
+G.~Tesauro (1989). Neurogammon wins computer Olympiad.  {\it Neural
+Computation} {\bf 1}(3):321-323.
+
+\end{document}

@@ -29,17 +29,19 @@ inference.
 
 Variational inference is an optimization-based strategy for
 approximating posterior distributions in complex probabilistic
-models~\cite{Jordan:1999,Wainwright:2008}.  Variational
-algorithms posit a family of distributions over the hidden variables,
-indexed by free ``variational'' parameters, and then find the member
-of that family that is closest in Kullback-Liebler (KL) divergence to
-the true posterior.  (The form of the family is chosen to make this
+models~\cite{Jordan:1999,Wainwright:2008}.  Variational algorithms
+posit a family of distributions over the hidden variables, indexed by
+free ``variational'' parameters, and then find the member of that
+family that is closest in Kullback-Liebler (KL) divergence to the true
+posterior.  (The form of the family is chosen to make this
 optimization possible.)  Thus, variational inference turns the
 inference problem into an optimization problem.  Variational inference
-tends to scale better than alternative sampling-based approaches, like
-Monte Carlo Markov chain sampling, and has been deployed to solve many
-applied problems with complex models, including large-scale
+has previously been used for large-scale
 recommendation~\cite{Paquet:2013p9197}.
+
+%% tends to scale better than alternative sampling-based approaches, like
+%% Monte Carlo Markov chain sampling, and has been deployed to solve many
+%% applied problems with complex models, including 
 
 % prem: remove stochastic
 %% Finally, we develop a scalable stochastic variational inference

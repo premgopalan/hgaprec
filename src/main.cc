@@ -223,7 +223,7 @@ main(int argc, char **argv)
 
   if (normal_priors) { 
     if (hier) {
-        printf("hierarchical model not supported under Gaussian priors\n"); 
+        printf("hierarchical model not supported under log-normal priors\n"); 
         exit(0); 
     }
     NormPRec normprec(env, ratings); 

@@ -65,9 +65,12 @@ Ratings::read_generic(FILE *f, CountMap *cmap)
 {
   assert(f);
   char b[128];
-  uint32_t mid = 0, uid = 0, rating = 0;
+  uint32_t mid = 0, uid = 0, rating = 0, time = 0;
+  // TODO: formalize this
+  //printf("+ USING TIME\n");
   while (!feof(f)) {
-    if (fscanf(f, "%u\t%u\t%u\n", &uid, &mid, &rating) < 0) {
+    if (fscanf(f, "%u\t%u\t%u\t%u\n", &uid, &mid, &rating, &time) < 0) {
+    //if (fscanf(f, "%u\t%u\t%u\n", &uid, &mid, &rating) < 0) {
       printf("error: unexpected lines in file\n");
       fclose(f);
       exit(-1);
@@ -282,8 +285,10 @@ Ratings::read_test_users(FILE *f, UserMap *bmap)
     }
 
     IDMap::iterator it = _user2seq.find(uid);
-    if (it == _user2seq.end())
+    if (it == _user2seq.end()) { 
+      lerr("skipping user %d\n", uid);
       continue;
+    }
     uint32_t n = _user2seq[uid];
     (*bmap)[n] = true;
   }

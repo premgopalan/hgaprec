@@ -80,9 +80,8 @@ public:
 
   void save_state(const IDMap &m) const;
   void load() {}
-  void load_from_gmf(string, uint32_t, string);
+  void load_from_gmf(string dir, uint32_t K, const IDMap &inv_m, string name);
 
-  double f_user(void *params);
   double f_mean(const gsl_vector * p, void * params); 
   void df_mean(const gsl_vector * x, void * params, gsl_vector * g); 
   void fdf_mean(const gsl_vector * x, void * params, double * f, gsl_vector *g); 
@@ -121,7 +120,7 @@ typedef struct bundle {
 } bundle;
 
 inline void
-NormMatrix::load_from_gmf(string dir, uint32_t K, string name="")
+NormMatrix::load_from_gmf(string dir, uint32_t K, const IDMap &inv_m, string name="")
 { 
   char buf_mean[1024], buf_var[1024];
   
@@ -133,7 +132,7 @@ NormMatrix::load_from_gmf(string dir, uint32_t K, string name="")
   sprintf(buf_var, "%s/gmf-fits/%s_var-k%d.tsv", dir.c_str(), name.c_str(), K);
   lerr("loading from %s", buf_var);
   
-  _mcurr.load(buf_mean, 0);
+  _mcurr.load(buf_mean, inv_m);
   // gmf keeps a single variance for all entities (users/items) 
   Array var(1); 
   var.load(buf_var);
@@ -143,7 +142,6 @@ NormMatrix::load_from_gmf(string dir, uint32_t K, string name="")
   double **ed = _Eexpv.data();
 
   // go from normal to log-normal parameters
-  //double mean2, var;
   double tmp2;
   for (uint32_t i = 0; i < _n; ++i) {
     for (uint32_t k = 0; k < _k; ++k) {
@@ -159,9 +157,6 @@ NormMatrix::load_from_gmf(string dir, uint32_t K, string name="")
 
   this->compute_expectations();
 
-  IDMap m;
-  string expv_fname = string("/") + name + "_exp.tsv";
-  _Eexpv.save(Env::file_str(expv_fname), m);
 }
 
 
@@ -169,7 +164,7 @@ inline void
 NormMatrix::save_state(const IDMap &m) const
 {
   string mean_fname = string("/") + name() + "_mean.tsv";
-  string var_fname = string("/") + name() + "_variance.tsv";
+  string var_fname = string("/") + name() + "_var.tsv";
   string Eexp_fname = string("/") + name() + ".tsv";
   _mcurr.save(Env::file_str(mean_fname), m);
   _vcurr.save(Env::file_str(var_fname), m);
@@ -184,7 +179,6 @@ NormMatrix::compute_expectations()
   const double ** const md = _mcurr.const_data();
   const double ** const vd = _vcurr.const_data();
   double **ed1 = _Eexpv.data();
-  double a = .0, b = .0;
   for (uint32_t i = 0; i < _mcurr.m(); ++i)
     for (uint32_t j = 0; j < _mcurr.n(); ++j) {
       ed1[i][j] = exp(md[i][j] + vd[i][j]/2);
@@ -229,7 +223,7 @@ NormMatrix::elbo()
       // sigma in derivation -> _vprior here.
       // -log(d\sqrt(2*pi)) -d^2\nu^2
       //s += - log(_vprior * sqrt(2*M_PI)) - _vprior*_vprior * vsquared;
-      s += - _vprior * vsquared;
+      s += -  vsquared / _vprior;
 
       // - (mu - mu_t-1)^2 / (2*d^2)
       s -= std::pow(md[n][k] - _mprior, 2) / (2 * _vprior);
@@ -291,46 +285,6 @@ NormMatrix::wrap_fdf_var(const gsl_vector *x, void * params, double *f, gsl_vect
    obj.fdf_var(x, params, f, g);
 }
 
-inline double
-NormMatrix::f_user(void *params)
-{
-    bundle &b = (bundle &) (*(bundle *) (params));
-    NormMatrix& obj = (*b.NormMatrixObj);
-    uint32_t id = ((bundle *) params)->id;
-
-    const double ** const md = obj._mcurr.const_data();
-
-    double f = .0;
-
-    gsl_vector *tmp = gsl_vector_alloc(obj._k);
-
-    for(uint32_t k=0; k<_k; ++k) {
-      gsl_vector_set(tmp,k,md[id][k]);
-      //gsl_vector_set(tmp,k,vd[id][k]);
-    }
-
-    // - (x_k - c)^2 / 2*d^2
-    //gsl_vector_memcpy(tmp, x);
-    gsl_vector_add_constant(tmp, -obj._mprior);
-    gsl_vector_mul(tmp, tmp);
-    gsl_vector_scale(tmp, 1/(2*obj._vprior));  // OK
-
-    const double ** const vd = obj._vcurr.const_data();
-    const double * const pd = b.phi->const_data();
-    const double * const od = b.other->const_data();
-
-    double x_k;
-    for(uint32_t k=0; k<obj._k; ++k) {
-        f -= gsl_vector_get(tmp, k);
-        f -= exp(md[id][k] + vd[id][k]/2) * od[k]; // - exp(x + nu^2/2) * exp(other + nu^2_other/2)
-        f += pd[k] * md[id][k]; // \phi_mn * x
-        f -= vd[id][k]*(obj._vprior);
-        f += 0.5*log(vd[id][k]);
-    }
-
-    gsl_vector_free(tmp); 
-    return f;
-}
 
 inline double 
 NormMatrix::f_mean(const gsl_vector *x, void * params)
@@ -427,7 +381,6 @@ NormMatrix::swap()
   set_to_prior();
 }
 
-
 inline void
 NormMatrix::initialize()
 {
@@ -445,7 +398,7 @@ NormMatrix::initialize()
 
   for (uint32_t i = 0; i < _n; ++i)
     for (uint32_t k = 0; k < _k; ++k)
-      bd[i][k] = _vprior + 0.1 * gsl_rng_uniform(*_r);
+      bd[i][k] = 0.1 * gsl_rng_uniform(*_r);
   set_next_to_zero();
 }
 
@@ -492,7 +445,7 @@ NormMatrix::f_var(const gsl_vector *x, void * params)
 
         exp_x_k = exp(gsl_vector_get(x, k)); // variance must be positive
         // -d^2 \nu_k^2 + 0.5 * log(\nu^2) - exp(x + nu^2/2)
-        f -= exp_x_k*obj._vprior;
+        f -= exp_x_k/obj._vprior;
         //f += 0.5*gsl_vector_get(x, k);
         f += 0.5*log(exp_x_k);
         f -= exp(md[id][k] + exp_x_k/2) * od[k];
@@ -516,7 +469,7 @@ NormMatrix::df_var(const gsl_vector * x, void * params, gsl_vector * df)
     double exp_x_k; 
     for(uint32_t k=0; k<obj._k; ++k) { 
         exp_x_k = exp(gsl_vector_get(x, k)); 
-        gsl_vector_set(df, k, -exp_x_k*obj._vprior
+        gsl_vector_set(df, k, -exp_x_k/obj._vprior
                               + 0.5 
                               - 0.5*exp(md[id][k] + gsl_vector_get(x,k) + exp_x_k/2)*od[k]);
                               //- exp_x_k*0.5*exp(md[id][k] + exp_x_k/2)*od[k]);
@@ -633,19 +586,19 @@ NormMatrix::update_mean_next(uint32_t n, const Array &phi, const Array &other)
     // ((PARAMS.cg_max_iter < 0) || (iter < PARAMS.cg_max_iter)));
     if (iter == _cg_max_iter) {
         printf("warning: cg didn't converge (mu) after %d iterations \n\t(status: %s)\n", _cg_max_iter, gsl_strerror(status));
-        printf("x\n");
-        vprint(s->x);
-        printf("nu^2\n"); 
-        const double ** const vd = _vcurr.const_data();
-        for (uint32_t k=0; k<_k; ++k)
-            printf("%f ", vd[n][k]); 
-        printf("\n"); 
+        //printf("x\n");
+        //vprint(s->x);
+        //printf("nu^2\n"); 
+        //const double ** const vd = _vcurr.const_data();
+        //for (uint32_t k=0; k<_k; ++k)
+        //    printf("%f ", vd[n][k]); 
+        //printf("\n"); 
         
-        const double * const pd = phi.const_data(); 
-        printf("phi\n"); 
-        for (uint32_t k=0; k<_k; ++k)
-            printf("%f ", pd[k]); 
-        printf("\n"); 
+        //const double * const pd = phi.const_data(); 
+        //printf("phi\n"); 
+        //for (uint32_t k=0; k<_k; ++k)
+        //    printf("%f ", pd[k]); 
+        //printf("\n"); 
         //exit(-1); 
     }
 
@@ -681,6 +634,7 @@ NormMatrix::update_mean_next(uint32_t n, const Array &phi, const Array &other)
     for (uint32_t k = 0; k < _k; ++k)
         mean[k] = gsl_vector_get(s->x, k);
     _mnext.set_slice(n, mean);
+    _mcurr.set_slice(n, mean);
 
     #if 0
     if(wrap_f_mean(xt, (void *)&b) < wrap_f_mean(s->x, (void *)&b)) {
@@ -796,16 +750,16 @@ NormMatrix::update_var_next(uint32_t n, const Array &other)
     // ((PARAMS.cg_max_iter < 0) || (iter < PARAMS.cg_max_iter)));
     if (iter == _cg_max_iter) {
         printf("warning: cg didn't converge (nu) %d\n", _cg_max_iter);
-        printf("x\n");
-        vprint(s->x);
-        printf("mu\n");
-        const double ** const md = _mcurr.const_data();
-        for (uint32_t k=0; k<_k; ++k)
-            printf("%f ", md[n][k]); 
-        printf("\n"); 
+        //printf("x\n");
+        //vprint(s->x);
+        //printf("mu\n");
+        //const double ** const md = _mcurr.const_data();
+        //for (uint32_t k=0; k<_k; ++k)
+        //    printf("%f ", md[n][k]); 
+        //printf("\n"); 
         
-        printf("\n"); 
-        exit(-1); 
+        //printf("\n"); 
+        //exit(-1); 
     } 
     //if (iter < 2 && status != GSL_SUCCESS && status != GSL_CONTINUE) { 
     //    printf("problem at iteration %d: gsl return code %d\n", iter, status);
@@ -815,8 +769,9 @@ NormMatrix::update_var_next(uint32_t n, const Array &other)
     for (uint32_t k = 0; k < _k; ++k)
         var[k] = exp(gsl_vector_get(s->x, k));
     _vnext.set_slice(n, var);
+    _vcurr.set_slice(n, var);
 
-    #if 1
+    #if 0
     if(wrap_f_var(xt, (void *)&b) < wrap_f_var(s->x, (void *)&b)) {
       printf("f_var before: %.10f\t", wrap_f_var(xt, (void *)&b));
       printf("f_var after: %.10f\n", wrap_f_var(s->x, (void *)&b));

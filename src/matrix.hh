@@ -833,8 +833,9 @@ public:
 
   void save(string name, const IDMap &m) const { lerr("save not implemented"); }
   void save_transpose(string name, const IDMap &m) const;
+  void load(string name, const IDMap &inv_m, bool transpose=false);
   void load(string name, uint32_t skipcols=2, 
-	    bool transpose=false, uint32_t skiprows=0) 
+           bool transpose=false, uint32_t skiprows=0) 
     const { lerr("load not implemented"); }
   void mm_load_rowmajor(string name) 
     const { lerr("load not implemented"); }
@@ -1204,6 +1205,63 @@ D2Array<double>::save_transpose(string name, const IDMap &m) const
   fclose(tf);
 }
 
+template<> inline void
+D2Array<double>::load(string name, 
+    const IDMap &inv_m, bool transpose) 
+{
+  FILE *f = fopen(name.c_str(), "r");
+  if (!f)
+    lerr("cannot open file %s\n", name.c_str());
+  assert(f);
+
+  double **md = _data;
+  uint32_t skipcols = 2;
+  uint32_t m = 0;
+  int sz = transpose ? 1024 *_m : 1024*_n;
+  char *line = (char *)malloc(sz);
+  uint32_t l = 0, skipped = 0;
+  while (!feof(f)) {
+    if (fgets(line, sz, f) == NULL)
+      break;
+    l++;
+    uint32_t n = 0;
+    char *p = line;
+    do {
+      char *q = NULL;
+      double d = strtod(p, &q);
+      if (q == p) {
+        break;
+      }
+      p = q;
+      if (n == 1) { 
+        uint32_t di = uint32_t(d);
+        IDMap::const_iterator idt = inv_m.find(di);
+        printf("di %d\n", di); 
+        if (idt != inv_m.end()) 
+          m = idt->second;
+        else
+          assert(0==1);
+        printf("line with item %d of file maps to internal rep %d\n", di, m);
+      }
+
+
+      if (transpose)  {
+        if (n >= skipcols) // skip node id and seq
+          md[n-skipcols][m] = d;
+      } else {
+        if (n >= skipcols) // skip node id and seq
+          md[m][n-skipcols] = d;
+      }
+      n++;
+    } while (p != NULL);
+    memset(line, 0, sz);
+  }
+  lerr("skipped %d lines\n", skipped);
+  //lerr("read %d lines\n", m);
+  //assert (m == _m);
+  fclose(f);
+  free(line);
+}
 
 template<> inline void
 D2Array<double>::load(string name, 

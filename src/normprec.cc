@@ -6,8 +6,8 @@ NormPRec::NormPRec(Env &env, Ratings &ratings)
     _n(env.n), _m(env.m), _k(env.k),
     _iter(0),
     _start_time(time(0)),
-    _theta("theta", 1e-1, 0.5, _n,_k,&_r),
-    _beta("beta", 1e-1, 0.5, _m,_k,&_r),
+    _theta("theta", -1e-0, 10, _n,_k,&_r),
+    _beta("beta", -1e-0, 10, _m,_k,&_r),
     _thetabias("thetabias", 1e-5, 0.0075, _n, 1, &_r),
     _betabias("betabias", 1e-5, 0.0075, _m, 1, &_r),
     //_thetarate("thetarate", 0.3, 0.3, _n, &_r),
@@ -163,7 +163,7 @@ NormPRec::elbo()
     //s += _betabias.elbo();
   }
 
-  printf("\t\t\tELBO: %f (train ll: %f)\n", s, train_ll/train_ll_k);
+  printf("\t\t\tELBO: %e (train ll: %f)\n", s, train_ll/train_ll_k);
 
   fprintf(_af, "%.5f\n", s);
   fflush(_af);
@@ -219,21 +219,18 @@ void
 NormPRec::initialize()
 {
   if(_env.gmf_init) {
-    _theta.load_from_gmf(_env.datfname, _k);
+    _theta.load_from_gmf(_env.datfname, _k, _ratings.user2seq());
     _theta.set_to_prior();
-    _theta.compute_expectations();
     
-    _beta.load_from_gmf(_env.datfname, _k);
+    _beta.load_from_gmf(_env.datfname, _k, _ratings.movie2seq());
     _beta.set_to_prior();
-    _beta.compute_expectations();
-
-
 
   } else {
-    _beta.initialize();
     _theta.initialize();
-    _beta.compute_expectations();
     _theta.compute_expectations();
+
+    _beta.initialize();
+    _beta.compute_expectations();
 
     if (_env.bias) {
       _thetabias.initialize2(_m);
@@ -247,162 +244,137 @@ NormPRec::initialize()
 
 // perform inference
 void
-NormPRec::vb() 
+NormPRec::vb()
 {
   lerr("running vb()");
   initialize();
-  printf("+ initialized\n"); 
+  printf("+ initialized\n");
 
   Array thetaexpsum(_k);
   Array betaexpsum(_k);
 
-  Array *phi; 
-  //Matrix *phi_m; 
-  Array *phi_m; 
-  if (_env.bias) {
-      phi = new Array(_k+2);
-      //phi_m = new Matrix(_m,_k+2); 
-      phi_m = new Array(_k+2); 
-  } else {
-      phi = new Array(_k);
-      //phi_m = new Matrix(_m,_k); 
-      phi_m = new Array(_k); 
-  }
+  uint32_t x = _k;
+  if (_env.bias)
+    x += 2;
 
-  Array *phi_n, *p; 
-  if (_env.bias) {
-    phi_n = new Array(_k+2);
-    p = new Array(_k+2);
-  } else { 
-    phi_n = new Array(_k);
-    p = new Array(_k);
-  }
-
+  elbo();
+  compute_precision(true);
 
   while (1) {
     #if TIME
     clock_t start = clock(), diff;
     #endif
-  
-    //phi_m->zero(); 
 
     betaexpsum.zero();
     _beta.sum_eexp_rows(betaexpsum);
 
-    for (uint32_t n = 0; n < _n; ++n) { // for every user 
-      if(n % 1000 == 0) { 
-        printf("+ iter %d\tfor all users %d/%d\t\t\t\r", _iter, n, _n); 
-        fflush(stdout); 
+    #pragma omp parallel for num_threads(1)
+    for (uint32_t n = 0; n < _n; ++n) { // for every user
+      if(n % 100 == 0) {
+        printf("+ iter %d\tfor all users %d/%d\t\t\t\r", _iter, n, _n);
+        fflush(stdout);
       }
-      phi_n->zero(); 
+      Array phi_n(x), phi(x);
+      phi_n.zero();
       const vector<uint32_t> *movies = _ratings.get_movies(n);
-      int nb_rats = movies->size();
       for (uint32_t j = 0; j < movies->size(); ++j) {
         uint32_t m = (*movies)[j];
         yval_t y = _ratings.r(n,m);
 
         if (!_env.bias)
-            get_phi(_theta, n, _beta, m, *phi);
-        else { 
+            get_phi(_theta, n, _beta, m, phi);
+        else {
             const double **tbias = _thetabias.expected_v().const_data();
             const double **bbias = _betabias.expected_v().const_data();
-            get_phi(_theta, n, _beta, m, tbias[n][0], bbias[m][0], *phi);
+            get_phi(_theta, n, _beta, m, tbias[n][0], bbias[m][0], phi);
         }
 
         if (y > 1)
-          phi->scale(y);
+          phi.scale(y);
 
-        phi_n->add_to(*phi); 
-        //phi_m->add_slice(m,*phi);
+        #pragma omp critical(dataupdate)
+        {
+        phi_n.add_to(phi);
+        }
       }
 
-      _theta.update_var_next(n, betaexpsum); 
-      _theta.update_mean_next(n, *phi_n, betaexpsum);
-      #if 0
-      printf("\n-elbo theta before (user has %d ratings)\n", nb_rats);
-      double e = elbo();
-      _theta.swap(); _theta.compute_expectations();
-      printf("\n elbo after\n");
-      double f = elbo();
-      if(e > f) {
-        printf("error %f >= %f \n", e, f);
-        exit(-1);
-      }
-      _theta.swap(); _theta.compute_expectations();
-      #endif
+      const double *pn = phi_n.const_data();
+      _theta.update_var_next(n, betaexpsum);
+      _theta.update_mean_next(n, phi_n, betaexpsum);
 
       if (_env.bias) {
-        // TODO 
+        // TODO
         //_thetabias.update_mean_next(n, (*phi_n)[_k], betasum.const_data());
-        //_thetabias.update_var_next(n); 
+        //_thetabias.update_var_next(n);
       }
     }
 
-    _theta.swap(); 
-    _theta.compute_expectations(); 
+    _theta.swap();
+    _theta.compute_expectations();
     _theta.set_next_to_zero();
 
     thetaexpsum.zero();
     _theta.sum_eexp_rows(thetaexpsum);
 
-    for (uint32_t m = 0; m < _m; ++m) { // for every item 
-      if(m % 1000 == 0) { 
-          printf("+ iter %d\tfor all items %d/%d\t\t\t\r", _iter, m, _m); 
-          fflush(stdout); 
+    #pragma omp parallel for num_threads(1)
+    for (uint32_t m = 0; m < _m; ++m) { // for every item
+      if(m % 100 == 0) {
+         printf("+ iter %d\tfor all items %d/%d\t\t\t\r", _iter, m, _m);
+          fflush(stdout);
         }
 
-      phi_m->zero(); 
+      Array phi_m(x), phi(x);
+      phi_m.zero();
 
       const vector<uint32_t> *users = _ratings.get_users(m);
-      int nb_rats = users->size();
       for (uint32_t j = 0; j < users->size(); ++j) {
         uint32_t n = (*users)[j];
         yval_t y = _ratings.r(n,m);
 
         if (!_env.bias)
-            get_phi(_theta, n, _beta, m, *phi);
-        else { 
+            get_phi(_theta, n, _beta, m, phi);
+        else {
             const double **tbias = _thetabias.expected_v().const_data();
             const double **bbias = _betabias.expected_v().const_data();
-            get_phi(_theta, n, _beta, m, tbias[n][0], bbias[m][0], *phi);
+            get_phi(_theta, n, _beta, m, tbias[n][0], bbias[m][0], phi);
         }
 
         if (y > 1)
-          phi->scale(y);
+          phi.scale(y);
 
-        phi_m->add_to(*phi); 
+        #pragma omp critical(dataupdate)
+        {
+        phi_m.add_to(phi);
+        }
       }
 
-      _beta.update_mean_next(m, *phi_m, thetaexpsum); 
-      _beta.update_var_next(m, thetaexpsum); 
+      _beta.update_mean_next(m, phi_m, thetaexpsum);
+      _beta.update_var_next(m, thetaexpsum);
       if (_env.bias) {
-        // TODO 
+        // TODO
         //_betabias.update_mean_next(m, (*p)[_k+1]);
-        //_betabias.update_var_next(m); 
+        //_betabias.update_var_next(m);
       }
 
     }
-    //for(uint32_t k=0;k<_k;++k)
-    //  val += - thetaexpsum[k] * betaexpsum[k];
-    //printf("\nf: %f\ne: %f\n", val, elbo()); 
-     
-    _beta.swap(); 
-    _beta.compute_expectations(); 
+
+    _beta.swap();
+    _beta.compute_expectations();
     _beta.set_next_to_zero();
 
-    if (_env.bias) { 
+    if (_env.bias) {
         _thetabias.swap();
         _betabias.swap();
     }
 
-    fflush(stdout);    
+    fflush(stdout);
     if (_iter % _env.reportfreq == 0) {
       compute_likelihood(true);
       compute_likelihood(false);
       save_model();
       elbo();
       compute_precision(false);
-    } 
+    }
 
     if (_env.save_state_now) {
       lerr("Saving state at iteration %d duration %d secs", _iter, duration());
@@ -417,10 +389,6 @@ NormPRec::vb()
     #endif
 
   }
-  delete phi_n; 
-  delete p; 
-  delete phi_m;
-  delete phi;
 }
 
 void
@@ -648,8 +616,8 @@ NormPRec::compute_likelihood(bool validation)
     k += 1;
 
     // add a fake 0 for that user
-    //s += rating_likelihood(n, gsl_rng_uniform_int(_r, _m), 0); 
-    //k += 1; 
+    s += rating_likelihood(n, gsl_rng_uniform_int(_r, _m), 0);
+    k += 1;
   }
 
   double a = .0;
@@ -660,7 +628,7 @@ NormPRec::compute_likelihood(bool validation)
 
   if (!validation)
     return;
-  
+
   bool stop = false;
   int why = -1;
   if (_iter > 30) {
@@ -679,7 +647,7 @@ NormPRec::compute_likelihood(bool validation)
   }
   _prev_h = a;
   FILE *f = fopen(Env::file_str("/max.txt").c_str(), "w");
-  fprintf(f, "%d\t%d\t%.5f\t%d\n", 
+  fprintf(f, "%d\t%d\t%.5f\t%d\n",
 	  _iter, duration(), a, why);
   fclose(f);
   if (stop) {

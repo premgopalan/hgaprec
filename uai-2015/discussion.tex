@@ -1,4 +1,5 @@
 \section{Discussion}
+\vspace{-0.1in}
 We have demonstrated that Poisson factorization is an efficient and
 effective means of generating high quality recommendations across a
 variety of data sets ranging from movie views to scientific article
@@ -12,7 +13,6 @@ algorithm is a robust, off-the-shelf tool, providing high accuracy
 even with fixed hyperparameter settings.
 
 %%% recsys-prem !!! added note about SVI here (removed from intro)
-
 Finally, we emphasize that HPF is more than just one method---it is
 the simplest in a class of probabilistic models with these properties,
 and has already been extended to a combined model of article content
@@ -23,18 +23,15 @@ representations~\cite{gopalan2014bayesian}.
 A notable innovation in Gaussian MF is the algorithm
 of~\cite{Hu:2008p9402} that explicitly downweights zeros using
 confidence parameters. We presented the empirical study in this paper
-comparing to the Gaussian MF with subsampled
-zeros~\cite{Koren:2009}. Our ongoing work includes bringing the
-confidence-weighting of~\cite{Hu:2008p9402} into HPF.
-%% To provide a fair
-%% comparison to the algorithm of ~\cite{Hu:2008p9402} we need to bring
-%% the confidence-weighting of~\cite{Hu:2008p9402} into HPF. 
-This will allow downweighting of the zeros beyond that provided
-implicitly by Poisson factorization. Our initial experiments show that
-even without the downweighting, HPF provides better predictive
-performance (measured using the mean rank of recommended items) for
-all but the ``heaviest'' portion of the long tail of items, consisting
-of the least popular items in the data sets.
+comparing to the Gaussian MF with subsampled zeros~\cite{Koren:2009}.
+We attempted to compare to a GraphChi
+implementation~\cite{kyrola2012graphchi} of~\cite{Hu:2008p9402}, but
+it gave unexpectedly poor results suggesting an incorrect
+implementation. We found a correct implementation,
+but these comparisons are ongoing work. Another piece of ongoing work
+includes bringing the confidence-weighting of~\cite{Hu:2008p9402} into
+HPF. This will allow downweighting of the zeros beyond that provided
+implicitly by Poisson factorization.
 
 %% we present our empirical study
 %% without hu et al., but discuss the need to downweight the zeros on

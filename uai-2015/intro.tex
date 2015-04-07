@@ -114,117 +114,27 @@ user and item biases (MF)---for large data sets of Netflix users
 watching movies, Last.FM users listening to music, scientists reading
 papers, and \textit{New York Times} readers clicking on articles.
 
-{\bf Comparison to Gaussian MF.} Many of the leading MF methods are
-based on Gaussian likelihoods (i.e., squared loss). When applied to
-explicit data, Gaussian models are fit only to the observed
-ratings~\cite{Koren:2009} and infer distributions over user
-preference. For each user, the items she did not consume, i.e., the
-zero observations, are treated as ``missing data''. Gaussian models
-make up the state of the art in this setting~\cite{Salakhutdinov:2008,
-  Salakhutdinov:2008a,Koren:2009}.
 
-In implicit data sets of user consumption, there is a fundamental
-asymmetry that allows one to infer which items a user consumed, and
-therefore liked, but not which items a user did not
-like~\cite{Hu:2008p9402}. In this setting, Gaussian MF applied to all
-observations gives equal weight to consumed and unconsumed items.
-Consequently, when faced with a sparse matrix and implicit feedback,
-matrix factorization places more total emphasis on the unconsumed
-user/item pairs.
-
-To address this limitation of Gaussian MF, researchers have patched it
-in complex ways. There are two main approaches. The first approach,
-proposed by \cite{Hu:2008p9402}, is to treat the unconsumed items with
-greater uncertainty and increase confidence as the rating for an item
-increases. This converts the raw observations into two separate
-quantities with distinct interpretations: user preferences and
-confidence levels. Hu et al.~\cite{Hu:2008p9402} present an
-alternating least squares algorithm that considers all observations
-but whose per-iteration complexity is still linear in the number of
-non-zero observations. A main disadvantage of this method is that the
-assignment of per-observation confidence weights requires exhaustive
-search via cross-validation, or other model selection methods, which
-is impractical on massive data sets.
-%% For scalability, the method assigns a single confidence level
-%% parameter for all zero observations. This simpler treatment fails
-%% to capture that the vast majority of observations are zero not
-%% because the user disliked them, but because they have not even
-%% considered them.
-
-The second approach is to randomly synthesize negative
-examples~\cite{Dror:2012a, Gantner:2012p9364, Paquet:2013p9197}. In
-this approach, unconsumed items are subsampled for each user to
-balance out the consumed items. As Dror et al.~\cite{Dror:2012a} note,
-it is unclear how to balance these two sets of items. Do we use an
-equal number of consumed and consumed items, or do we use the full set
-of unconsumed items~\cite{Cremonesi:2010, Hu:2008p9402}?  Further, the
-subsampling of negative or unconsumed items is often expensive, and
-can account for a substantial fraction of resources devoted to model
-fitting.
-
-One problem with most Gaussian models is they do not capture that
-users have limited resources to consume, view, or rate items from a
-vast number of options. 
-%% They either interpret all unconsumed observations as having high
-%% uncertainty around them---conflating zeros due to limited user
-%% resources and zeros due to disliking an item---or they subsample
-%% unconsumed items to learn a balanced user profile. Neither approach
-%% treats the zero observations as a signal for the limited rate at which
-%% each user consumes items.
-In contrast, Poisson factorization (PF) captures real consumption
-data, specifically that users have finite (and varied) resources with
-which to consume items.  To see this, we can rewrite the model as a
-two stage process where a user first decides on a budget of how many
-movies to watch and then spends this budget on movies of interest. If
-the model accurately captures the distribution of budgets then
-consumed items carry more weight than unconsumed items, because
-unconsumed items can be partially explained by a lack of resources. We
-conjecture that matrix factorization methods based on the Gaussian
-model systematically overestimate the users' budgets, and we confirm
-this hypothesis in \mysec{eval} using a posterior predictive
-check~\cite{Gelman:1996}. This misfit leads to an overweighting of the
-zeros, which explains why practitioners require complex methods for
-downweighting
-them~\cite{Hu:2008p9402,Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.
-Poisson factorization does not need to be modified in this way.
-
-Further, the HPF algorithm retains the linear-scaling of Gaussian MF
-with downweighted zeros~\cite{Hu:2008p9402}. HPF algorithms only need
-to iterate over the consumed items in the observed matrix of user
-behavior. This follows from the mathematical form of the Poisson
-distribution.  In contrast, the subsampling-based Gaussian MF
-methods~\cite{Gantner:2012p9364, Dror:2012a,Paquet:2013p9197} must
-iterate over both positive and negative examples in the implicit
-setting. This makes it difficult to take advantage of data sparsity to
-scale to massive data sets.
-
-Finally, unlike Gaussian MF which typically provides dense latent
-representations of users and items, PF models provide sparse latent
-representations. This property arises from the PF log-likelihood which
-can be shown to minimize the information (Kullback-Leibler) divergence
-under NMF~\cite{Cemgil:2009}, and from the Gamma priors on user
-preferences and item attributes that we place in the HPF model of
-\mysec{model}.
-
-{\bf Recent extensions.}
-Building on the HPF model and algorithm we present in this paper,
-recent work has proposed a joint model of article text and reader
-preferences~\cite{gopalan2014content}. This model takes advantage of
-the sparse, non-negative representations in PF, which are useful in
-capturing different types of discrete data, such as word counts and
-user ratings. Further, they exploit the additive properties of
-independent Poisson random variables to capture dependencies between
-discrete data, for example, the dependence of user ratings of an
-article on its content. Another recent work proposes a Bayesian
+{\bf Recent extensions.}  
+Building on the HPF model and algorithm we presented in a preprint,
+recent extensions have been proposed that are built on properties we
+establish here. One extension is a combined model of article text and
+reader preferences~\cite{gopalan2014content}. This model takes
+advantage of the sparse, non-negative representations in PF, which are
+useful in capturing different types of discrete data, such as word
+counts and user ratings. Further, they exploit the additive properties
+of independent Poisson random variables to capture dependencies
+between discrete data, for example, the dependence of user ratings of
+an article on its content. Another recent work proposes a Bayesian
 nonparametric model~\cite{gopalan2014bayesian} that adapts the
 dimensionality of the latent representations, learning the preference
 patterns (and their number) that best describe the users. Both models
 exploit the scalability of PF algorithms to study massive data sets.
 These extensions testify to the modeling flexibility of PF models.
 
-We review other related work below before discussing details of the
-Poisson factorization model, including its statistical properties and
-methods for scalable inference.
+We review related work in detail in \mysec{related}. We now discuss
+details of the Poisson factorization model, including its statistical
+properties and methods for scalable inference.
 
 %%
 %%\begin{figure}

@@ -106,18 +106,17 @@ competing methods:
     stochastic variational inference~\cite{Hoffman:2013} to
     approximate these intractable posteriors.
 
-  \item {\bf MF}: Probabilistic Matrix Factorization with
-    user and item biases. We use a variant of matrix factorization
-    popularized through the Netflix Prize~\cite{Koren:2009}, where a
-    linear predictor---comprised of a constant term, user activity and
-    item popularity biases, and a low-rank interaction term---is fit
-    to minimize the mean squared error between the predicted and
-    observed rating values, subject to L2 regularization to avoid
+  \item {\bf MF}: Probabilistic Matrix Factorization with user and
+    item biases. We use a variant of matrix factorization popularized
+    through the Netflix Prize~\cite{Koren:2009}, where a linear
+    predictor---comprised of a constant term, user activity and item
+    popularity biases, and a low-rank interaction term---is fit to
+    minimize the mean squared error between the predicted and observed
+    rating values, subject to L2 regularization to avoid
     overfitting. Weights are randomly initialized and updated via
-    stochastic gradient descent using the Vowpal Wabbit
-    package~\cite{Weinberger:2009}. This corresponds to maximum
-    a-posteriori inference under Probabilistic Matrix
-    Factorization~\cite{Salakhutdinov:2008a}.
+    stochastic gradient descent using the Vowpal Wabbit package. This
+    corresponds to maximum a-posteriori inference under Probabilistic
+    Matrix Factorization~\cite{Salakhutdinov:2008a}.
 
 \item {\bf CliMF}: Collaborative Less-is-More
   filtering~\cite{shi2012climf} maximizes mean reciprocal rank to
@@ -212,9 +211,7 @@ percentile. For example, the 10\% mark on the x-axis shows mean
 performance across the bottom 10\% of users, who are least active; the
 90\% mark shows the mean performance for all but the top 10\% of most
 active users. Here we see that Poisson factorization outperforms other
-methods for users of all activity levels---both the ``light'' users
-who constitute the majority, and the relatively few ``heavy'' users
-who consume more---for all data sets.
+methods for users of all activity levels.
 
 %% recys-prem !!! removed paragraph below on higher levels of user activity
 

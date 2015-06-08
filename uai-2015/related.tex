@@ -26,7 +26,7 @@ latent factors using a scalable variational inference algorithm.
 
 Independently of GaP and user behavior models, Poisson factorization
 has been studied in the context of signal processing for source
-separation~\cite{Cemgil:2009,Hoffman:2012} and for the purpose of
+separation~\cite{Cemgil:2009,Hoffman:2012} and for
 detecting community structure in network
 data~\cite{Ball:2011,Gopalan:2013}. This research includes variational
 approximations to the posterior, though the issues and details around
@@ -49,7 +49,7 @@ observed ratings.
 based on Gaussian likelihoods (i.e., squared loss). When applied to
 explicit data, Gaussian models are fit only to the observed
 ratings~\cite{Koren:2009} and infer distributions over user
-preference. For each user, the items she did not consume, i.e., the
+preferences. For each user, the items she did not consume, i.e., the
 zero observations, are treated as missing. Gaussian models make up the
 state of the art in this setting~\cite{Salakhutdinov:2008,
   Salakhutdinov:2008a,Koren:2009}.
@@ -93,31 +93,33 @@ subsampling of negative or unconsumed items is often expensive, and
 can account for a substantial fraction of resources devoted to model
 fitting.
 
-One problem with most Gaussian models is they do not capture that
+Another issue with most Gaussian models is they do not capture the fact that
 users have limited resources to consume, view, or rate items from a
-vast number of options. 
+vast number of options.
 %% They either interpret all unconsumed observations as having high
 %% uncertainty around them---conflating zeros due to limited user
 %% resources and zeros due to disliking an item---or they subsample
 %% unconsumed items to learn a balanced user profile. Neither approach
 %% treats the zero observations as a signal for the limited rate at which
 %% each user consumes items.
-In contrast, Poisson factorization (PF) captures real consumption
-data, specifically that users have finite (and varied) resources with
-which to consume items.  To see this, we can rewrite the model as a
-two stage process where a user first decides on a budget of how many
-movies to watch and then spends this budget on movies of interest. If
-the model accurately captures the distribution of budgets then
-consumed items carry more weight than unconsumed items, because
-unconsumed items can be partially explained by a lack of resources. We
-conjecture that matrix factorization methods based on the Gaussian
-model systematically overestimate the users' budgets, and we confirm
-this hypothesis in \mysec{eval} using a posterior predictive
+Matrix factorization methods based on the Gaussian
+model systematically overestimate the users' budgets, as confirmed in \mysec{eval} using a posterior predictive
 check~\cite{Gelman:1996}. This misfit leads to an overweighting of the
 zeros, which explains why practitioners require complex methods for
 downweighting
 them~\cite{Hu:2008p9402,Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.
 Poisson factorization does not need to be modified in this way.
+%As shown in \mysec{model}, Poisson factorization (PF) captures real consumption
+%data, specifically that users have finite (and varied) resources with
+%which to consume items.
+%To see this, we can rewrite the model as a
+%two stage process where a user first decides on a budget of how many
+%movies to watch and then spends this budget on movies of interest. If
+%he model accurately captures the distribution of budgets then
+%consumed items carry more weight than unconsumed items, because
+%unconsumed items can be partially explained by a lack of resources.
+%We conjecture that 
+
 
 Further, the HPF algorithm retains the linear-scaling of Gaussian MF
 with downweighted zeros~\cite{Hu:2008p9402}. HPF algorithms only need
@@ -133,11 +135,24 @@ Finally, unlike Gaussian MF which typically provides dense latent
 representations of users and items, PF models provide sparse latent
 representations. This property arises from the PF log-likelihood which
 can be shown to minimize the information (Kullback-Leibler) divergence
-under NMF~\cite{Cemgil:2009}, and from the Gamma priors on user
-preferences and item attributes that we place in the HPF model of
-\mysec{model}. We discuss additional related recommendation methods
-in \mysec{eval}.
+under NMF~\cite{Cemgil:2009}, and from the Gamma priors in the HPF model.
+%on user
+%preferences and item attributes that we place in the HPF model of
+%\mysec{model}.
+%We discuss additional related recommendation methods in \mysec{eval}.
 
-
-
-
+{\bf Recent extensions.}
+Building on the HPF model and algorithm we presented in a preprint,
+recent extensions have been proposed. One extension is a combined model of article text and
+reader preferences~\cite{gopalan2014content}. This model takes
+advantage of the sparse, non-negative representations in PF, which are
+useful in capturing different types of discrete data, such as word
+counts and user ratings. Further, they exploit the additive properties
+of independent Poisson random variables to capture dependencies
+between discrete data, for example, the dependence of user ratings of
+an article on its content. Another recent work proposes a Bayesian
+nonparametric model~\cite{gopalan2014bayesian} that adapts the
+dimensionality of the latent representations, learning the preference
+patterns (and their number) that best describe the users. Both models
+exploit the scalability of PF algorithms to study massive data sets.
+These extensions testify to the modeling flexibility of PF models.

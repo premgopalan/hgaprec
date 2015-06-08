@@ -28,7 +28,7 @@ We model these data with factorized Poisson
 distributions~\cite{Canny:2004}, where each item $i$ is represented by
 a vector of $K$ latent attributes $\beta_i$ and each user $u$ by a
 vector of $K$ latent preferences $\theta_u$.  The observations $y_{ui}$
-are modeled with a Poisson, parameterized by the inner product of
+are modeled with a Poisson distribution, parameterized by the inner product of
 the user preferences and item attributes, $y_{ui} \sim
 \poisson(\theta_u^\top \beta_i)$.  This is a variant of probabilistic
 matrix factorization~\cite{Salakhutdinov:2008a} but where each user
@@ -82,8 +82,8 @@ Bayesian Poisson Factorization (BPF).
 The central computational problem is posterior inference, which is
 akin to ``reversing'' the generative process.  Given a user behavior
 matrix, we want to estimate the conditional distribution of the latent
-per-user and per-item structure, $p(\theta_{1:N} \beta_{1:M} \g y)$.
-The posterior is the key to recommendation.  We estimate the posterior
+per-user and per-item structure, $p(\theta_{1:N}, \beta_{1:M} \g y)$,
+termed the posterior, which is the key to recommendation.  We estimate the posterior
 expectation of each user's preferences, each items attributes and,
 subsequently, form predictions about which unconsumed items each user
 will like.  We discuss posterior inference in
@@ -120,11 +120,11 @@ factorization.\footnote{Specifically, by classical matrix
   randomly sampling from missing ratings in the training
   set~\cite{Gantner:2012p9364,Dror:2012a,Paquet:2013p9197}.}
 
-{\bf HPF captures sparse factors}.  As we mentioned above, the Gamma
+{\bf HPF captures sparse factors}.  As mentioned above, the Gamma
 priors on preferences and attributes encourages sparse representations
 of users and items.  Specifically, by setting the shape parameter to
 be small, most of the weights will be close to zero and only a few
-will be large.
+will be large. This leads to a simpler, more interpretable model.
 
 % dmb: !!! above, cite something for this property.  without even
 % looking at it, citing johnson and kotz (continuous multivariate
@@ -134,9 +134,9 @@ will be large.
   \centering
   \includegraphics[width=0.4\textwidth]{figures/user_activity_sim_netflix.pdf}
   \caption{A posterior predictive check of the distribution of total
-    ratings for the Netflix data set.  The pink curve shows the
+    ratings for the Netflix data set.  The black squares show the
     empirical count of the number of users who have rated a given
-    number of items, while the green and blue curves show the
+    number of items, while the red and blue curves show the
     simulated totals from fitted Poisson and traditional matrix
     factorization models, respectively. The Poisson marginal closely
     matches the empirical, whereas classical matrix factorization fits
@@ -282,15 +282,15 @@ $\beta_i$, the Poisson distribution of the rating $y_{ui}$ is
 \end{equation}
 Recall the elementary fact that $0! = 1$.  With this, the log
 probability of the complete matrix $y$ can be written as
-\begin{align}
+\begin{align*}
   \log p(y \g \theta, \beta) =
-  & \left(\textstyle \sum_{\{y_{ui} > 0\}}
+  & \textstyle \sum_{\{y_{ui} > 0\}}
     y_{ui} \log (\theta_u^\top \beta_i) - \log y_{ui}!
-  \right) \\
+   \\
   & -
   \left(\textstyle\sum_{u} \theta_u\right)^\top \left(\textstyle
     \sum_{i} \beta_i\right). \nonumber
-\end{align}
+\end{align*}
 %Classical MF does not enjoy this property. These methods, especially
 %when applied to massive data sets of implicit feedback, must (in
 %theory) iterate over all the cells of the matrix.  Practitioners

@@ -44,7 +44,7 @@ data sets.
 Furthermore, the intent signaled by an observed rating varies
 significantly across these data sets. For instance, the Netflix data
 set gives the most direct measure of stated preferences for items, as
-users provide an star rating for movies they have watched. In
+users provide a star rating for movies they have watched. In
 contrast, article click counts in the New York Times data are a less
 clear measure of how much a user likes a given article---most articles
 are read only once, and a click through is only a weak indicator of
@@ -139,7 +139,7 @@ our data sets. The fully Bayesian treatment of the Probabilistic
 Matrix Factorization~\cite{Salakhutdinov:2008}, uses a MCMC algorithm
 for inference. The authors~\cite{Salakhutdinov:2008} report that a
 single Gibbs iteration on the Netflix data set with 60 latent factors,
-requires ~30 minutes, and that they throw away the first 800
+requires 30 minutes, and that they throw away the first 800
 samples. This implies at least 16 days of training, while the HPF
 variational inference algorithm converges within 13 hours on the
 Netflix data. Another alternative, Bayesian Personalized Ranking

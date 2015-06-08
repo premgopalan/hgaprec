@@ -11,9 +11,9 @@ these discovered patterns to recommend future items to its users.
 
 In this paper, we develop Hierarchical Poisson factorization (HPF) for
 generating high-quality recommendations. Our algorithms easily scale
-to massive data and significantly outperform the existing methods. We
-show HPF is tailored to real-world properties of user behavior data:
-the heterogeneous interests of users, the varied types of items, and a
+to massive data and outperform several existing methods. We show HPF
+is tailored to real-world properties of user behavior data: the
+heterogeneous interests of users, the varied types of items, and a
 realistic distribution of the finite resources that users have to
 consume these items.
 
@@ -108,17 +108,16 @@ This inferential computation is common to many variants of matrix
 factorization.  We find, however, that HPF enjoys significant
 quantitative advantages over classical methods over a variety of
 \emph{implicit feedback} data sets. \myfig{precision_recall} shows
-that HPF performs significantly better than competing
-methods---including the industry standard of matrix factorization with
-user and item biases (MF)---for large data sets of Netflix users
-watching movies, Last.FM users listening to music, scientists reading
-papers, and \textit{New York Times} readers clicking on articles.
+that HPF performs better than competing methods---including the
+industry standard of matrix factorization with user and item biases
+(MF)---for large data sets of Netflix users watching movies, Last.FM
+users listening to music, scientists reading papers, and \textit{New
+  York Times} readers clicking on articles.
 
 
 {\bf Recent extensions.}  
 Building on the HPF model and algorithm we presented in a preprint,
-recent extensions have been proposed that are built on properties we
-establish here. One extension is a combined model of article text and
+recent extensions have been proposed. One extension is a combined model of article text and
 reader preferences~\cite{gopalan2014content}. This model takes
 advantage of the sparse, non-negative representations in PF, which are
 useful in capturing different types of discrete data, such as word

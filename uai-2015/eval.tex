@@ -111,7 +111,8 @@ competing methods:
     overfitting. Weights are randomly initialized and updated via
     stochastic gradient descent using the Vowpal Wabbit package~\cite{Weinberger:2009}. This
     corresponds to maximum a-posteriori inference under Probabilistic
-    Matrix Factorization~\cite{Salakhutdinov:2008a}.
+    Matrix Factorization~\cite{Salakhutdinov:2008a}. We selected
+    hyperparameters using grid search with a small validation set.
 
 \item {\bf CliMF}: Collaborative Less-is-More
   filtering~\cite{shi2012climf} maximizes mean reciprocal rank to

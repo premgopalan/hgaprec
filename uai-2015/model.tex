@@ -76,7 +76,7 @@ the graphical model in Figure~\ref{fig:hpf}, is as follows:
 \end{enumerate*}
 This process describes the statistical assumptions behind the model.
 We note that this contains, as a sub-class, a factorization model
-where with fixed rate parameters for all users. We call this model
+with fixed rate parameters for all users and items. We call this model
 Bayesian Poisson Factorization (BPF).
 
 The central computational problem is posterior inference, which is
@@ -266,7 +266,7 @@ increases the Poisson model's predictive score that a user who watches
 {\bf Fast inference with sparse matrices.}  Finally, the likelihood of
 the observed data under HPF depends only on the consumed
 items, that is, the non-zero elements of the user/item matrix $y$.
-This facilates computation for the kind of sparse matrices we
+This facilitates computation for the kind of sparse matrices we
 observe in real-world data.
 
 We can see this property from the form of the Poisson distribution.

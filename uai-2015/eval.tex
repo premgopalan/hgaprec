@@ -87,8 +87,7 @@ competing methods:
     initialized and modified via an alternating multiplicative update
     rule to minimize the Kullback-Leibler divergence between the
     actual and modeled rating matrices. We use the GraphLab
-    implementation of NMF~\cite{kyrola2012graphchi} to scale to our
-    large data sets.
+    implementation of NMF~\cite{kyrola2012graphchi} to scale to our large data sets.
 
   \item {\bf LDA}: Latent Dirichlet Allocation~\cite{Blei:2003b}. LDA
     is a Bayesian probabilistic generative model where user preferences
@@ -96,7 +95,8 @@ competing methods:
     topic is represented by a distribution over items. Interest and topic
     distributions are randomly initialized and updated using
     stochastic variational inference~\cite{Hoffman:2013} to
-    approximate these intractable posteriors.
+    approximate these intractable posteriors. We used the default
+    setting of the hyperparameters in the Vowpal Wabbit package~\cite{Weinberger:2009}.
 
   \item {\bf MF}: Probabilistic Matrix Factorization with user and
     item biases. We use a variant of matrix factorization popularized
@@ -114,7 +114,8 @@ competing methods:
   filtering~\cite{shi2012climf} maximizes mean reciprocal rank to
   improve the top-$n$ predictive performance on binary relevance data
   sets. We use the GraphLab implementation of
-  CliMF~\cite{kyrola2012graphchi} to scale to our large data sets.
+  CliMF~\cite{kyrola2012graphchi} to scale to our large data sets, 
+  and use the default parameter settings in the package.
 \end{itemize}
 
 We note that while HPF and LDA take only the non-zero observed

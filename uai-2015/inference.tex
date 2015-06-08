@@ -7,7 +7,7 @@ user preferences and item attributes that explain these ratings, and
 then use these inferences to recommend new content to the users.  In
 this section we discuss the details and practical challenges of
 posterior inference for HPF, and present a mean-field variational
-inference algorithm as a practical and scalable approach.  Our
+inference algorithm as a scalable approach.  Our
 algorithm easily accommodates data sets with millions of users and
 hundreds of thousands of items on a single CPU.
 
@@ -204,7 +204,7 @@ ratings. The HPF algorithm stops when the change in log likelihood is
 less than 0.0001\%. We find that the algorithm
 is largely insensitive to small changes in the hyper-parameters. To
 enforce sparsity, we set the shape hyperparameters $a'$, $a$, $c$ and
-$c'$ to provide exponentially shaped prior \gam~distributions. We
+$c'$ to provide exponentially shaped prior \gam~distributions---we
 fixed each hyperparameter at $0.3$. We set the hyperparameters $b'$
 and $d'$ to 1, fixing the prior mean at 1.
 

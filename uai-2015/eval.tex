@@ -1,16 +1,3 @@
-\begin{figure*}[t!]
-\centering
-\includegraphics[width=0.8\textwidth]{newfigs/mean_precision_at_20.pdf}\\
-\includegraphics[width=0.8\textwidth]{newfigs/mean_recall_at_20.pdf}\\
-\caption{Predictive performance on data sets. The top and bottom plots
-  show normalized mean precision and mean recall at 20
-  recommendations, respectively. While competing method performance
-  varies across data sets, HPF consistently outperforms competing
-  methods.}
-\label{fig:precision_recall}
-\end{figure*}
-
-
 \section{EMPIRICAL STUDY}
 \label{sec:eval}
 We evaluate the performance of the Hierarchical Poisson factorization
@@ -29,8 +16,9 @@ on several data sets of user behavior:
 \begin{itemize}
 \item The {\bf Mendeley} data set~\cite{Jack:2010} of scientific
   articles is a binary matrix of 80,000 users and 260,000 articles,
-  with 5 million observations.  Each cell corresponds to the presence
-  or absence of an article in a scientist's online library.
+  with 5 million observations. Each cell indicates the presence or absence of an article
+  in a user's library.
+
 \item The {\bf Echo Nest} music data set~\cite{Bertin-Mahieux:2011} is
   a matrix of 1 million users and 385,000 songs, with 48 million
   observations.  Each observation is the number of times a user played
@@ -50,7 +38,7 @@ of our algorithm. The Mendeley, Echo Nest, and New York Times data
 are sparse compared to Netflix. For example, we observe
 only 0.001\% of all possible user-item ratings in Mendeley, while 1\%
 of the ratings are non-zero in the Netflix data. This is partially a
-reflection of large number of items relative to number users in these
+reflection of large number of items relative to the number of users in these
 data sets.
 
 Furthermore, the intent signaled by an observed rating varies
@@ -77,13 +65,17 @@ observations~\cite{Paquet:2013p9197}.
 
 \begin{figure*}[t!]
 \centering
-\includegraphics[width=0.8\textwidth]{newfigs/mean_diff_precision_at_20_by_user_percentile.pdf}\\
-\includegraphics[width=0.8\textwidth]{newfigs/mean_diff_recall_at_20_by_user_percentile.pdf}\\
-\caption{Predictive performance across users. The top and bottom plots show the
-  mean difference in precision and recall to HPF at 20 recommendations,
-  respectively, by user activity.}
-\label{fig:precision_recall_by_user_activity}
+\includegraphics[width=0.8\textwidth]{newfigs/mean_precision_at_20.pdf}\\
+\includegraphics[width=0.8\textwidth]{newfigs/mean_recall_at_20.pdf}\\
+\caption{Predictive performance on data sets. The top and bottom plots
+  show normalized mean precision and mean recall at 20
+  recommendations, respectively. While the relative performance of
+  the competing methods varies across data sets, HPF consistently outperforms
+  each of them.
+}
+\label{fig:precision_recall}
 \end{figure*}
+
 
 {\bf Competing methods.} We compare Poisson factorization against an array of
 competing methods:
@@ -101,7 +93,7 @@ competing methods:
   \item {\bf LDA}: Latent Dirichlet Allocation~\cite{Blei:2003b}. LDA
     is a Bayesian probabilistic generative model where user preferences
     are represented by a distribution over different topics, and each
-    topic is a distribution over items. Interest and topic
+    topic is represented by a distribution over items. Interest and topic
     distributions are randomly initialized and updated using
     stochastic variational inference~\cite{Hoffman:2013} to
     approximate these intractable posteriors.
@@ -114,7 +106,7 @@ competing methods:
     minimize the mean squared error between the predicted and observed
     rating values, subject to L2 regularization to avoid
     overfitting. Weights are randomly initialized and updated via
-    stochastic gradient descent using the Vowpal Wabbit package. This
+    stochastic gradient descent using the Vowpal Wabbit package~\cite{Weinberger:2009}. This
     corresponds to maximum a-posteriori inference under Probabilistic
     Matrix Factorization~\cite{Salakhutdinov:2008a}.
 
@@ -201,6 +193,16 @@ relative quality of recommendations from competing methods varies
 substantially from one data set to the next. For instance, LDA
 performs quite well on the Echo Nest data, but fails to beat classical
 matrix factorization for the implicit Netflix data set.
+
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=0.8\textwidth]{newfigs/mean_diff_precision_at_20_by_user_percentile.pdf}\\
+\includegraphics[width=0.8\textwidth]{newfigs/mean_diff_recall_at_20_by_user_percentile.pdf}\\
+\caption{Predictive performance across users. The top and bottom plots show the
+  mean difference in precision and recall to HPF at 20 recommendations,
+  respectively, by user activity.}
+\label{fig:precision_recall_by_user_activity}
+\end{figure*}
 
 We also study precision and recall as a function of user activity to
 investigate how performance varies across users of different types. In

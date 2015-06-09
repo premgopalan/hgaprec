@@ -198,7 +198,7 @@ b_u & \sim \poisson(\theta_u^T \sum_i \beta_i)\nonumber\\
 \end{align}
 This shows that learning a PF model for user-item ratings is
 effectively the same as learning a budget for each user while also
-learning that budget is distributed across items.
+learning how that budget is distributed across items.
 
 % Figure 3 shows the distributions of user activity on large,
 % real-world ratings data sets. Under BPF and HPF, the
@@ -246,8 +246,8 @@ stem from classical MF's overestimation of the distribution of user
 activity.)  To address this, researchers have patched MF in complex
 ways, for example, by including per-observation
 confidences~\cite{Koren:2009} or considering all zeroes to be hidden
-variables~\cite{Paquet:2013p9197}.  Poisson factorization more
-naturally solves this problem with a more realistic model of user
+variables~\cite{Paquet:2013p9197}.  Poisson factorization 
+naturally solves this problem with a realistic model of user
 activity.
 
 As an example, consider two similar science fiction movies, ``Star

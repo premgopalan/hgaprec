@@ -61,19 +61,21 @@ Consequently, when faced with a sparse matrix and implicit feedback,
 matrix factorization places more total emphasis on the unconsumed
 user/item pairs.
 
-To address this limitation of Gaussian MF, researchers have patched it
-in complex ways. There are two main approaches. The first approach,
-proposed by \cite{Hu:2008p9402}, is to treat the unconsumed items with
-greater uncertainty and increase confidence as the rating for an item
+To address this limitation of Gaussian MF, researchers have proposed
+two main approaches. The first approach, proposed by
+\cite{Hu:2008p9402}, is to treat the unconsumed items with greater
+uncertainty and increase confidence as the rating for an item
 increases. This converts the raw observations into two separate
 quantities with distinct interpretations: user preferences and
 confidence levels. Hu et al.~\cite{Hu:2008p9402} present an
 alternating least squares algorithm that considers all observations
 but whose per-iteration complexity is still linear in the number of
-non-zero observations. A disadvantage of this method is that the
-assignment of per-observation (class) confidence weights may require exhaustive
-search via cross-validation, or other model selection methods, 
-hindering scalability.
+non-zero observations.
+
+%% A disadvantage of this method is that the
+%% assignment of per-observation (class) confidence weights may require
+%% exhaustive search via cross-validation, or other model selection
+%% methods, hindering scalability.
 %% For scalability, the method assigns a single confidence level
 %% parameter for all zero observations. This simpler treatment fails
 %% to capture that the vast majority of observations are zero not
@@ -91,20 +93,12 @@ subsampling of negative or unconsumed items is often expensive, and
 can account for a substantial fraction of resources devoted to model
 fitting.
 
-Another issue with most Gaussian models is they do not capture the fact that
-users have limited resources to consume, view, or rate items from a
-vast number of options.
-%% They either interpret all unconsumed observations as having high
-%% uncertainty around them---conflating zeros due to limited user
-%% resources and zeros due to disliking an item---or they subsample
-%% unconsumed items to learn a balanced user profile. Neither approach
-%% treats the zero observations as a signal for the limited rate at which
-%% each user consumes items.
-Gaussian MF with subsampled zeros, fit using SGD, systematically
-overestimates the users' budgets, as confirmed in \mysec{eval} using a
-posterior predictive check~\cite{Gelman:1996}. This misfit leads to an
-overweighting of the zeros, which explains why practitioners require
-complex methods for downweighting
+An issue that we found in Gaussian MF with subsampled zeros, fit using
+SGD, is that it systematically overestimates the users' budgets. We
+confirmed this in \mysec{eval} using a posterior predictive
+check~\cite{Gelman:1996}. This misfit leads to an overweighting of the
+zeros, which hints at why practitioners require complex methods for
+downweighting
 them~\cite{Dror:2012a,Gantner:2012p9364,Hu:2008p9402,Paquet:2013p9197}.
 Poisson factorization does not need to be modified in this way.
 %As shown in \mysec{model}, Poisson factorization (PF) captures real consumption

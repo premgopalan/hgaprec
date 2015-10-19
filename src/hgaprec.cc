@@ -1477,7 +1477,7 @@ HGAPRec::compute_likelihood(bool validation)
   int why = -1;
   if (_iter > 30) {
     if (a > _prev_h && _prev_h != 0 && fabs((a - _prev_h) / _prev_h) < 0.000001) {
-      //stop = true;
+      stop = true;
       why = 0;
     } else if (a < _prev_h)
       _nh++;
@@ -1486,7 +1486,7 @@ HGAPRec::compute_likelihood(bool validation)
 
     if (_nh > 2) { // be robust to small fluctuations in predictive likelihood
       why = 1;
-      //stop = true;
+      stop = true;
     }
   }
   _prev_h = a;
